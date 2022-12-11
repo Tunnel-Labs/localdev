@@ -1,8 +1,3 @@
-const { defineConfig } = require('@dialect-inc/eslint-config')
+const { createESLintConfig } = require('lionconfig/eslint')
 
-module.exports = defineConfig(__dirname, {
-	rules: {
-		// We can't use `@dialect-inc/logger` when using ink and instead need to use patched console methods
-		'no-console': 'off'
-	}
-})
+module.exports = createESLintConfig(__dirname)
