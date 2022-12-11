@@ -1,0 +1,13 @@
+{
+	"extends": "lionconfig/tsconfig",
+	"compilerOptions": {
+		"outDir": "dist",
+		"rootDir": "src",
+		"baseUrl": ".",
+		"jsx": "react-jsx",
+		"paths": {
+			"~/*": ["./src/*"]
+		}
+	},
+	"include": ["./src"]
+}
