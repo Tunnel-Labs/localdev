@@ -2,6 +2,58 @@
 
 An interactive TUI for local development.
 
+[A video of using localdev](https://github.com/leondreamed/localdev/blob/main/assets/localdev.gif)
+
+## Usage
+
+Install the `localdev-tui` from npm using your favorite package manager:
+
+```sh
+npm install --save-dev localdev-tui
+```
+
+Then, create a `localdev.config.mjs` file in the root of your project:
+
+```typescript
+// @ts-check
+
+/** @type {import('localdev-tui').LocaldevConfig} */
+export default {
+  servicesToLog: {
+    'my-website': true
+  },
+  services: {
+    'my-website': {
+      healthCheck: {
+        port: 3001
+      },
+      command: "npm run start"
+    },
+  },
+  localDomains: ['my-website.test'],
+  proxyRouter(req) {
+    const hostname = req.hostname
+
+    if (hostname === 'my-website.test') {
+      return 'http://127.0.0.1:3001'
+    }
+  }
+}
+```
+
+Then, add a `dev` script in your project's `package.json` file:
+
+```jsonc
+{
+  "scripts": {
+    "dev": "localdev",
+    // ...
+  }
+}
+```
+
+Now, you can run `npm run dev` (or the equivalent for your package manager) to start localdev!
+
 ## Motivation
 
 Often times, developing a complex application involves running many separate services that interact with each other. During development, it's tedious to manually run every service in separate terminals every time. Instead, it's a lot easier to have one dev server that automatically manages multiple development processes.
