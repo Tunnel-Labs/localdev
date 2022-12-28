@@ -1,7 +1,7 @@
 {
 	"name": "localdev",
 	"type": "module",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "A TUI for local development.",
 	"scripts": {
 		"dev": "ts-node ./src/bin/localdev.ts",
