@@ -1,5 +1,5 @@
 {
-	"name": "localdev",
+	"name": "localdev-tui",
 	"type": "module",
 	"version": "0.0.2",
 	"description": "A TUI for local development.",
