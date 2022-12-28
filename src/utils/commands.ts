@@ -10,6 +10,7 @@ import { LogsPane } from '~/utils/command-panes/logs.js'
 import { ServiceStatusesPane } from '~/utils/command-panes/service-statuses.js'
 import { getLocaldevConfigPath, localdevConfig } from '~/utils/config.js'
 import { clearLogs } from '~/utils/logs.js'
+import { spawnProcess } from '~/utils/process.js'
 import { markRaw } from '~/utils/raw.js'
 import { Service } from '~/utils/service.js'
 import { localdevStore } from '~/utils/store.js'
@@ -224,6 +225,7 @@ export const getLocaldevCommandSpecs: () => LocaldevCommandSpec[] = onetime(
 			defineCommandSpec,
 			createCommand,
 			Command,
+			spawnProcess,
 		}) ?? []),
 		...defaultCommandSpecs,
 	]
