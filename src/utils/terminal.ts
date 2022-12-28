@@ -1,3 +1,4 @@
+import { type Buffer } from 'node:buffer'
 import { PassThrough } from 'node:stream'
 
 import ansiEscapes from 'ansi-escapes'
@@ -6,27 +7,25 @@ import { render } from 'ink'
 import renderer from 'ink/build/renderer.js'
 import throttle from 'just-throttle'
 import patchConsole from 'patch-console'
-import { useCallback, useEffect, useState } from 'react'
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import onExit from 'signal-exit'
 import terminalSize from 'term-size'
 import invariant from 'tiny-invariant'
 import xTermHeadless from 'xterm-headless'
 
-import { MockStdin } from '~/utils/stdin.js'
-
-const { Terminal } = xTermHeadless
-
 import { ServiceStatusesPane } from '~/utils/command-panes/service-statuses.jsx'
 import {
 	activateLogScrollMode,
 	deactivateLogScrollMode,
-	getWrappedLogLinesToDisplay
+	getWrappedLogLinesToDisplay,
 } from '~/utils/logs.js'
 import { markRaw } from '~/utils/raw.js'
 import { Service } from '~/utils/service.js'
+import { MockStdin } from '~/utils/stdin.js'
 import { localdevStore } from '~/utils/store.js'
 import { LocaldevUi } from '~/utils/ui.jsx'
+
+const { Terminal } = xTermHeadless
 
 export function onTerminalResize(cb: () => void) {
 	process.on('SIGWINCH', cb)
@@ -71,7 +70,7 @@ export class TerminalUpdater {
 		rows: terminalSize().rows,
 		cols: terminalSize().columns,
 		// Enable experimental options
-		allowProposedApi: true
+		allowProposedApi: true,
 	})
 
 	constructor({ mode }: { mode: 'development' | 'test' }) {
@@ -122,7 +121,9 @@ export class TerminalUpdater {
 		const termSize = terminalSize()
 
 		// Initially, we want to display the status of the services
-		localdevStore.activeCommandBoxPaneComponent = markRaw(ServiceStatusesPane)
+		localdevStore.activeCommandBoxPaneComponent = markRaw(
+			ServiceStatusesPane as any
+		)
 		localdevStore.inkInstance = markRaw(
 			render(React.createElement(LocaldevUi, { mode: this.mode }), {
 				// We pass in a "noop stream" to Ink's `stdout` because we use our own rendering function for Ink (the built-in rendering function for Ink has flickering issues)
@@ -136,7 +137,7 @@ export class TerminalUpdater {
 				exitOnCtrlC: false,
 
 				// We use our own console patches.
-				patchConsole: false
+				patchConsole: false,
 			}) as any
 		)
 
@@ -163,6 +164,87 @@ export class TerminalUpdater {
 		this.#registerStdinListener()
 		this.#setTerminalResizeListeners()
 		this.updateTerminal()
+	}
+
+	updateTerminal(options?: {
+		updateOverflowedLines?: boolean
+		force?: boolean
+	}) {
+		if (localdevStore.inkInstance === null) {
+			return
+		}
+
+		if (!localdevStore.logScrollModeState.active) {
+			this.enableTerminalMouseSupport()
+		}
+
+		// We still want to re-render the terminal if it gets resized while `logScrollModeState` is active
+		if (!options?.force && localdevStore.logScrollModeState.active) {
+			return
+		}
+
+		if (localdevStore.inkInstance.isUnmounted) {
+			clearInterval(this.updateIntervalId)
+			return
+		}
+
+		// If we want to force an update, we pretend that the previous output was empty
+		if (
+			(options?.force ?? false) ||
+			// Updating overflowed lines implicitly implies a forced update
+			options?.updateOverflowedLines
+		) {
+			this.previousOutput = ''
+		}
+
+		/**
+			The string we want to write to the terminal to update the screen.
+		*/
+		let updateSequence = ansiEscapes.cursorHide
+
+		// If there are overflowed lines that need to be logged, then output them first
+		if (options?.updateOverflowedLines) {
+			updateSequence += this.#getUpdateSequenceFromUpdatingOverflowedLines()
+		}
+
+		const { columns: terminalWidth, rows: terminalHeight } = terminalSize()
+		const newOutput = renderer.default(
+			localdevStore.inkInstance.rootNode,
+			terminalWidth
+		).output
+
+		if (newOutput === this.previousOutput) {
+			return
+		}
+
+		const newLines = newOutput.split('\n')
+
+		const previousLines =
+			this.previousOutput === '' ? [] : this.previousOutput.split('\n')
+
+		// To refresh the terminal display, we start at the top-left corner of the screen (this assumes that our output is full screen, which it is)
+		updateSequence += ansiEscapes.cursorTo(0, 0)
+
+		for (let row = 0; row < terminalHeight; row += 1) {
+			const previousLine = previousLines[row]
+			const newLine = newLines[row]
+
+			// If the line from the previous render is equal to the line in the current render
+			if (
+				previousLines.length === newLines.length &&
+				previousLine === newLine
+			) {
+				// Don't erase the line; keep it on the screen
+			} else {
+				// Erase the line and replace it
+				updateSequence += ansiEscapes.eraseLine + (newLine ?? '')
+			}
+
+			updateSequence += ansiEscapes.cursorDown() + ansiEscapes.cursorTo(0)
+		}
+
+		this.write(SYNC_START + updateSequence + SYNC_END)
+		this.previousOutput = newOutput
 	}
 
 	#setTerminalResizeListeners() {
@@ -287,87 +369,6 @@ export class TerminalUpdater {
 			overflowedWrappedLogLines.length
 
 		return updateSequence
-	}
-
-	updateTerminal(options?: {
-		updateOverflowedLines?: boolean
-		force?: boolean
-	}) {
-		if (localdevStore.inkInstance === null) {
-			return
-		}
-
-		if (!localdevStore.logScrollModeState.active) {
-			this.enableTerminalMouseSupport()
-		}
-
-		// We still want to re-render the terminal if it gets resized while `logScrollModeState` is active
-		if (!options?.force && localdevStore.logScrollModeState.active) {
-			return
-		}
-
-		if (localdevStore.inkInstance.isUnmounted) {
-			clearInterval(this.updateIntervalId)
-			return
-		}
-
-		// If we want to force an update, we pretend that the previous output was empty
-		if (
-			options?.force ||
-			// Updating overflowed lines implicitly implies a forced update
-			options?.updateOverflowedLines
-		) {
-			this.previousOutput = ''
-		}
-
-		/**
-			The string we want to write to the terminal to update the screen.
-		*/
-		let updateSequence = ansiEscapes.cursorHide
-
-		// If there are overflowed lines that need to be logged, then output them first
-		if (options?.updateOverflowedLines) {
-			updateSequence += this.#getUpdateSequenceFromUpdatingOverflowedLines()
-		}
-
-		const { columns: terminalWidth, rows: terminalHeight } = terminalSize()
-		const newOutput = renderer.default(
-			localdevStore.inkInstance.rootNode,
-			terminalWidth
-		).output
-
-		if (newOutput === this.previousOutput) {
-			return
-		}
-
-		const newLines = newOutput.split('\n')
-
-		const previousLines =
-			this.previousOutput === '' ? [] : this.previousOutput.split('\n')
-
-		// To refresh the terminal display, we start at the top-left corner of the screen (this assumes that our output is full screen, which it is)
-		updateSequence += ansiEscapes.cursorTo(0, 0)
-
-		for (let row = 0; row < terminalHeight; row += 1) {
-			const previousLine = previousLines[row]
-			const newLine = newLines[row]
-
-			// If the line from the previous render is equal to the line in the current render
-			if (
-				previousLines.length === newLines.length &&
-				previousLine === newLine
-			) {
-				// Don't erase the line; keep it on the screen
-			} else {
-				// Erase the line and replace it
-				updateSequence += ansiEscapes.eraseLine + (newLine ?? '')
-			}
-
-			updateSequence += ansiEscapes.cursorDown() + ansiEscapes.cursorTo(0)
-		}
-
-		this.write(SYNC_START + updateSequence + SYNC_END)
-		this.previousOutput = newOutput
 	}
 
 	#registerStdinListener() {

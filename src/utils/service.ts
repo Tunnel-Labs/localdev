@@ -16,7 +16,7 @@ import {
 	getServicePrefixColor,
 	getWrappedLogLinesToDisplay,
 	serviceIdsToLog,
-	wrapLineWithPrefix
+	wrapLineWithPrefix,
 } from '~/utils/logs.js'
 import { Process } from '~/utils/process.js'
 import { localdevStore } from '~/utils/store.js'
@@ -44,6 +44,21 @@ const _ansiCursorRegexp = flags.add(
 )
 
 export class Service {
+	static get(serviceId: string) {
+		const service = Service.#servicesMap.get(serviceId)
+		if (service === undefined) {
+			throw new Error(
+				`Could not find a \`Service\` instance for service with ID ${serviceId}`
+			)
+		}
+
+		return service
+	}
+
+	static has(serviceId: string) {
+		return Service.#servicesMap.has(serviceId)
+	}
+
 	/**
 		Map from service ID to a `Service` instance
 	*/
@@ -72,16 +87,17 @@ export class Service {
 			this.spec = {
 				id: '$localdev',
 				// @ts-expect-error: Only the $localdev service can have a command that is `null`
-				command: null
+				command: null,
 			}
 
 			this.#process = new Process({
 				id: '$localdev',
 				// @ts-expect-error: Only the $localdev service can have a command that is `null`
-				command: null
+				command: null,
 			})
 		} else {
-			this.spec = { ...spec, id } as any
+			// @ts-expect-error: Correct type
+			this.spec = { ...spec, id }
 
 			let command: string[]
 			let commandOptions: IBasePtyForkOptions = {}
@@ -93,7 +109,7 @@ export class Service {
 					'pnpm',
 					`--filter=${this.spec.command.packageName}`,
 					'run',
-					this.spec.command.commandName
+					this.spec.command.commandName,
 				]
 				commandOptions = {}
 			}
@@ -101,24 +117,9 @@ export class Service {
 			this.#process = new Process({
 				id: this.spec.id,
 				command,
-				commandOptions
+				commandOptions,
 			})
 		}
-	}
-
-	static get(serviceId: string) {
-		const service = Service.#servicesMap.get(serviceId)
-		if (service === undefined) {
-			throw new Error(
-				`Could not find a \`Service\` instance for service with ID ${serviceId}`
-			)
-		}
-
-		return service
-	}
-
-	static has(serviceId: string) {
-		return Service.#servicesMap.has(serviceId)
 	}
 
 	get status() {
@@ -148,7 +149,7 @@ export class Service {
 				// Clear all old listeners
 				for (const [
 					oldServiceIdToLog,
-					listener
+					listener,
 				] of currentListenersMap.entries()) {
 					Service.get(oldServiceIdToLog).process.emitter.removeListener(
 						'logsAdded',
@@ -166,7 +167,7 @@ export class Service {
 					const service = Service.get(serviceId)
 					const listener = ({
 						unwrappedLine,
-						wrappedLine
+						wrappedLine,
 					}: LogsAddedEventPayload) => {
 						let wrappedLines: string[]
 						// If we're logging multiple services, we need to add a prefix to every wrapped line
@@ -199,7 +200,7 @@ export class Service {
 		await waitPort({
 			port: this.spec.healthCheck.port,
 			path: this.spec.healthCheck.path,
-			output: 'silent'
+			output: 'silent',
 		})
 	}
 

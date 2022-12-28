@@ -78,7 +78,7 @@ function createLocaldevStore() {
 		commandHistory: [],
 		currentCommandHistoryIndex: 0,
 		logScrollModeState: {
-			active: false
+			active: false,
 		},
 		inkInstance: null,
 		terminalUpdater: null,
@@ -92,7 +92,7 @@ function createLocaldevStore() {
 			if (store.terminalUpdater !== null) {
 				store.terminalUpdater.updateTerminal({
 					force: true,
-					updateOverflowedLines: true
+					updateOverflowedLines: true,
 				})
 			}
 		}

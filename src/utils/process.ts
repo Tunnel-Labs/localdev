@@ -24,24 +24,6 @@ export class Process {
 	id: string
 	emitter: ProcessEmitter
 
-	constructor({
-		id,
-		command,
-		commandOptions
-	}: {
-		id: string
-		command: string[]
-		commandOptions?: IBasePtyForkOptions
-	}) {
-		this.id = id
-		this.command = command
-		this.commandOptions = commandOptions
-
-		const emitter = new EventEmitter() as ProcessEmitter
-		this.emitter = emitter
-		Process.emitters.push(emitter)
-	}
-
 	/**
 		An array of all the log lines that a service has outputted, including overflowed logs.
 	*/
@@ -58,6 +40,24 @@ export class Process {
 		}
 	})
 
+	constructor({
+		id,
+		command,
+		commandOptions,
+	}: {
+		id: string
+		command: string[]
+		commandOptions?: IBasePtyForkOptions
+	}) {
+		this.id = id
+		this.command = command
+		this.commandOptions = commandOptions
+
+		const emitter = new EventEmitter() as ProcessEmitter
+		this.emitter = emitter
+		Process.emitters.push(emitter)
+	}
+
 	addLogs(unwrappedText: string, options?: { timestamp?: number }) {
 		const timestamp = options?.timestamp ?? Date.now()
 		// TODO: figure out how to strip cursor ansi sequences
@@ -66,18 +66,18 @@ export class Process {
 		const wrappedLine = getWrappedText(unwrappedText)
 		const wrappedLogLineData = wrappedLine.map((line) => ({
 			text: line,
-			timestamp
+			timestamp,
 		}))
 		for (const [
 			wrappedLineIndex,
-			wrappedLine
+			wrappedLine,
 		] of wrappedLogLineData.entries()) {
 			this.#wrappedLogLineData.insert({ ...wrappedLine, wrappedLineIndex })
 		}
 
 		this.emitter.emit('logsAdded', {
 			wrappedLine,
-			unwrappedLine: unwrappedText
+			unwrappedLine: unwrappedText,
 		})
 	}
 
@@ -122,7 +122,7 @@ export class Process {
 			...process.env,
 			FORCE_COLOR: '3',
 			NODE_ENV: mode,
-			ENV: mode
+			ENV: mode,
 		}
 
 		if (mode === 'test') {
@@ -185,7 +185,7 @@ export function spawnProcess(args: {
 	const process = new Process({
 		id: args.id,
 		command,
-		commandOptions: args.commandOptions
+		commandOptions: args.commandOptions,
 	})
 
 	const listener = ({ unwrappedLine }: { unwrappedLine: string }) => {

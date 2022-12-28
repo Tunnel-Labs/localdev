@@ -24,7 +24,7 @@ export const getMkcertCertsPaths = onetime(async () => {
 	return {
 		caFilePath: path.join(caRootDir, 'rootCA.pem'),
 		keyFilePath: path.join(mkcertCertsDir, 'test-key.pem'),
-		certFilePath: path.join(mkcertCertsDir, 'test-cert.pem')
+		certFilePath: path.join(mkcertCertsDir, 'test-cert.pem'),
 	}
 })
 
@@ -36,7 +36,7 @@ export const getMkcertCertsPaths = onetime(async () => {
 	@see https://github.com/FiloSottile/mkcert
 */
 export async function createMkcertCerts({
-	localDomains
+	localDomains,
 }: {
 	localDomains: string[]
 }) {
@@ -54,12 +54,12 @@ export async function createMkcertCerts({
 	const [key, cert, ca] = await Promise.all([
 		fs.promises.readFile(keyFilePath, 'utf8'),
 		fs.promises.readFile(certFilePath, 'utf8'),
-		fs.promises.readFile(caFilePath, 'utf8')
+		fs.promises.readFile(caFilePath, 'utf8'),
 	])
 
 	return {
 		ca,
 		key,
-		cert
+		cert,
 	}
 }

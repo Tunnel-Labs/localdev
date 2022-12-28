@@ -1,4 +1,4 @@
-import TypedEmitter from 'typesafe-emitter'
+import type TypedEmitter from 'typesafe-emitter'
 
 export interface LogsAddedEventPayload {
 	unwrappedLine: string

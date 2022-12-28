@@ -1,9 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { homebrew } from 'cli-specs'
-import { defineCliTool } from 'cli-specs'
-import { installHomebrewPackage } from 'cli-specs'
+import { defineCliTool, homebrew, installHomebrewPackage } from 'cli-specs'
 import type { Options as ExecaOptions } from 'execa'
 import { execa } from 'execa'
 import { outdent } from 'outdent'
@@ -14,14 +12,14 @@ let hasSudoBeenCalled = false
 	Only uses `stdio: 'inherit'` on the first sudo call
 */
 function sudo(commands: string[], options?: ExecaOptions) {
-	if (!hasSudoBeenCalled) {
+	if (hasSudoBeenCalled) {
+		return execa('sudo', commands, options)
+	} else {
 		hasSudoBeenCalled = true
 		return execa('sudo', commands, {
 			stdio: 'inherit',
-			...options
+			...options,
 		})
-	} else {
-		return execa('sudo', commands, options)
 	}
 }
 
@@ -37,8 +35,8 @@ const mkcert = defineCliTool({
 	install: async () => installHomebrewPackage('mkcert'),
 	defaultExecaOptions: {
 		stdout: 'pipe',
-		stderr: 'pipe'
-	}
+		stderr: 'pipe',
+	},
 })
 
 export const dnsmasq = defineCliTool({
@@ -51,7 +49,7 @@ export const dnsmasq = defineCliTool({
 		const { stdout: homebrewPrefix } = await homebrew(['--prefix'])
 		const possibleDnsmasqPaths = [
 			'/usr/local/sbin/dnsmasq',
-			path.join(homebrewPrefix, 'sbin/dnsmasq')
+			path.join(homebrewPrefix, 'sbin/dnsmasq'),
 		]
 
 		return possibleDnsmasqPaths.some((possibleDnsmasqPath) =>
@@ -59,13 +57,13 @@ export const dnsmasq = defineCliTool({
 		)
 	},
 	defaultExecaOptions: {
-		stdio: 'inherit'
-	}
+		stdio: 'inherit',
+	},
 })
 
 export const cli = {
 	mkcert,
 	dnsmasq,
 	sudo,
-	homebrew
+	homebrew,
 }

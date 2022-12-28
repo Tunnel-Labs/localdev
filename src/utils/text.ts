@@ -8,9 +8,9 @@ import wrapAnsi from 'wrap-ansi'
 export function getWrappedText(text: string): string[] {
 	const terminalWidth = terminalSize().columns
 	return splitLines(
-		wrapAnsi(text, terminalWidth, {
+		(wrapAnsi as unknown as typeof wrapAnsi['default'])(text, terminalWidth, {
 			trim: false,
-			hard: true
+			hard: true,
 		})
 	)
 }

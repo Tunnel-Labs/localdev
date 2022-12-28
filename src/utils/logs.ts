@@ -1,8 +1,8 @@
+import * as fastSort from '@leondreamed/fast-sort'
 import { computed } from '@vue/reactivity'
 import { centerAlign } from 'ansi-center-align'
 import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
-import * as fastSort from '@leondreamed/fast-sort'
 import mem from 'mem'
 import splitLines from 'split-lines'
 import stringLength from 'string-length'
@@ -158,10 +158,14 @@ export function wrapLineWithPrefix({
 	const prefixLength = stringLength(prefix)
 
 	const wrappedLines = splitLines(
-		wrapAnsi(unwrappedLine, terminalWidth - prefixLength, {
-			hard: true,
-			trim: false,
-		})
+		(wrapAnsi as unknown as typeof wrapAnsi['default'])(
+			unwrappedLine,
+			terminalWidth - prefixLength,
+			{
+				hard: true,
+				trim: false,
+			}
+		)
 	).map((line) => prefix + line)
 
 	return wrappedLines

@@ -3,6 +3,7 @@
 
 	@see https://github.com/caitp/node-mock-stdin/blob/dev/lib/mock/stdin.js
 */
+import { Buffer } from 'node:buffer'
 import { ReadStream } from 'node:tty'
 
 import invariant from 'tiny-invariant'
@@ -52,7 +53,7 @@ export class MockStdin extends ReadStream {
 	_mockData: MockData[] = []
 	_flags: { emittedData: boolean; lastChunk: string | Buffer | null } = {
 		emittedData: false,
-		lastChunk: null
+		lastChunk: null,
 	}
 
 	constructor() {
@@ -68,35 +69,6 @@ export class MockStdin extends ReadStream {
 		return super.emit(name, ...args)
 	}
 
-	#drainData() {
-		// @ts-expect-error: Node internals
-		const state = this._readableState
-		const { buffer } = state
-		while (buffer.length > 0) {
-			const chunk = buffer.shift()
-			if (chunk !== null) {
-				state.length -= chunk.length
-				this.emit('data', chunk)
-				this._flags.emittedData = false
-			}
-		}
-	}
-
-	/**
-		Synchronously emit an end event, if possible.
-	*/
-	#endReadable() {
-		// @ts-expect-error: Node internals
-		const state = this._readableState
-
-		if (state.length === 0) {
-			state.ended = true
-			state.endEmitted = true
-			this.readable = false
-			this.emit('end')
-		}
-	}
-
 	send(text: string | string[] | Buffer | null, encoding?: BufferEncoding) {
 		if (Array.isArray(text)) {
 			if (encoding !== undefined) {
@@ -109,7 +81,7 @@ export class MockStdin extends ReadStream {
 			text = text.join('\n')
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- More clear when explicit
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (Buffer.isBuffer(text) || typeof text === 'string' || text === null) {
 			const data = new MockData(text, encoding)
 			this._mockData.push(data)
@@ -173,5 +145,34 @@ export class MockStdin extends ReadStream {
 	end() {
 		this.send(null)
 		return this
+	}
+
+	#drainData() {
+		// @ts-expect-error: Node internals
+		const state = this._readableState
+		const { buffer } = state
+		while (buffer.length > 0) {
+			const chunk = buffer.shift()
+			if (chunk !== null) {
+				state.length -= chunk.length
+				this.emit('data', chunk)
+				this._flags.emittedData = false
+			}
+		}
+	}
+
+	/**
+		Synchronously emit an end event, if possible.
+	*/
+	#endReadable() {
+		// @ts-expect-error: Node internals
+		const state = this._readableState
+
+		if (state.length === 0) {
+			state.ended = true
+			state.endEmitted = true
+			this.readable = false
+			this.emit('end')
+		}
 	}
 }
