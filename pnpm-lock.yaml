@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@fastify/express': ^2.2.0
   '@leondreamed/fast-sort': ^3.2.0
+  '@leondreamed/ink-text-input': ^4.0.3
   '@stdlib/utils-noop': ^0.0.13
   '@types/ansi-align': ^3.0.0
   '@types/console-clear': ^1.1.0
@@ -38,7 +39,6 @@ specifiers:
   http-proxy: ^1.18.1
   http-proxy-middleware: ^2.0.6
   ink: npm:@leondreamed/ink@^3.2.0
-  ink-text-input: ^4.0.3
   inquirer: ^9.1.3
   inquirer-autocomplete-prompt: ^3.0.0
   js-sdsl: ^4.2.0
@@ -80,6 +80,7 @@ specifiers:
 dependencies:
   '@fastify/express': 2.2.0
   '@leondreamed/fast-sort': 3.2.0
+  '@leondreamed/ink-text-input': 4.0.3_jn2dagfghh7etwsaqkj4ezjof4
   '@stdlib/utils-noop': 0.0.13
   '@vue-reactivity/watch': 0.2.0_h3bf4uztmkinvz32xdyaegukmy
   '@vue/reactivity': 3.2.45
@@ -103,7 +104,6 @@ dependencies:
   http-proxy: 1.18.1
   http-proxy-middleware: 2.0.6
   ink: /@leondreamed/ink/3.2.0_kzbn2opkn2327fwg5yzwzya5o4
-  ink-text-input: 4.0.3_jn2dagfghh7etwsaqkj4ezjof4
   inquirer: 9.1.4
   inquirer-autocomplete-prompt: 3.0.0_inquirer@9.1.4
   js-sdsl: 4.2.0
@@ -672,6 +672,19 @@ packages:
 
   /@leondreamed/fast-sort/3.2.0:
     resolution: {integrity: sha512-JrsBqaqiHKK4NJwu3yRAHWoxcI+4iZlMCEglWh53PYaRCKy7cB9f2FoSmgBRgxVvAFuip9H3GT06GPhkmIMSbA==}
+    dev: false
+
+  /@leondreamed/ink-text-input/4.0.3_jn2dagfghh7etwsaqkj4ezjof4:
+    resolution: {integrity: sha512-uOGRZ7VkzK992hTK9Z3wUGBG4BXjg+pHe4xqSbvw3p/OhlC7/OgAkrFBfC+NqJ6Vr1Eeo8ZgRLLInm6TGQ3PrA==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      ink: ^3.0.0-3
+      react: ^16.5.2 || ^17.0.0
+    dependencies:
+      chalk: 4.1.2
+      ink: /@leondreamed/ink/3.2.0_kzbn2opkn2327fwg5yzwzya5o4
+      react: 18.2.0
+      type-fest: 0.15.1
     dev: false
 
   /@leondreamed/ink/3.2.0_kzbn2opkn2327fwg5yzwzya5o4:
@@ -6044,19 +6057,6 @@ packages:
     resolution: {integrity: sha512-it4HyVAUTKBc6m8e1iXWvXSTdndF7HbdN713+kvLrymxTaU4AUBWrJ4vEooP+V7fexnVD3LKcBshjGGPefSMUQ==}
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
     dev: true
-
-  /ink-text-input/4.0.3_jn2dagfghh7etwsaqkj4ezjof4:
-    resolution: {integrity: sha512-eQD01ik9ltmNoHmkeQ2t8LszYkv2XwuPSUz3ie/85qer6Ll/j0QSlSaLNl6ENHZakBHdCBVZY04iOXcLLXA0PQ==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      ink: ^3.0.0-3
-      react: ^16.5.2 || ^17.0.0
-    dependencies:
-      chalk: 4.1.2
-      ink: /@leondreamed/ink/3.2.0_kzbn2opkn2327fwg5yzwzya5o4
-      react: 18.2.0
-      type-fest: 0.15.1
-    dev: false
 
   /inquirer-autocomplete-prompt/3.0.0_inquirer@9.1.4:
     resolution: {integrity: sha512-nsPWllBQB3qhvpVgV1UIJN4xo3yz7Qv8y1+zrNVpJUNPxtUZ7btCum/4UCAs5apPCe/FVhKH1V6Wx0cAwkreyg==}
