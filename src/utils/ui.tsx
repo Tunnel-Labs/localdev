@@ -1,7 +1,7 @@
+import TextInput from '@leondreamed/ink-text-input'
 import chalk from 'chalk'
 import type { DOMElement } from 'ink'
 import { Box, measureElement, Text, useInput } from 'ink'
-import TextInput from 'ink-text-input'
 import { useEffect, useRef } from 'react'
 
 import {

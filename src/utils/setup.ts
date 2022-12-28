@@ -69,8 +69,13 @@ export async function setupLocaldevServer() {
 			logProvider,
 			logLevel: 'error',
 			target: null!,
-			router:
-				localdevConfig.value.proxyRouter ?? (() => 'http://localhost:7357'),
+			router(req) {
+				if ((req as any).hostname === 'localdev.test') {
+					return 'http://localhost:7357'
+				}
+
+				return localdevConfig.value.proxyRouter?.(req) ?? 'http://localhost:7357'
+			}
 		})
 
 		let httpsServer!: https.Server
