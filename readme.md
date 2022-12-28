@@ -2,7 +2,7 @@
 
 An interactive TUI for local development.
 
-[A video of using localdev](https://github.com/leondreamed/localdev/blob/main/assets/localdev.gif)
+[A video of using localdev](https://github.com/leondreamed/localdev/blob/main/assets/localdev.gif?raw=true)
 
 ## Usage
 
