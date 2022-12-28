@@ -4,9 +4,7 @@
 	"type": "module",
 	"description": "A TUI for local development.",
 	"scripts": {
-		"dev": "ts-node ./src/bin/localdev.ts",
-		"lint": "lint @dialect-inc/localdev",
-		"typecheck": "typecheck @dialect-inc/localdev"
+		"dev": "ts-node ./src/bin/localdev.ts"
 	},
 	"dependencies": {
 		"@fastify/express": "^2.2.0",

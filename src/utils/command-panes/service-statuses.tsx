@@ -1,18 +1,27 @@
 import chalk from 'chalk'
 import { Box, Text } from 'ink'
-import { useZustand } from 'use-zustand'
 
-import type { DevServiceData } from '~/types/service.js'
-import { localdevServerStore } from '~/utils/server/store.js'
-import { getDevServiceName } from '~/utils/service/name.js'
+import { localdevConfig } from '~/utils/config.js'
+import { useReactiveState } from '~/utils/reactivity.js'
+import { Service } from '~/utils/service.js'
+import { localdevStore } from '~/utils/store.js'
 
 export function ServiceStatusesPane() {
-	const devServicesData = useZustand(
-		localdevServerStore,
-		(state) => state.devServicesData
-	)
+	const services = useReactiveState(() => {
+		const serviceIds = localdevStore.servicesEnabled
+			? Object.keys(localdevConfig.value.services)
+			: []
+		return serviceIds.map((serviceId) => {
+			const service = Service.get(serviceId)
+			return {
+				id: serviceId,
+				name: service.name,
+				status: service.status
+			}
+		})
+	})
 
-	const getDevServiceStatusCircle = (status: DevServiceData['status']) => {
+	const getServiceStatusCircle = (status: Service['status']) => {
 		switch (status) {
 			case 'ready': {
 				return chalk.green('●')
@@ -49,18 +58,12 @@ export function ServiceStatusesPane() {
 					{chalk.red('●')} Failed, {chalk.dim('●')} Unknown)
 				</Text>
 			</Box>
-			{Object.entries(devServicesData).map(
-				([devServiceName, devServiceData]) => (
-					<Box key={devServiceName} flexDirection="row">
-						<Text>
-							{` ${getDevServiceStatusCircle(devServiceData.status)} `}
-						</Text>
-						<Text>
-							{getDevServiceName({ devServiceSpec: devServiceData.spec })}
-						</Text>
-					</Box>
-				)
-			)}
+			{services.map((service) => (
+				<Box key={service.id} flexDirection="row">
+					<Text>{` ${getServiceStatusCircle(service.status)} `}</Text>
+					<Text>{service.name}</Text>
+				</Box>
+			))}
 		</Box>
 	)
 }

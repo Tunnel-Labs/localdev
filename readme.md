@@ -1,8 +1,6 @@
 # localdev
 
-A TUI for local development.
-
-**Note:** This package does not currently work as-is; work still needs to be done to make it application-agnostic (right now this repository only contains a stale copy of the `localdev` package in the [Dialect](https://github.com/Dialect-Inc) monorepo for internal use within Dialect).
+An interactive TUI for local development.
 
 ## Motivation
 

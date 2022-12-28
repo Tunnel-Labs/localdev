@@ -1,14 +1,51 @@
 import { program } from 'commander'
 
-import { renderLocaldevServer } from '~/utils/server/ui.jsx'
+import { loadLocaldevConfig, localdevConfig } from '~/utils/config.js'
+import { markRaw } from '~/utils/raw.js'
+import { Service } from '~/utils/service.js'
+import { setupLocaldevServer } from '~/utils/setup.js'
+import { localdevStore } from '~/utils/store.js'
+import { TerminalUpdater } from '~/utils/terminal.js'
 
 await program
 	.name('localdev')
-	.description('The dev service that powers local Dialect development.')
+	.description('An interactive TUI for local development')
 	.option('-t, --test', 'run the dev script in test mode')
-	.action(async (options: { test: boolean }) =>
-		renderLocaldevServer({ mode: options.test ? 'test' : 'development' })
-	)
+	.option('--no-services', "don't start dev services")
+	.action(async (options: { test?: boolean; services?: boolean }) => {
+		await loadLocaldevConfig()
+		await setupLocaldevServer()
+
+		const localdevService = new Service('$localdev')
+
+		if (options.services) {
+			const services = []
+			for (const [serviceId, serviceSpec] of Object.entries(
+				localdevConfig.value.services
+			)) {
+				services.push(new Service(serviceId, serviceSpec))
+			}
+
+			for (const service of services) {
+				service
+					.run({ mode: options.test ? 'test' : 'development' })
+					.catch((error) => {
+						console.error(error)
+						service.status = 'failed'
+					})
+			}
+		} else {
+			localdevStore.servicesEnabled = false
+		}
+
+		localdevService.initialize()
+
+		const terminalUpdater = new TerminalUpdater({
+			mode: options.test ? 'test' : 'development'
+		})
+		localdevStore.terminalUpdater = markRaw(terminalUpdater)
+		terminalUpdater.start()
+	})
 	.parseAsync()
 
 process.on('uncaughtException', (error) => {
