@@ -1,4 +1,5 @@
 import { type Command } from 'commander'
+import type * as express from 'express'
 import type { z } from 'zod'
 
 import { type LocaldevCommandSpec } from '~/types/command.js'
@@ -12,13 +13,14 @@ import type {
 
 export type LocaldevConfig = Omit<
 	z.infer<typeof localdevConfigSchema>,
-	'commands'
+	'commands' | 'proxyRouter'
 > & {
 	commands?(args: {
 		createCommand: typeof createCommand
 		defineCommandSpec: typeof defineCommandSpec
 		Command: typeof Command
 	}): LocaldevCommandSpec[]
+	proxyRouter?(req: express.Request): string | undefined
 }
 
 export type ServiceSpec = z.infer<typeof serviceSpecSchema> & { id: string }

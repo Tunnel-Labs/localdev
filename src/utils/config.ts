@@ -38,7 +38,7 @@ export const localdevConfigSchema = z.object({
 	services: z.record(z.string(), serviceSpecSchema).optional(),
 
 	localDomains: z.string().array().optional(),
-	proxyRouter: z.function().returns(z.string()).optional(),
+	proxyRouter: z.function().args(z.any()).returns(z.string()).optional(),
 	commands: z.function().args(z.any()).returns(z.any().array()).optional(),
 })
 

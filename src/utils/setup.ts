@@ -70,7 +70,7 @@ export async function setupLocaldevServer() {
 			logLevel: 'error',
 			target: null!,
 			router(req) {
-				if ((req as any).hostname === 'localdev.test') {
+				if (req.hostname === 'localdev.test') {
 					return 'http://localhost:7357'
 				}
 
