@@ -5,6 +5,7 @@
 	"description": "A TUI for local development.",
 	"scripts": {
 		"dev": "ts-node ./src/bin/localdev.ts",
+		"build": "ts-node ./scripts/build.ts",
 		"lint": "eslint --cache --fix ."
 	},
 	"dependencies": {
