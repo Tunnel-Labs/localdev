@@ -16,7 +16,7 @@ export function ServiceStatusesPane() {
 			return {
 				id: serviceId,
 				name: service.name,
-				status: service.status
+				status: service.status,
 			}
 		})
 	})

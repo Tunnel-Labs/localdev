@@ -9,7 +9,7 @@ import { localdevStore } from '~/utils/store.js'
 */
 export function HijackPane() {
 	const { hijackedServiceId } = useReactiveState(() => ({
-		hijackedServiceId: localdevStore.hijackedServiceId
+		hijackedServiceId: localdevStore.hijackedServiceId,
 	}))
 
 	// The logs pane should not be displayed if `logsBoxServiceId` is null

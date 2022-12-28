@@ -12,7 +12,7 @@ import { localdevStore } from '~/utils/store.js'
 */
 export function LogsPane() {
 	const { logsBoxServiceId } = useReactiveState(() => ({
-		logsBoxServiceId: localdevStore.logsBoxServiceId
+		logsBoxServiceId: localdevStore.logsBoxServiceId,
 	}))
 
 	// The logs pane should not be displayed if `logsBoxServiceId` is null

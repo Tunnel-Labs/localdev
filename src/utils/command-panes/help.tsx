@@ -7,7 +7,7 @@ import { localdevStore } from '~/utils/store.js'
 
 export function HelpPane() {
 	const { activeHelpCommand } = useReactiveState(() => ({
-		activeHelpCommand: localdevStore.activeHelpCommand
+		activeHelpCommand: localdevStore.activeHelpCommand,
 	}))
 
 	let commandHelpOutput: string

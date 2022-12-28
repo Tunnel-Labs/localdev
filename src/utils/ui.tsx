@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react'
 import {
 	runCommandFromCommandBox,
 	selectNextCommand,
-	selectPreviousCommand
+	selectPreviousCommand,
 } from '~/utils/command.js'
 import { useReactiveState } from '~/utils/reactivity.js'
 import { localdevStore } from '~/utils/store.js'
@@ -26,7 +26,7 @@ export function LocaldevUi(props: { mode: string }) {
 		activeCommandBoxPaneComponent: localdevStore.activeCommandBoxPaneComponent,
 		hijackedServiceId: localdevStore.hijackedServiceId,
 		wrappedLogLinesToDisplay: localdevStore.wrappedLogLinesToDisplay,
-		commandBoxInput: localdevStore.commandBoxInput
+		commandBoxInput: localdevStore.commandBoxInput,
 	}))
 
 	const terminalHeight = terminalSize.rows
@@ -65,7 +65,7 @@ export function LocaldevUi(props: { mode: string }) {
 	}, [
 		logsBoxRef.current,
 		// The logs box should resize whenever the active command box pane is changed
-		state.activeCommandBoxPaneComponent
+		state.activeCommandBoxPaneComponent,
 	])
 
 	const getWrappedLogLinesToDisplay = () => {
