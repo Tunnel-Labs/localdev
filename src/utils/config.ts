@@ -39,7 +39,7 @@ export const localdevConfigSchema = z.object({
 
 	localDomains: z.string().array().optional(),
 	proxyRouter: z.function().returns(z.string()).optional(),
-	commands: z.function().returns(z.any().array()).optional(),
+	commands: z.function().args(z.any()).returns(z.any().array()).optional(),
 })
 
 export async function getLocaldevConfigPath() {
@@ -74,7 +74,7 @@ export async function getLocaldevConfig() {
 
 	return localdevConfigSchema.parse(
 		deepmerge(sharedLocaldevConfig, localLocaldevConfig)
-	)
+	) as LocaldevConfig
 }
 
 export const localdevConfig = ref<LocaldevConfig>(undefined!)

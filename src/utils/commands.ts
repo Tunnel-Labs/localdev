@@ -14,11 +14,11 @@ import { markRaw } from '~/utils/raw.js'
 import { Service } from '~/utils/service.js'
 import { localdevStore } from '~/utils/store.js'
 
-function createCommand(name: string) {
+export function createCommand(name: string) {
 	return new Command(name).helpOption(false).exitOverride()
 }
 
-function defineCommandSpec(
+export function defineCommandSpec(
 	command: Command,
 	options?: { hidden?: boolean }
 ): LocaldevCommandSpec {
@@ -220,10 +220,11 @@ const defaultCommandSpecs = [
 
 export const getLocaldevCommandSpecs: () => LocaldevCommandSpec[] = onetime(
 	() => [
-		...((localdevConfig.value.commands?.({
+		...(localdevConfig.value.commands?.({
 			defineCommandSpec,
 			createCommand,
-		}) ?? []) as LocaldevCommandSpec[]),
+			Command,
+		}) ?? []),
 		...defaultCommandSpecs,
 	]
 )
