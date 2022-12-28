@@ -16,6 +16,7 @@ export const getMkcertCertsDir = onetime(async () => {
 
 	return mkcertCertsDir
 })
+
 export const getMkcertCertsPaths = onetime(async () => {
 	const { stdout: caRootDir } = await cli.mkcert('-CAROOT')
 	const mkcertCertsDir = await getMkcertCertsDir()

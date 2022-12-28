@@ -15,36 +15,31 @@ export const serviceSpecSchema = z.object({
 	healthCheck: z
 		.object({
 			port: z.number(),
-			path: z.string().optional()
+			path: z.string().optional(),
 		})
 		.optional(),
 
 	command: z.union([
 		z.object({ string: z.string() }),
-		z.object({ packageName: z.string(), commandName: z.string() })
-	])
+		z.object({ packageName: z.string(), commandName: z.string() }),
+	]),
 })
 
 export const localdevConfigSchema = z.object({
-	devServer: z
-		.object({
-			/**
-			Whether to log dev server events or not.
-		*/
-			logEvents: z.boolean(),
+	/**
+		Whether to log dev server events or not.
+	*/
+	logServerEvents: z.boolean().optional(),
+	/**
+		A list of dev services that should be logged by default in the dev server process.
+	*/
+	servicesToLog: z.record(z.string(), z.boolean()).optional(),
 
-			/**
-			A list of dev services that should be logged by default in the dev server process.
-		*/
-			servicesToLog: z.record(z.string(), z.boolean())
-		})
-		.partial(),
+	services: z.record(z.string(), serviceSpecSchema).optional(),
 
-	services: z.record(z.string(), serviceSpecSchema),
-
-	localDomains: z.string().array(),
-	proxyRouter: z.function().returns(z.string()),
-	commands: z.function().returns(z.any().array())
+	localDomains: z.string().array().optional(),
+	proxyRouter: z.function().returns(z.string()).optional(),
+	commands: z.function().returns(z.any().array()).optional(),
 })
 
 export async function getLocaldevConfigPath() {
@@ -67,21 +62,21 @@ export async function getLocaldevConfig() {
 		(await findUp('localdev.local.js')) ??
 		(await findUp('localdev.local.cjs'))
 
-	const { default: sharedLocaldevConfig } = await import(
+	const { default: sharedLocaldevConfig } = (await import(
 		sharedLocaldevConfigPath
-	)
+	)) as { default: LocaldevConfig }
 
 	const localLocaldevConfig =
 		localLocaldevConfigPath === undefined
 			? {}
-			: (await import(localLocaldevConfigPath)).default
+			: ((await import(localLocaldevConfigPath)) as { default: LocaldevConfig })
+					.default
 
 	return localdevConfigSchema.parse(
 		deepmerge(sharedLocaldevConfig, localLocaldevConfig)
 	)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- `localdevConfig` is guaranteed to be initialized by the time it is used
 export const localdevConfig = ref<LocaldevConfig>(undefined!)
 
 export async function loadLocaldevConfig() {

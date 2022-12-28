@@ -15,13 +15,12 @@ await program
 	.action(async (options: { test?: boolean; services?: boolean }) => {
 		await loadLocaldevConfig()
 		await setupLocaldevServer()
-
 		const localdevService = new Service('$localdev')
 
 		if (options.services) {
 			const services = []
 			for (const [serviceId, serviceSpec] of Object.entries(
-				localdevConfig.value.services
+				localdevConfig.value.services ?? {}
 			)) {
 				services.push(new Service(serviceId, serviceSpec))
 			}
@@ -41,7 +40,7 @@ await program
 		localdevService.initialize()
 
 		const terminalUpdater = new TerminalUpdater({
-			mode: options.test ? 'test' : 'development'
+			mode: options.test ? 'test' : 'development',
 		})
 		localdevStore.terminalUpdater = markRaw(terminalUpdater)
 		terminalUpdater.start()

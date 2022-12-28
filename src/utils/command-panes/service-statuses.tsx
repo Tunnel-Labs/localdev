@@ -9,7 +9,7 @@ import { localdevStore } from '~/utils/store.js'
 export function ServiceStatusesPane() {
 	const services = useReactiveState(() => {
 		const serviceIds = localdevStore.servicesEnabled
-			? Object.keys(localdevConfig.value.services)
+			? Object.keys(localdevConfig.value.services ?? {})
 			: []
 		return serviceIds.map((serviceId) => {
 			const service = Service.get(serviceId)

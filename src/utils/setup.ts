@@ -18,8 +18,12 @@ import { createMkcertCerts } from '~/utils/mkcert.js'
 import { Service } from '~/utils/service.js'
 
 export async function setupLocaldevServer() {
+	const localDomains = [
+		'localdev.test',
+		...(localdevConfig.value.localDomains ?? []),
+	]
 	const { ca, key, cert } = await createMkcertCerts({
-		localDomains: localdevConfig.value.localDomains
+		localDomains,
 	})
 
 	const testHttpServer = http.createServer((_req, res) => {
@@ -41,7 +45,7 @@ export async function setupLocaldevServer() {
 			}
 
 			console.error(message)
-		}
+		},
 	})
 
 	function createHttpServer() {
@@ -50,7 +54,7 @@ export async function setupLocaldevServer() {
 		*/
 		const httpServer: http.Server = http.createServer((req, res) => {
 			res.writeHead(301, {
-				Location: 'https://' + String(req.headers.host) + (req.url ?? '')
+				Location: 'https://' + String(req.headers.host) + (req.url ?? ''),
 			})
 			res.end()
 		})
@@ -64,9 +68,9 @@ export async function setupLocaldevServer() {
 			ws: true,
 			logProvider,
 			logLevel: 'error',
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- We use the `router` property to set the target dynamically, so this `target` property is useless (but the types require it to be not undefined at runtime, so we use `null`)
 			target: null!,
-			router: localdevConfig.value.proxyRouter
+			router:
+				localdevConfig.value.proxyRouter ?? (() => 'http://localhost:7357'),
 		})
 
 		let httpsServer!: https.Server
@@ -82,7 +86,7 @@ export async function setupLocaldevServer() {
 				)
 				httpsServer.on('upgrade', httpsProxy.upgrade)
 				return httpsServer
-			}
+			},
 		})
 		httpsProxyApp.addHook('onRequest', (request, response, next) => {
 			if (request.hostname.endsWith('.localtest.me')) {
@@ -114,7 +118,8 @@ export async function setupLocaldevServer() {
 		httpsServer.listen(443)
 	}
 
-	await Promise.all([createHttpServer(), createHttpsServer()])
+	createHttpServer()
+	await createHttpsServer()
 
 	/**
 		Set up dnsmasq so you can visit local `*.test` domains
@@ -158,15 +163,15 @@ export async function setupLocaldevServer() {
 		await cli.sudo([
 			'bash',
 			'-c',
-			'echo "nameserver 127.0.0.1" > /etc/resolver/test'
+			'echo "nameserver 127.0.0.1" > /etc/resolver/test',
 		])
 	}
 
 	try {
-		await got.get('https://test.test', {
+		await got.get('https://localdev.test', {
 			https: {
-				rejectUnauthorized: false
-			}
+				rejectUnauthorized: false,
+			},
 		})
 	} catch {
 		// `https://test.test` could not be resolved; `dnsmasq` is likely not started

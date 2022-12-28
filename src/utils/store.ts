@@ -82,7 +82,7 @@ function createLocaldevStore() {
 		},
 		inkInstance: null,
 		terminalUpdater: null,
-		wrappedLogLinesToDisplay: []
+		wrappedLogLinesToDisplay: [],
 	})
 
 	// Whenever the logs box height changes, we want to update the overflowed lines since their positions will have changed

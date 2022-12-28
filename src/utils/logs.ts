@@ -2,7 +2,7 @@ import { computed } from '@vue/reactivity'
 import { centerAlign } from 'ansi-center-align'
 import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
-import * as fastSort from 'fast-sort'
+import * as fastSort from '@leondreamed/fast-sort'
 import mem from 'mem'
 import splitLines from 'split-lines'
 import stringLength from 'string-length'
@@ -34,15 +34,13 @@ export const serviceIdsToLog = computed(() => {
 
 	const serviceIds: string[] = []
 	if (localdevStore.logsBoxServiceId === null) {
-		serviceIds.push(
-			...Object.keys(localdevConfig.value.devServer.servicesToLog ?? {})
-		)
+		serviceIds.push(...Object.keys(localdevConfig.value.servicesToLog ?? {}))
 	} else {
 		serviceIds.push(localdevStore.logsBoxServiceId)
 	}
 
 	if (
-		localdevConfig.value.devServer.logEvents &&
+		localdevConfig.value.logServerEvents &&
 		// Don't log $localdev events when streaming the logs of a specific service
 		localdevStore.logsBoxServiceId === null
 	) {
@@ -68,7 +66,7 @@ export function getWrappedLogLinesToDisplay(): string[] {
 		const unwrappedLogLines = Service.get(
 			serviceSpec.id
 		).process.getUnwrappedLogLines({
-			withTimestamps: true
+			withTimestamps: true,
 		})
 		wrappedLogLinesData.push(
 			...unwrappedLogLines.flatMap((unwrappedLogLine) => {
@@ -86,7 +84,7 @@ export function getWrappedLogLinesToDisplay(): string[] {
 					serviceId: serviceSpec.id,
 					text,
 					timestamp: unwrappedLogLine.timestamp,
-					wrappedLineIndex
+					wrappedLineIndex,
 				}))
 			})
 		)
@@ -97,7 +95,7 @@ export function getWrappedLogLinesToDisplay(): string[] {
 		{ asc: (logLineData) => logLineData.timestamp },
 		// We want to keep the logs from the same service ID together
 		{ asc: (logLineData) => logLineData.serviceId },
-		{ asc: (logLineData) => logLineData.wrappedLineIndex }
+		{ asc: (logLineData) => logLineData.wrappedLineIndex },
 	])
 
 	return wrappedLogLinesData.map((logLineData) => logLineData.text)
@@ -113,7 +111,7 @@ export function activateLogScrollMode() {
 	// We pause further updates by setting `logScrollModeState.active` to true
 	localdevStore.logScrollModeState = {
 		active: true,
-		wrappedLogLinesLength: localdevStore.wrappedLogLinesToDisplay.length
+		wrappedLogLinesLength: localdevStore.wrappedLogLinesToDisplay.length,
 	}
 
 	const { rows: terminalHeight, columns: terminalWidth } = terminalSize()
@@ -151,7 +149,7 @@ export function clearLogs() {
 
 export function wrapLineWithPrefix({
 	unwrappedLine,
-	prefix
+	prefix,
 }: {
 	unwrappedLine: string
 	prefix: string
@@ -162,7 +160,7 @@ export function wrapLineWithPrefix({
 	const wrappedLines = splitLines(
 		wrapAnsi(unwrappedLine, terminalWidth - prefixLength, {
 			hard: true,
-			trim: false
+			trim: false,
 		})
 	).map((line) => prefix + line)
 

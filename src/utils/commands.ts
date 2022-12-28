@@ -25,7 +25,7 @@ function defineCommandSpec(
 	return {
 		// Prevent commander from calling `process.exit` when inputting a malformed command
 		command,
-		hidden: options?.hidden ?? false
+		hidden: options?.hidden ?? false,
 	}
 }
 
@@ -42,7 +42,7 @@ const defaultCommandSpecs = [
 				const start = process.hrtime.bigint()
 				localdevStore.terminalUpdater.updateTerminal({
 					force: true,
-					updateOverflowedLines: true
+					updateOverflowedLines: true,
 				})
 				const end = process.hrtime.bigint()
 				console.info(
@@ -58,7 +58,7 @@ const defaultCommandSpecs = [
 			.argument('[command]')
 			.summary('open the help pane')
 			.action((command?: string) => {
-				localdevStore.activeHelpCommand = command === undefined ? null : command
+				localdevStore.activeHelpCommand = command ?? null
 				localdevStore.activeCommandBoxPaneComponent = markRaw(HelpPane)
 			})
 	),
@@ -126,8 +126,8 @@ const defaultCommandSpecs = [
 							return
 						}
 
-						localdevConfig.value.devServer.servicesToLog ??= {}
-						localdevConfig.value.devServer.servicesToLog[serviceId] = true
+						localdevConfig.value.servicesToLog ??= {}
+						localdevConfig.value.servicesToLog[serviceId] = true
 					})
 			)
 			.addCommand(
@@ -135,8 +135,8 @@ const defaultCommandSpecs = [
 					.argument('<serviceId>')
 					.summary('remove a service from the home view logs')
 					.action((serviceId: string) => {
-						if (localdevConfig.value.devServer.servicesToLog !== undefined) {
-							localdevConfig.value.devServer.servicesToLog[serviceId] = false
+						if (localdevConfig.value.servicesToLog !== undefined) {
+							localdevConfig.value.servicesToLog[serviceId] = false
 						}
 					})
 			)
@@ -215,12 +215,15 @@ const defaultCommandSpecs = [
 				process.stderr.write('\n')
 				process.exit(0)
 			})
-	)
+	),
 ]
 
 export const getLocaldevCommandSpecs: () => LocaldevCommandSpec[] = onetime(
 	() => [
-		...localdevConfig.value.commands({ defineCommandSpec, createCommand }),
-		...defaultCommandSpecs
+		...((localdevConfig.value.commands?.({
+			defineCommandSpec,
+			createCommand,
+		}) ?? []) as LocaldevCommandSpec[]),
+		...defaultCommandSpecs,
 	]
 )
