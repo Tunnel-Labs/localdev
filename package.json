@@ -3,6 +3,9 @@
 	"type": "module",
 	"version": "0.0.3",
 	"description": "A TUI for local development.",
+	"bin": {
+		"localdev": "./src/bin/localdev.ts"
+	},
 	"scripts": {
 		"dev": "ts-node ./src/bin/localdev.ts",
 		"build": "ts-node ./scripts/build.ts",
