@@ -1,4 +1,4 @@
-import { ref } from '@vue/reactivity'
+import { type Ref, ref } from '@vue/reactivity'
 import { deepmerge } from 'deepmerge-ts'
 import { findUp } from 'find-up'
 import { z } from 'zod'
@@ -77,7 +77,9 @@ export async function getLocaldevConfig() {
 	) as LocaldevConfig
 }
 
-export const localdevConfig = ref<LocaldevConfig>(undefined!)
+export const localdevConfig: Ref<LocaldevConfig> = ref<LocaldevConfig>(
+	undefined!
+)
 
 export async function loadLocaldevConfig() {
 	localdevConfig.value = await getLocaldevConfig()
