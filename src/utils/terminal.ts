@@ -13,7 +13,7 @@ import terminalSize from 'term-size'
 import invariant from 'tiny-invariant'
 import xTermHeadless from 'xterm-headless'
 
-import { ServiceStatusesPane } from '~/utils/command-panes/service-statuses.jsx'
+import { ServiceStatusesPane } from '~/utils/command-panes/service-statuses.js'
 import {
 	activateLogScrollMode,
 	deactivateLogScrollMode,
@@ -23,7 +23,7 @@ import { markRaw } from '~/utils/raw.js'
 import { Service } from '~/utils/service.js'
 import { MockStdin } from '~/utils/stdin.js'
 import { localdevStore } from '~/utils/store.js'
-import { LocaldevUi } from '~/utils/ui.jsx'
+import { LocaldevUi } from '~/utils/ui.js'
 
 const { Terminal } = xTermHeadless
 
