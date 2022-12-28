@@ -6,6 +6,7 @@
 	"bin": {
 		"localdev": "./src/bin/localdev.ts"
 	},
+	"exports": "./src/index.ts",
 	"scripts": {
 		"dev": "ts-node ./src/bin/localdev.ts",
 		"build": "ts-node ./scripts/build.ts",
