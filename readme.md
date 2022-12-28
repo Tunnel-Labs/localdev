@@ -6,7 +6,7 @@ An interactive TUI for local development.
 
 ## Usage
 
-Install the `localdev-tui` from npm using your favorite package manager:
+Install the `localdev-tui` npm package using your favorite JavaScript package manager:
 
 ```sh
 npm install --save-dev localdev-tui
