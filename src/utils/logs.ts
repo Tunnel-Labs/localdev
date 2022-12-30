@@ -158,7 +158,7 @@ export function wrapLineWithPrefix({
 	const prefixLength = stringLength(prefix)
 
 	const wrappedLines = splitLines(
-		(wrapAnsi as unknown as typeof wrapAnsi['default'])(
+		wrapAnsi(
 			unwrappedLine,
 			terminalWidth - prefixLength,
 			{
