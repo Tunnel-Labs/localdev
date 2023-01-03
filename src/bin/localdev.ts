@@ -26,12 +26,14 @@ await program
 			}
 
 			for (const service of services) {
-				service
-					.run({ mode: options.test ? 'test' : 'development' })
-					.catch((error) => {
-						console.error(error)
-						service.status = 'failed'
-					})
+				if (service.spec.startAutomatically) {
+					service
+						.run({ mode: options.test ? 'test' : 'development' })
+						.catch((error) => {
+							console.error(error)
+							service.status = 'failed'
+						})
+				}
 			}
 		} else {
 			localdevStore.servicesEnabled = false

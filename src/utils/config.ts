@@ -8,6 +8,7 @@ import type { LocaldevConfig } from '~/types/config.js'
 export const serviceSpecSchema = z.object({
 	name: z.string().optional(),
 	dependsOn: z.string().array().optional(),
+	startAutomatically: z.boolean().default(true),
 
 	/**
 		How to check if the running process is ready
