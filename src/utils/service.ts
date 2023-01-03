@@ -21,7 +21,7 @@ import {
 import { Process } from '~/utils/process.js'
 import { localdevStore } from '~/utils/store.js'
 
-type ServiceStatus = 'ready' | 'pending' | 'failed' | 'unknown'
+type ServiceStatus = 'ready' | 'pending' | 'failed' | 'stopped'
 
 const _ansiCursorRegexp = flags.add(
 	'g',
@@ -70,7 +70,7 @@ export class Service {
 		return this.#process
 	}
 
-	#status: Ref<ServiceStatus> = ref('pending')
+	#status: Ref<ServiceStatus> = ref('stopped')
 
 	constructor(id: '$localdev')
 	constructor(id: string, spec: Omit<ServiceSpec, 'id'>)

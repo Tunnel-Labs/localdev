@@ -35,7 +35,7 @@ export function ServiceStatusesPane() {
 				return chalk.red('●')
 			}
 
-			case 'unknown': {
+			case 'stopped': {
 				return chalk.dim('●')
 			}
 
@@ -55,7 +55,7 @@ export function ServiceStatusesPane() {
 				</Box>
 				<Text dimColor>
 					({chalk.green('●')} Ready, {chalk.yellow('●')} Pending,{' '}
-					{chalk.red('●')} Failed, {chalk.dim('●')} Unknown)
+					{chalk.red('●')} Failed, {chalk.dim('●')} Stopped)
 				</Text>
 			</Box>
 			{services.map((service) => (
