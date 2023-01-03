@@ -99,6 +99,10 @@ export class Service {
 			// @ts-expect-error: Correct type
 			this.spec = { ...spec, id }
 
+			if (this.spec.startAutomatically) {
+				this.#status.value = 'pending'
+			}
+
 			let command: string[]
 			let commandOptions: IBasePtyForkOptions = {}
 
