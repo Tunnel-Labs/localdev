@@ -1,10 +1,10 @@
 import { program } from 'commander'
+import { ref } from 'valtio'
 
-import { loadLocaldevConfig, localdevConfig } from '~/utils/config.js'
-import { markRaw } from '~/utils/raw.js'
+import { loadLocaldevConfig } from '~/utils/config.js'
 import { Service } from '~/utils/service.js'
 import { setupLocaldevServer } from '~/utils/setup.js'
-import { localdevStore } from '~/utils/store.js'
+import { localdevState } from '~/utils/store.js'
 import { TerminalUpdater } from '~/utils/terminal.js'
 
 await program
@@ -20,7 +20,7 @@ await program
 		if (options.services) {
 			const services = []
 			for (const [serviceId, serviceSpec] of Object.entries(
-				localdevConfig.value.services ?? {}
+				localdevState.localdevConfig.services ?? {}
 			)) {
 				services.push(new Service(serviceId, serviceSpec))
 			}
@@ -34,7 +34,7 @@ await program
 					})
 			}
 		} else {
-			localdevStore.servicesEnabled = false
+			localdevState.servicesEnabled = false
 		}
 
 		localdevService.initialize()
@@ -42,7 +42,7 @@ await program
 		const terminalUpdater = new TerminalUpdater({
 			mode: options.test ? 'test' : 'development',
 		})
-		localdevStore.terminalUpdater = markRaw(terminalUpdater)
+		localdevState.terminalUpdater = ref(terminalUpdater)
 		terminalUpdater.start()
 	})
 	.parseAsync()

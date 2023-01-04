@@ -1,8 +1,5 @@
 /* eslint-disable no-control-regex -- We want to match ANSI escape sequences */
 
-import type { Ref } from '@vue/reactivity'
-import { ref } from '@vue/reactivity'
-import { watch } from '@vue-reactivity/watch'
 import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
 import { either, flags } from 'compose-regexp'
@@ -19,7 +16,7 @@ import {
 	wrapLineWithPrefix,
 } from '~/utils/logs.js'
 import { Process } from '~/utils/process.js'
-import { localdevStore } from '~/utils/store.js'
+import { localdevState } from '~/utils/store.js'
 
 type ServiceStatus = 'ready' | 'pending' | 'failed' | 'unknown'
 
@@ -143,8 +140,8 @@ export class Service {
 		>()
 
 		// Whenever `serviceIdsToLog` changes, we need to re-calculate `wrappedLogLinesToDisplay` and re-add all listeners
-		watch(
-			serviceIdsToLog,
+		subscribe(
+			localdevState.serviceIdsToLog,
 			() => {
 				// Clear all old listeners
 				for (const [
@@ -160,7 +157,7 @@ export class Service {
 				currentListenersMap.clear()
 
 				// We re-calculate all log lines
-				localdevStore.wrappedLogLinesToDisplay = getWrappedLogLinesToDisplay()
+				localdevState.wrappedLogLinesToDisplay = getWrappedLogLinesToDisplay()
 
 				// We set up listeners for incremental addition to the log lines on new lines
 				for (const serviceId of serviceIdsToLog.value) {
@@ -171,7 +168,7 @@ export class Service {
 					}: LogsAddedEventPayload) => {
 						let wrappedLines: string[]
 						// If we're logging multiple services, we need to add a prefix to every wrapped line
-						if (localdevStore.logsBoxServiceId === null) {
+						if (localdevState.logsBoxServiceId === null) {
 							const prefix = `${chalk[getServicePrefixColor(service.spec.id)](
 								service.name
 							)}: `
@@ -180,7 +177,7 @@ export class Service {
 							wrappedLines = wrappedLine
 						}
 
-						localdevStore.wrappedLogLinesToDisplay.push(...wrappedLines)
+						localdevState.wrappedLogLinesToDisplay.push(...wrappedLines)
 					}
 
 					service.process.emitter.on('logsAdded', listener)

@@ -1,5 +1,4 @@
 import * as fastSort from '@leondreamed/fast-sort'
-import { computed } from '@vue/reactivity'
 import { centerAlign } from 'ansi-center-align'
 import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
@@ -11,9 +10,8 @@ import invariant from 'tiny-invariant'
 import wrapAnsi from 'wrap-ansi'
 
 import type { WrappedLogLineData } from '~/types/logs.js'
-import { localdevConfig } from '~/utils/config.js'
 import { Service } from '~/utils/service.js'
-import { localdevStore } from '~/utils/store.js'
+import { localdevState } from '~/utils/store.js'
 import { getWrappedText } from '~/utils/text.js'
 
 const stderrLogColors = ['green', 'yellow', 'blue', 'magenta', 'cyan'] as const
@@ -27,34 +25,11 @@ export const getServicePrefixColor = mem((_serviceId: string) => {
 	return stderrColor
 })
 
-export const serviceIdsToLog = computed(() => {
-	if (!localdevStore.servicesEnabled) {
-		return []
-	}
-
-	const serviceIds: string[] = []
-	if (localdevStore.logsBoxServiceId === null) {
-		serviceIds.push(...Object.keys(localdevConfig.value.servicesToLog ?? {}))
-	} else {
-		serviceIds.push(localdevStore.logsBoxServiceId)
-	}
-
-	if (
-		localdevConfig.value.logServerEvents &&
-		// Don't log $localdev events when streaming the logs of a specific service
-		localdevStore.logsBoxServiceId === null
-	) {
-		serviceIds.push('$localdev')
-	}
-
-	return serviceIds
-})
-
 /**
 	Returns an array of wrapped log lines to display on the screen based on state in localdevServerStore
 */
 export function getWrappedLogLinesToDisplay(): string[] {
-	const serviceSpecsToLog = serviceIdsToLog.value.map(
+	const serviceSpecsToLog = localdevState.serviceIdsToLog.map(
 		(serviceId) => Service.get(serviceId).spec
 	)
 
@@ -71,7 +46,7 @@ export function getWrappedLogLinesToDisplay(): string[] {
 		wrappedLogLinesData.push(
 			...unwrappedLogLines.flatMap((unwrappedLogLine) => {
 				const logLineText: string =
-					localdevStore.logsBoxServiceId === null
+					localdevState.logsBoxServiceId === null
 						? // Only add a prefix when there's multiple text
 						  `${chalk[getServicePrefixColor(serviceSpec.id)](serviceName)}: ${
 								unwrappedLogLine.text
@@ -102,16 +77,16 @@ export function getWrappedLogLinesToDisplay(): string[] {
 }
 
 export function activateLogScrollMode() {
-	if (localdevStore.terminalUpdater === null) {
+	if (localdevState.terminalUpdater === null) {
 		return
 	}
 
-	localdevStore.terminalUpdater.updateTerminal({ updateOverflowedLines: true })
+	localdevState.terminalUpdater.updateTerminal({ updateOverflowedLines: true })
 
 	// We pause further updates by setting `logScrollModeState.active` to true
-	localdevStore.logScrollModeState = {
+	localdevState.logScrollModeState = {
 		active: true,
-		wrappedLogLinesLength: localdevStore.wrappedLogLinesToDisplay.length,
+		wrappedLogLinesLength: localdevState.wrappedLogLinesToDisplay.length,
 	}
 
 	const { rows: terminalHeight, columns: terminalWidth } = terminalSize()
@@ -129,22 +104,22 @@ export function activateLogScrollMode() {
 	)
 
 	// We disable terminal mouse events so that the user can use the terminal's native handler for mouse and scroll events
-	localdevStore.terminalUpdater.disableTerminalMouseSupport()
+	localdevState.terminalUpdater.disableTerminalMouseSupport()
 }
 
 export function deactivateLogScrollMode() {
-	if (localdevStore.terminalUpdater === null) {
+	if (localdevState.terminalUpdater === null) {
 		return
 	}
 
-	localdevStore.logScrollModeState = { active: false }
+	localdevState.logScrollModeState = { active: false }
 
 	// We re-enable terminal mouse events so that we can detect when the user scrolls (so we know to update the overflowed logs)
-	localdevStore.terminalUpdater.enableTerminalMouseSupport()
+	localdevState.terminalUpdater.enableTerminalMouseSupport()
 }
 
 export function clearLogs() {
-	localdevStore.wrappedLogLinesToDisplay = []
+	localdevState.wrappedLogLinesToDisplay = []
 }
 
 export function wrapLineWithPrefix({

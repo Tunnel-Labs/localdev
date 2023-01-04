@@ -1,24 +1,24 @@
 import chalk from 'chalk'
 import { Box, Text } from 'ink'
+import { useSnapshot } from 'valtio'
 
-import { localdevConfig } from '~/utils/config.js'
-import { useReactiveState } from '~/utils/reactivity.js'
 import { Service } from '~/utils/service.js'
-import { localdevStore } from '~/utils/store.js'
+import { localdevState } from '~/utils/store.js'
 
 export function ServiceStatusesPane() {
-	const services = useReactiveState(() => {
-		const serviceIds = localdevStore.servicesEnabled
-			? Object.keys(localdevConfig.value.services ?? {})
-			: []
-		return serviceIds.map((serviceId) => {
-			const service = Service.get(serviceId)
-			return {
-				id: serviceId,
-				name: service.name,
-				status: service.status,
-			}
-		})
+	const snap = useSnapshot(localdevState)
+
+	const serviceIds = snap.servicesEnabled
+		? Object.keys(localdevState.localdevConfig.services ?? {})
+		: []
+
+	const services = serviceIds.map((serviceId) => {
+		const service = Service.get(serviceId)
+		return {
+			id: serviceId,
+			name: service.name,
+			status: service.status,
+		}
 	})
 
 	const getServiceStatusCircle = (status: Service['status']) => {

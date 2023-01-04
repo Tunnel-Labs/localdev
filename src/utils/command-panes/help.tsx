@@ -3,11 +3,11 @@ import { Box, Text } from 'ink'
 
 import { getLocaldevCommandSpecs } from '~/utils/commands.js'
 import { useReactiveState } from '~/utils/reactivity.js'
-import { localdevStore } from '~/utils/store.js'
+import { localdevState } from '~/utils/store.js'
 
 export function HelpPane() {
 	const { activeHelpCommand } = useReactiveState(() => ({
-		activeHelpCommand: localdevStore.activeHelpCommand,
+		activeHelpCommand: localdevState.activeHelpCommand,
 	}))
 
 	let commandHelpOutput: string

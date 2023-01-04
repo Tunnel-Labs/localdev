@@ -10,7 +10,7 @@ import {
 	selectPreviousCommand,
 } from '~/utils/command.js'
 import { useReactiveState } from '~/utils/reactivity.js'
-import { localdevStore } from '~/utils/store.js'
+import { localdevState } from '~/utils/store.js'
 import { useTerminalSize } from '~/utils/terminal.js'
 
 /**
@@ -22,11 +22,11 @@ export function LocaldevUi(props: { mode: string }) {
 	const logsBoxRef = useRef<DOMElement>(null)
 	const terminalSize = useTerminalSize()
 	const state = useReactiveState(() => ({
-		logsBoxIncludingTopLineHeight: localdevStore.logsBoxIncludingTopLineHeight,
-		activeCommandBoxPaneComponent: localdevStore.activeCommandBoxPaneComponent,
-		hijackedServiceId: localdevStore.hijackedServiceId,
-		wrappedLogLinesToDisplay: localdevStore.wrappedLogLinesToDisplay,
-		commandBoxInput: localdevStore.commandBoxInput,
+		logsBoxIncludingTopLineHeight: localdevState.logsBoxIncludingTopLineHeight,
+		activeCommandBoxPaneComponent: localdevState.activeCommandBoxPaneComponent,
+		hijackedServiceId: localdevState.hijackedServiceId,
+		wrappedLogLinesToDisplay: localdevState.wrappedLogLinesToDisplay,
+		commandBoxInput: localdevState.commandBoxInput,
 	}))
 
 	const terminalHeight = terminalSize.rows
@@ -46,10 +46,10 @@ export function LocaldevUi(props: { mode: string }) {
 		} else if (key.downArrow) {
 			selectNextCommand()
 		} else if (key.escape) {
-			if (localdevStore.activeCommandBoxPaneComponent === null) {
-				localdevStore.commandBoxInput = ''
+			if (localdevState.activeCommandBoxPaneComponent === null) {
+				localdevState.commandBoxInput = ''
 			} else {
-				localdevStore.activeCommandBoxPaneComponent = null
+				localdevState.activeCommandBoxPaneComponent = null
 			}
 		}
 	})
@@ -59,7 +59,7 @@ export function LocaldevUi(props: { mode: string }) {
 		setTimeout(() => {
 			if (logsBoxRef.current !== null) {
 				const { height } = measureElement(logsBoxRef.current)
-				localdevStore.logsBoxIncludingTopLineHeight = height + 1
+				localdevState.logsBoxIncludingTopLineHeight = height + 1
 			}
 		}, 0)
 	}, [
@@ -130,7 +130,7 @@ export function LocaldevUi(props: { mode: string }) {
 					<TextInput.default
 						value={state.commandBoxInput}
 						onChange={(input) => {
-							localdevStore.commandBoxInput = input
+							localdevState.commandBoxInput = input
 						}}
 						placeholder={`Type ${chalk.bold(
 							'help'

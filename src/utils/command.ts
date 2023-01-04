@@ -1,7 +1,7 @@
 import shellQuote from 'shell-quote'
 
 import { getLocaldevCommandSpecs } from '~/utils/commands.js'
-import { localdevStore } from '~/utils/store.js'
+import { localdevState } from '~/utils/store.js'
 
 export async function runCommand(command: string) {
 	const commandName = command.split(' ')[0]
@@ -19,27 +19,27 @@ export async function runCommand(command: string) {
 }
 
 export async function runCommandFromCommandBox() {
-	const command = localdevStore.commandBoxInput
-	localdevStore.commandHistory.push(command)
-	localdevStore.currentCommandHistoryIndex += 1
-	localdevStore.commandBoxInput = ''
+	const command = localdevState.commandBoxInput
+	localdevState.commandHistory.push(command)
+	localdevState.currentCommandHistoryIndex += 1
+	localdevState.commandBoxInput = ''
 	await runCommand(command)
 }
 
 export function selectPreviousCommand() {
-	const { currentCommandHistoryIndex, commandHistory } = localdevStore
+	const { currentCommandHistoryIndex, commandHistory } = localdevState
 	if (currentCommandHistoryIndex > 0) {
-		localdevStore.currentCommandHistoryIndex -= 1
-		localdevStore.commandBoxInput =
+		localdevState.currentCommandHistoryIndex -= 1
+		localdevState.commandBoxInput =
 			commandHistory[currentCommandHistoryIndex - 1] ?? ''
 	}
 }
 
 export function selectNextCommand() {
-	const { commandHistory, currentCommandHistoryIndex } = localdevStore
+	const { commandHistory, currentCommandHistoryIndex } = localdevState
 	if (currentCommandHistoryIndex < commandHistory.length) {
-		localdevStore.currentCommandHistoryIndex += 1
-		localdevStore.commandBoxInput =
+		localdevState.currentCommandHistoryIndex += 1
+		localdevState.commandBoxInput =
 			commandHistory[currentCommandHistoryIndex + 1] ?? ''
 	}
 }

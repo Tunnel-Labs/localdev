@@ -2,18 +2,18 @@ import { Command } from 'commander'
 import onetime from 'onetime'
 import open from 'open'
 import prettyMilliseconds from 'pretty-ms'
+import { ref } from 'valtio'
 
 import type { LocaldevCommandSpec } from '~/types/command.js'
 import { HelpPane } from '~/utils/command-panes/help.js'
 import { HijackPane } from '~/utils/command-panes/hijack.js'
 import { LogsPane } from '~/utils/command-panes/logs.js'
 import { ServiceStatusesPane } from '~/utils/command-panes/service-statuses.js'
-import { getLocaldevConfigPath, localdevConfig } from '~/utils/config.js'
+import { getLocaldevConfigPath } from '~/utils/config.js'
 import { clearLogs } from '~/utils/logs.js'
 import { spawnProcess } from '~/utils/process.js'
-import { markRaw } from '~/utils/raw.js'
 import { Service } from '~/utils/service.js'
-import { localdevStore } from '~/utils/store.js'
+import { localdevState } from '~/utils/store.js'
 
 export function createCommand(name: string) {
 	return new Command(name).helpOption(false).exitOverride()
@@ -35,13 +35,13 @@ const defaultCommandSpecs = [
 		createCommand('r')
 			.description('refresh the terminal output')
 			.action(() => {
-				if (localdevStore.terminalUpdater === null) {
+				if (localdevState.terminalUpdater === null) {
 					console.error('TerminalUpdater has not been initialized yet')
 					return
 				}
 
 				const start = process.hrtime.bigint()
-				localdevStore.terminalUpdater.updateTerminal({
+				localdevState.terminalUpdater.updateTerminal({
 					force: true,
 					updateOverflowedLines: true,
 				})
@@ -59,16 +59,15 @@ const defaultCommandSpecs = [
 			.argument('[command]')
 			.summary('open the help pane')
 			.action((command?: string) => {
-				localdevStore.activeHelpCommand = command ?? null
-				localdevStore.activeCommandBoxPaneComponent = markRaw(HelpPane)
+				localdevState.activeHelpCommand = command ?? null
+				localdevState.activeCommandBoxPaneComponent = ref(HelpPane)
 			})
 	),
 	defineCommandSpec(
 		createCommand('status')
 			.summary('display the statuses of running services')
 			.action(() => {
-				localdevStore.activeCommandBoxPaneComponent =
-					markRaw(ServiceStatusesPane)
+				localdevState.activeCommandBoxPaneComponent = ref(ServiceStatusesPane)
 			})
 	),
 	defineCommandSpec(
@@ -111,11 +110,11 @@ const defaultCommandSpecs = [
 				}
 
 				// We update the active command box pane component first so we don't need to recompute the logs
-				localdevStore.activeCommandBoxPaneComponent = markRaw(LogsPane)
+				localdevState.activeCommandBoxPaneComponent = ref(LogsPane)
 
 				// replaceLogs({ serviceId })
 
-				localdevStore.logsBoxServiceId = serviceId
+				localdevState.logsBoxServiceId = serviceId
 			})
 			.addCommand(
 				createCommand('add')
@@ -127,8 +126,8 @@ const defaultCommandSpecs = [
 							return
 						}
 
-						localdevConfig.value.servicesToLog ??= {}
-						localdevConfig.value.servicesToLog[serviceId] = true
+						localdevState.localdevConfig.servicesToLog ??= {}
+						localdevState.localdevConfig.servicesToLog[serviceId] = true
 					})
 			)
 			.addCommand(
@@ -136,8 +135,8 @@ const defaultCommandSpecs = [
 					.argument('<serviceId>')
 					.summary('remove a service from the home view logs')
 					.action((serviceId: string) => {
-						if (localdevConfig.value.servicesToLog !== undefined) {
-							localdevConfig.value.servicesToLog[serviceId] = false
+						if (localdevState.localdevConfig.servicesToLog !== undefined) {
+							localdevState.localdevConfig.servicesToLog[serviceId] = false
 						}
 					})
 			)
@@ -155,10 +154,10 @@ const defaultCommandSpecs = [
 					return
 				}
 
-				localdevStore.hijackedServiceId = serviceId
+				localdevState.hijackedServiceId = serviceId
 
 				// We update the active command box pane component first so we don't need to recompute the logs
-				localdevStore.activeCommandBoxPaneComponent = markRaw(HijackPane)
+				localdevState.activeCommandBoxPaneComponent = ref(HijackPane)
 
 				// replaceLogs({ serviceId })
 			})
@@ -204,9 +203,8 @@ const defaultCommandSpecs = [
 		createCommand('home')
 			.summary('return to the localdev home page')
 			.action(() => {
-				localdevStore.activeCommandBoxPaneComponent =
-					markRaw(ServiceStatusesPane)
-				localdevStore.logsBoxServiceId = null
+				localdevState.activeCommandBoxPaneComponent = ref(ServiceStatusesPane)
+				localdevState.logsBoxServiceId = null
 			})
 	),
 	defineCommandSpec(
@@ -221,7 +219,7 @@ const defaultCommandSpecs = [
 
 export const getLocaldevCommandSpecs: () => LocaldevCommandSpec[] = onetime(
 	() => [
-		...(localdevConfig.value.commands?.({
+		...(localdevState.localdevConfig.commands?.({
 			defineCommandSpec,
 			createCommand,
 			Command,

@@ -12,7 +12,7 @@ import invariant from 'tiny-invariant'
 import type { UnwrappedLogLineData, WrappedLogLineData } from '~/types/logs.js'
 import type { ProcessEmitter } from '~/types/process.js'
 import { wrapLineWithPrefix } from '~/utils/logs.js'
-import { localdevStore } from '~/utils/store.js'
+import { localdevState } from '~/utils/store.js'
 import { getWrappedText } from '~/utils/text.js'
 
 export class Process {
@@ -191,7 +191,7 @@ export function spawnProcess(args: {
 	const listener = ({ unwrappedLine }: { unwrappedLine: string }) => {
 		const prefix = `${chalk[getProcessPrefixColor(args.id)](`#${args.id}:`)} `
 		const wrappedLines = wrapLineWithPrefix({ prefix, unwrappedLine })
-		localdevStore.wrappedLogLinesToDisplay.push(...wrappedLines)
+		localdevState.wrappedLogLinesToDisplay.push(...wrappedLines)
 	}
 
 	process.emitter.on('logsAdded', listener)
