@@ -1,9 +1,9 @@
-import { type Ref, ref } from '@vue/reactivity'
 import { deepmerge } from 'deepmerge-ts'
 import { findUp } from 'find-up'
 import { z } from 'zod'
 
 import type { LocaldevConfig } from '~/types/config.js'
+import { localdevState } from '~/utils/store.js'
 
 export const serviceSpecSchema = z.object({
 	name: z.string().optional(),
@@ -78,10 +78,6 @@ export async function getLocaldevConfig() {
 	) as LocaldevConfig
 }
 
-export const localdevConfig: Ref<LocaldevConfig> = ref<LocaldevConfig>(
-	undefined!
-)
-
 export async function loadLocaldevConfig() {
-	localdevConfig.value = await getLocaldevConfig()
+	localdevState.localdevConfig = await getLocaldevConfig()
 }

@@ -13,14 +13,14 @@ import { outdent } from 'outdent'
 import invariant from 'tiny-invariant'
 
 import { cli } from '~/utils/cli.js'
-import { localdevConfig } from '~/utils/config.js'
 import { createMkcertCerts } from '~/utils/mkcert.js'
 import { Service } from '~/utils/service.js'
+import { localdevState } from '~/utils/store.js'
 
 export async function setupLocaldevServer() {
 	const localDomains = [
 		'localdev.test',
-		...(localdevConfig.value.localDomains ?? []),
+		...(localdevState.localdevConfig.localDomains ?? []),
 	]
 	const { ca, key, cert } = await createMkcertCerts({
 		localDomains,
@@ -74,8 +74,11 @@ export async function setupLocaldevServer() {
 					return 'http://localhost:7357'
 				}
 
-				return localdevConfig.value.proxyRouter?.(req) ?? 'http://localhost:7357'
-			}
+				return (
+					localdevState.localdevConfig.proxyRouter?.(req) ??
+					'http://localhost:7357'
+				)
+			},
 		})
 
 		let httpsServer!: https.Server

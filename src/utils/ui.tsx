@@ -2,15 +2,14 @@ import TextInput from '@leondreamed/ink-text-input'
 import chalk from 'chalk'
 import type { DOMElement } from 'ink'
 import { Box, measureElement, Text, useInput } from 'ink'
-import { useEffect, useRef } from 'react'
+import { createElement, useEffect, useRef } from 'react'
 
 import {
 	runCommandFromCommandBox,
 	selectNextCommand,
 	selectPreviousCommand,
 } from '~/utils/command.js'
-import { useReactiveState } from '~/utils/reactivity.js'
-import { localdevStore } from '~/utils/store.js'
+import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
 import { useTerminalSize } from '~/utils/terminal.js'
 
 /**
@@ -21,13 +20,13 @@ import { useTerminalSize } from '~/utils/terminal.js'
 export function LocaldevUi(props: { mode: string }) {
 	const logsBoxRef = useRef<DOMElement>(null)
 	const terminalSize = useTerminalSize()
-	const state = useReactiveState(() => ({
-		logsBoxIncludingTopLineHeight: localdevStore.logsBoxIncludingTopLineHeight,
-		activeCommandBoxPaneComponent: localdevStore.activeCommandBoxPaneComponent,
-		hijackedServiceId: localdevStore.hijackedServiceId,
-		wrappedLogLinesToDisplay: localdevStore.wrappedLogLinesToDisplay,
-		commandBoxInput: localdevStore.commandBoxInput,
-	}))
+	const {
+		logsBoxIncludingTopLineHeight,
+		activeCommandBoxPaneComponent,
+		hijackedServiceId,
+		wrappedLogLinesToDisplay,
+		commandBoxInput,
+	} = useLocaldevSnapshot()
 
 	const terminalHeight = terminalSize.rows
 	const terminalWidth = terminalSize.columns
@@ -46,10 +45,10 @@ export function LocaldevUi(props: { mode: string }) {
 		} else if (key.downArrow) {
 			selectNextCommand()
 		} else if (key.escape) {
-			if (localdevStore.activeCommandBoxPaneComponent === null) {
-				localdevStore.commandBoxInput = ''
+			if (localdevState.activeCommandBoxPaneComponent === null) {
+				localdevState.commandBoxInput = ''
 			} else {
-				localdevStore.activeCommandBoxPaneComponent = null
+				localdevState.activeCommandBoxPaneComponent = null
 			}
 		}
 	})
@@ -59,17 +58,18 @@ export function LocaldevUi(props: { mode: string }) {
 		setTimeout(() => {
 			if (logsBoxRef.current !== null) {
 				const { height } = measureElement(logsBoxRef.current)
-				localdevStore.logsBoxIncludingTopLineHeight = height + 1
+				localdevState.logsBoxIncludingTopLineHeight = height + 1
 			}
 		}, 0)
 	}, [
 		logsBoxRef.current,
 		// The logs box should resize whenever the active command box pane is changed
-		state.activeCommandBoxPaneComponent,
+		activeCommandBoxPaneComponent,
 	])
 
 	const getWrappedLogLinesToDisplay = () => {
-		if (state.logsBoxIncludingTopLineHeight === null) return []
+		console.log(wrappedLogLinesToDisplay)
+		if (logsBoxIncludingTopLineHeight === null) return []
 
 		// If the log scroll mode state is active, we want to make sure we only render the logs that
 		// were displayed when the scroll mode state became active to make the logs continuous when the user
@@ -81,9 +81,7 @@ export function LocaldevUi(props: { mode: string }) {
 		// 		logScrollModeState.wrappedLogLinesLength
 		// 	)
 		// } else {
-		return state.wrappedLogLinesToDisplay.slice(
-			-state.logsBoxIncludingTopLineHeight
-		)
+		return wrappedLogLinesToDisplay.slice(-logsBoxIncludingTopLineHeight)
 		// }
 	}
 
@@ -95,15 +93,15 @@ export function LocaldevUi(props: { mode: string }) {
 			width={terminalWidth}
 		>
 			{/* We hide the title when the logs overflow so that the logs are unbroken when the user scrolls up to view overflowed logs */}
-			{(state.logsBoxIncludingTopLineHeight === null ||
-				state.wrappedLogLinesToDisplay.length <=
-					state.logsBoxIncludingTopLineHeight - 1) && (
-				<Box alignSelf="center" flexDirection="row">
-					<Text bold>localdev</Text>
-					<Text> </Text>
-					<Text dimColor>[{props.mode}]</Text>
-				</Box>
-			)}
+			{logsBoxIncludingTopLineHeight === null ||
+				(wrappedLogLinesToDisplay.length <=
+					logsBoxIncludingTopLineHeight - 1 && (
+					<Box alignSelf="center" flexDirection="row">
+						<Text bold>localdev</Text>
+						<Text> </Text>
+						<Text dimColor>[{props.mode}]</Text>
+					</Box>
+				))}
 
 			<Box
 				ref={logsBoxRef}
@@ -119,18 +117,18 @@ export function LocaldevUi(props: { mode: string }) {
 			</Box>
 
 			<Box borderStyle="round" flexDirection="column" flexShrink={0}>
-				{state.activeCommandBoxPaneComponent !== null && (
+				{activeCommandBoxPaneComponent !== null && (
 					<Box flexDirection="column">
-						<state.activeCommandBoxPaneComponent />
+						{createElement(activeCommandBoxPaneComponent)}
 						<Text dimColor>{'─'.repeat(terminalWidth - 2)}</Text>
 					</Box>
 				)}
 				{/* When hijacking a service, we disable the text input box since we want to forward all input to the hijacked service */}
-				{state.hijackedServiceId === null && (
+				{hijackedServiceId === null && (
 					<TextInput.default
-						value={state.commandBoxInput}
+						value={commandBoxInput}
 						onChange={(input) => {
-							localdevStore.commandBoxInput = input
+							localdevState.commandBoxInput = input
 						}}
 						placeholder={`Type ${chalk.bold(
 							'help'

@@ -1,27 +1,24 @@
 /* eslint-disable no-control-regex -- We want to match ANSI escape sequences */
 
-import type { Ref } from '@vue/reactivity'
-import { ref } from '@vue/reactivity'
-import { watch } from '@vue-reactivity/watch'
 import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
 import { either, flags } from 'compose-regexp'
 import type { IBasePtyForkOptions } from 'node-pty'
 import shellQuote from 'shell-quote'
+import invariant from 'tiny-invariant'
+import { subscribeKey } from 'valtio/utils'
 import waitPort from 'wait-port'
 
 import type { ServiceSpec } from '~/types/config.js'
 import type { LogsAddedEventPayload } from '~/types/process.js'
+import { type ServiceStatus } from '~/types/service.js'
 import {
 	getServicePrefixColor,
 	getWrappedLogLinesToDisplay,
-	serviceIdsToLog,
 	wrapLineWithPrefix,
 } from '~/utils/logs.js'
 import { Process } from '~/utils/process.js'
-import { localdevStore } from '~/utils/store.js'
-
-type ServiceStatus = 'ready' | 'pending' | 'failed' | 'stopped'
+import { localdevState } from '~/utils/store.js'
 
 const _ansiCursorRegexp = flags.add(
 	'g',
@@ -70,8 +67,6 @@ export class Service {
 		return this.#process
 	}
 
-	#status: Ref<ServiceStatus> = ref('stopped')
-
 	constructor(id: '$localdev')
 	constructor(id: string, spec: Omit<ServiceSpec, 'id'>)
 	constructor(id: string, spec?: Omit<ServiceSpec, 'id'>) {
@@ -100,7 +95,7 @@ export class Service {
 			this.spec = { ...spec, id }
 
 			if (this.spec.startAutomatically) {
-				this.#status.value = 'pending'
+				this.status = 'pending'
 			}
 
 			let command: string[]
@@ -118,6 +113,7 @@ export class Service {
 				commandOptions = {}
 			}
 
+			localdevState.serviceStatuses[this.spec.id] = 'pending'
 			this.#process = new Process({
 				id: this.spec.id,
 				command,
@@ -127,11 +123,13 @@ export class Service {
 	}
 
 	get status() {
-		return this.#status.value
+		const status = localdevState.serviceStatuses[this.spec.id]
+		invariant(status !== undefined, 'status !== undefined')
+		return status
 	}
 
 	set status(status: ServiceStatus) {
-		this.#status.value = status
+		localdevState.serviceStatuses[this.spec.id] = status
 	}
 
 	initialize() {
@@ -147,52 +145,48 @@ export class Service {
 		>()
 
 		// Whenever `serviceIdsToLog` changes, we need to re-calculate `wrappedLogLinesToDisplay` and re-add all listeners
-		watch(
-			serviceIdsToLog,
-			() => {
-				// Clear all old listeners
-				for (const [
-					oldServiceIdToLog,
-					listener,
-				] of currentListenersMap.entries()) {
-					Service.get(oldServiceIdToLog).process.emitter.removeListener(
-						'logsAdded',
-						listener
-					)
-				}
+		subscribeKey(localdevState, 'serviceIdsToLog', () => {
+			// Clear all old listeners
+			for (const [
+				oldServiceIdToLog,
+				listener,
+			] of currentListenersMap.entries()) {
+				Service.get(oldServiceIdToLog).process.emitter.removeListener(
+					'logsAdded',
+					listener
+				)
+			}
 
-				currentListenersMap.clear()
+			currentListenersMap.clear()
 
-				// We re-calculate all log lines
-				localdevStore.wrappedLogLinesToDisplay = getWrappedLogLinesToDisplay()
+			// We re-calculate all log lines
+			localdevState.wrappedLogLinesToDisplay = getWrappedLogLinesToDisplay()
 
-				// We set up listeners for incremental addition to the log lines on new lines
-				for (const serviceId of serviceIdsToLog.value) {
-					const service = Service.get(serviceId)
-					const listener = ({
-						unwrappedLine,
-						wrappedLine,
-					}: LogsAddedEventPayload) => {
-						let wrappedLines: string[]
-						// If we're logging multiple services, we need to add a prefix to every wrapped line
-						if (localdevStore.logsBoxServiceId === null) {
-							const prefix = `${chalk[getServicePrefixColor(service.spec.id)](
-								service.name
-							)}: `
-							wrappedLines = wrapLineWithPrefix({ unwrappedLine, prefix })
-						} else {
-							wrappedLines = wrappedLine
-						}
-
-						localdevStore.wrappedLogLinesToDisplay.push(...wrappedLines)
+			// We set up listeners for incremental addition to the log lines on new lines
+			for (const serviceId of localdevState.serviceIdsToLog) {
+				const service = Service.get(serviceId)
+				const listener = ({
+					unwrappedLine,
+					wrappedLine,
+				}: LogsAddedEventPayload) => {
+					let wrappedLines: string[]
+					// If we're logging multiple services, we need to add a prefix to every wrapped line
+					if (localdevState.logsBoxServiceId === null) {
+						const prefix = `${chalk[getServicePrefixColor(service.spec.id)](
+							service.name
+						)}: `
+						wrappedLines = wrapLineWithPrefix({ unwrappedLine, prefix })
+					} else {
+						wrappedLines = wrappedLine
 					}
 
-					service.process.emitter.on('logsAdded', listener)
-					currentListenersMap.set(serviceId, listener)
+					localdevState.wrappedLogLinesToDisplay.push(...wrappedLines)
 				}
-			},
-			{ immediate: true }
-		)
+
+				service.process.emitter.on('logsAdded', listener)
+				currentListenersMap.set(serviceId, listener)
+			}
+		})
 	}
 
 	get name() {

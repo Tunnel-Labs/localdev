@@ -2,13 +2,10 @@ import chalk from 'chalk'
 import { Box, Text } from 'ink'
 
 import { getLocaldevCommandSpecs } from '~/utils/commands.js'
-import { useReactiveState } from '~/utils/reactivity.js'
-import { localdevStore } from '~/utils/store.js'
+import { useLocaldevSnapshot } from '~/utils/store.js'
 
 export function HelpPane() {
-	const { activeHelpCommand } = useReactiveState(() => ({
-		activeHelpCommand: localdevStore.activeHelpCommand,
-	}))
+	const { activeHelpCommand } = useLocaldevSnapshot()
 
 	let commandHelpOutput: string
 	if (activeHelpCommand === null) {

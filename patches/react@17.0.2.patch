@@ -1,0 +1,16 @@
+diff --git a/package.json b/package.json
+index 936478a095255c0d16426733f95482e7a6c8f34e..06cdf973162207c623c626b0747c7aed7f7bb92c 100644
+--- a/package.json
++++ b/package.json
+@@ -19,6 +19,11 @@
+     "jsx-dev-runtime.js"
+   ],
+   "main": "index.js",
++  "exports": {
++    ".": "./index.js",
++    "./jsx-runtime": "./jsx-runtime.js",
++    "./package.json": "./package.json"
++  },
+   "repository": {
+     "type": "git",
+     "url": "https://github.com/facebook/react.git",

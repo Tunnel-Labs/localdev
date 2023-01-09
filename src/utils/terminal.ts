@@ -11,6 +11,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import onExit from 'signal-exit'
 import terminalSize from 'term-size'
 import invariant from 'tiny-invariant'
+import { ref } from 'valtio'
 import xTermHeadless from 'xterm-headless'
 
 import { ServiceStatusesPane } from '~/utils/command-panes/service-statuses.js'
@@ -19,10 +20,9 @@ import {
 	deactivateLogScrollMode,
 	getWrappedLogLinesToDisplay,
 } from '~/utils/logs.js'
-import { markRaw } from '~/utils/raw.js'
 import { Service } from '~/utils/service.js'
 import { MockStdin } from '~/utils/stdin.js'
-import { localdevStore } from '~/utils/store.js'
+import { localdevState } from '~/utils/store.js'
 import { LocaldevUi } from '~/utils/ui.js'
 
 const { Terminal } = xTermHeadless
@@ -121,20 +121,20 @@ export class TerminalUpdater {
 		const termSize = terminalSize()
 
 		// Initially, we want to display the status of the services
-		localdevStore.activeCommandBoxPaneComponent = markRaw(
+		localdevState.activeCommandBoxPaneComponent = ref(
 			ServiceStatusesPane as any
 		)
-		localdevStore.inkInstance = markRaw(
+		localdevState.inkInstance = ref(
 			render(React.createElement(LocaldevUi, { mode: this.mode }), {
 				// We pass in a "noop stream" to Ink's `stdout` because we use our own rendering function for Ink (the built-in rendering function for Ink has flickering issues)
 				// @ts-expect-error: not a perfect type match but works at runtime
 				stdout: new PassThrough(),
 
 				// We use a mock `process.stdin` so that we can control the input that ink processes. In particular, when log scroll mode is active, we want to make sure that ink doesn't process the key that's pressed to exit log scroll mode.
-				stdin: this.inkStdin,
+				// stdin: this.inkStdin,
 
 				// We handle Ctrl+C manually
-				exitOnCtrlC: false,
+				exitOnCtrlC: true,
 
 				// We use our own console patches.
 				patchConsole: false,
@@ -170,20 +170,20 @@ export class TerminalUpdater {
 		updateOverflowedLines?: boolean
 		force?: boolean
 	}) {
-		if (localdevStore.inkInstance === null) {
+		if (localdevState.inkInstance === null) {
 			return
 		}
 
-		if (!localdevStore.logScrollModeState.active) {
+		if (!localdevState.logScrollModeState.active) {
 			this.enableTerminalMouseSupport()
 		}
 
 		// We still want to re-render the terminal if it gets resized while `logScrollModeState` is active
-		if (!options?.force && localdevStore.logScrollModeState.active) {
+		if (!options?.force && localdevState.logScrollModeState.active) {
 			return
 		}
 
-		if (localdevStore.inkInstance.isUnmounted) {
+		if (localdevState.inkInstance.isUnmounted) {
 			clearInterval(this.updateIntervalId)
 			return
 		}
@@ -209,7 +209,7 @@ export class TerminalUpdater {
 
 		const { columns: terminalWidth, rows: terminalHeight } = terminalSize()
 		const newOutput = renderer.default(
-			localdevStore.inkInstance.rootNode,
+			localdevState.inkInstance.rootNode,
 			terminalWidth
 		).output
 
@@ -257,8 +257,8 @@ export class TerminalUpdater {
 					// We wait until the next tick to allow all non-forced terminal updates to run first (this fixes the problem of rendering over "ghost" values of `previousOutputs`)
 					setTimeout(() => {
 						// When the terminal resizes, all the overflowed wrapped lines become unaligned, so we reset these variables
-						localdevStore.nextOverflowedWrappedLogLineIndexToOutput = 0
-						localdevStore.wrappedLogLinesToDisplay =
+						localdevState.nextOverflowedWrappedLogLineIndexToOutput = 0
+						localdevState.wrappedLogLinesToDisplay =
 							getWrappedLogLinesToDisplay()
 
 						// We need to hard clear the console in order to preserve the continuity of overflowed logs as the terminal resize causes some lines to overflow
@@ -276,26 +276,26 @@ export class TerminalUpdater {
 	#getUpdateSequenceFromUpdatingOverflowedLines(): string {
 		let updateSequence = ''
 		// Don't log overflowed lines if the UI hasn't rendered yet
-		if (localdevStore.logsBoxIncludingTopLineHeight === null) return ''
+		if (localdevState.logsBoxIncludingTopLineHeight === null) return ''
 
 		// The terminal can only display the last `logsBoxIncludingTopLineHeight` log lines, so the
 		// lines until that are overflowed lines
 		const overflowedWrappedLogLines =
-			localdevStore.wrappedLogLinesToDisplay.slice(
+			localdevState.wrappedLogLinesToDisplay.slice(
 				0,
-				localdevStore.wrappedLogLinesToDisplay.length -
-					localdevStore.logsBoxIncludingTopLineHeight
+				localdevState.wrappedLogLinesToDisplay.length -
+					localdevState.logsBoxIncludingTopLineHeight
 			)
 
 		if (overflowedWrappedLogLines.length === 0) return ''
 
 		const { rows: numTerminalRows } = terminalSize()
 		let overflowedWrappedLogLineIndex =
-			localdevStore.nextOverflowedWrappedLogLineIndexToOutput
+			localdevState.nextOverflowedWrappedLogLineIndexToOutput
 
 		const numOverflowedWrappedLogLinesToOutput =
 			overflowedWrappedLogLines.length -
-			localdevStore.nextOverflowedWrappedLogLineIndexToOutput
+			localdevState.nextOverflowedWrappedLogLineIndexToOutput
 
 		if (numOverflowedWrappedLogLinesToOutput <= 0) {
 			return ''
@@ -309,7 +309,7 @@ export class TerminalUpdater {
 			;
 			overflowedWrappedLogLineIndex <
 			Math.min(
-				localdevStore.nextOverflowedWrappedLogLineIndexToOutput +
+				localdevState.nextOverflowedWrappedLogLineIndexToOutput +
 					numTerminalRows,
 				overflowedWrappedLogLines.length
 			);
@@ -365,7 +365,7 @@ export class TerminalUpdater {
 		// Set the previous output was an empty screen so that the viewport is completely re-rendered
 		this.previousOutput = '\n'.repeat(numTerminalRows - 1)
 
-		localdevStore.nextOverflowedWrappedLogLineIndexToOutput =
+		localdevState.nextOverflowedWrappedLogLineIndexToOutput =
 			overflowedWrappedLogLines.length
 
 		return updateSequence
@@ -374,7 +374,7 @@ export class TerminalUpdater {
 	#registerStdinListener() {
 		process.stdin.setRawMode(true)
 		process.stdin.on('data', (inputBuffer) => {
-			const { logScrollModeState } = localdevStore
+			const { logScrollModeState } = localdevState
 
 			if (logScrollModeState.active) {
 				// Re-rendering the previous output onto the terminal
