@@ -133,6 +133,7 @@ export function wrapLineWithPrefix({
 	const prefixLength = stringLength(prefix)
 
 	const wrappedLines = splitLines(
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- wrapAnsi types are broken
 		(wrapAnsi.default ?? wrapAnsi)(
 			unwrappedLine,
 			terminalWidth - prefixLength,
