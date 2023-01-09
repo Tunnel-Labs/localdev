@@ -4,6 +4,9 @@ patchedDependencies:
   react@17.0.2:
     hash: 5lm66n5vhosypbhs3xvx6uilci
     path: patches/react@17.0.2.patch
+  use-sync-external-store@1.2.0:
+    hash: zr7675mw22hnqhhebotxww4izm
+    path: patches/use-sync-external-store@1.2.0.patch
 
 specifiers:
   '@fastify/express': ^2.3.0
@@ -2534,7 +2537,7 @@ packages:
       '@types/semver': 7.3.13
       '@types/treeify': 1.0.0
       '@yarnpkg/fslib': 3.0.0-rc.35
-      '@yarnpkg/libzip': 3.0.0-rc.35_@yarnpkg+fslib@3.0.0-rc.35
+      '@yarnpkg/libzip': 3.0.0-rc.35
       '@yarnpkg/parsers': 3.0.0-rc.35
       '@yarnpkg/shell': 4.0.0-rc.35
       camelcase: 5.3.1
@@ -2565,7 +2568,7 @@ packages:
       '@types/semver': 7.3.13
       '@types/treeify': 1.0.0
       '@yarnpkg/fslib': 3.0.0-rc.35
-      '@yarnpkg/libzip': 3.0.0-rc.35_@yarnpkg+fslib@3.0.0-rc.35
+      '@yarnpkg/libzip': 3.0.0-rc.35
       '@yarnpkg/parsers': 3.0.0-rc.35
       '@yarnpkg/shell': 4.0.0-rc.35
       camelcase: 5.3.1
@@ -2620,11 +2623,9 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /@yarnpkg/libzip/3.0.0-rc.35_@yarnpkg+fslib@3.0.0-rc.35:
+  /@yarnpkg/libzip/3.0.0-rc.35:
     resolution: {integrity: sha512-YXAMS2KxxTU9hW1g51ZyEvYUGrAd+CtbycuFUYKvYv4O+RyJx1JZ2jzVgBCkj2aVPMMIVnIeUFvuzo2bcM+NsQ==}
     engines: {node: '>=14.15.0'}
-    peerDependencies:
-      '@yarnpkg/fslib': ^3.0.0-rc.35
     dependencies:
       '@types/emscripten': 1.39.6
       '@yarnpkg/fslib': 3.0.0-rc.35
@@ -6833,7 +6834,7 @@ packages:
       type-fest: 3.5.1
       update-notifier: 6.0.2
       webpack: /ignoredep/200.9999.0
-      xo: 0.53.1_ya6w3ivkqmiqqgc5pi5zz7zqem
+      xo: 0.53.1_ignoredep@200.9999.0
     transitivePeerDependencies:
       - '@swc/wasm'
       - bluebird
@@ -10131,13 +10132,14 @@ packages:
       react: 17.0.2_5lm66n5vhosypbhs3xvx6uilci
     dev: false
 
-  /use-sync-external-store/1.2.0_react@17.0.2:
+  /use-sync-external-store/1.2.0_zr7675mw22hnqhhebotxww4izm_react@17.0.2:
     resolution: {integrity: sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
     dependencies:
       react: 17.0.2_5lm66n5vhosypbhs3xvx6uilci
     dev: false
+    patched: true
 
   /util-deprecate/1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
@@ -10189,7 +10191,7 @@ packages:
     dependencies:
       proxy-compare: 2.4.0
       react: 17.0.2_5lm66n5vhosypbhs3xvx6uilci
-      use-sync-external-store: 1.2.0_react@17.0.2
+      use-sync-external-store: 1.2.0_zr7675mw22hnqhhebotxww4izm_react@17.0.2
     dev: false
 
   /vary/1.1.2:
@@ -10501,7 +10503,7 @@ packages:
     engines: {node: '>=0.4.0'}
     dev: false
 
-  /xo/0.53.1_ya6w3ivkqmiqqgc5pi5zz7zqem:
+  /xo/0.53.1_ignoredep@200.9999.0:
     resolution: {integrity: sha512-/2R8SPehv1UhiIqJ9uSvrAjslcoygICNsUlEb/Zf2V6rMtr7YCoggc6hlt6b/kbncpR989Roqt6AvEO779dFxw==}
     engines: {node: '>=14.16'}
     hasBin: true
@@ -10512,12 +10514,15 @@ packages:
         optional: true
     dependencies:
       '@eslint/eslintrc': 1.4.1
+      '@typescript-eslint/eslint-plugin': 5.48.1_3jon24igvnqaqexgwtxk6nkpse
+      '@typescript-eslint/parser': 5.48.1_iukboom6ndih5an6iafl45j2fe
       arrify: 3.0.0
       cosmiconfig: 7.1.0
       define-lazy-prop: 3.0.0
       eslint: 8.31.0
       eslint-config-prettier: 8.6.0_eslint@8.31.0
       eslint-config-xo: 0.43.1_eslint@8.31.0
+      eslint-config-xo-typescript: 0.55.1_ddkuuvdrd7nn3bjshfkuqupluq
       eslint-formatter-pretty: 4.1.0
       eslint-import-resolver-webpack: 0.13.2_6pzfq7iq7ovywsitty7kqqq43e
       eslint-plugin-ava: 13.2.0_eslint@8.31.0
@@ -10546,7 +10551,6 @@ packages:
       typescript: 4.9.4
       webpack: /ignoredep/200.9999.0
     transitivePeerDependencies:
-      - '@typescript-eslint/parser'
       - eslint-import-resolver-typescript
       - supports-color
     dev: true

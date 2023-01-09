@@ -16,11 +16,9 @@ import { useTerminalSize } from '~/utils/terminal.js'
 function LocaldevLogsBox({ height, width }: { height: number; width: number }) {
 	const { terminalUpdater } = useLocaldevSnapshot()
 
+	console.log('render')
 	const getWrappedLogLinesToDisplay = () => {
 		if (terminalUpdater === null) return []
-
-		const { virtualTerminal } = terminalUpdater
-		console.log(virtualTerminal.buffer.active)
 
 		// const virtualTerminalLines: string[] = []
 		// for (let lineIndex = 0; lineIndex < 1; lineIndex += 1) {

@@ -99,7 +99,8 @@
 	},
 	"pnpm": {
 		"patchedDependencies": {
-			"react@17.0.2": "patches/react@17.0.2.patch"
+			"react@17.0.2": "patches/react@17.0.2.patch",
+			"use-sync-external-store@1.2.0": "patches/use-sync-external-store@1.2.0.patch"
 		}
 	}
 }

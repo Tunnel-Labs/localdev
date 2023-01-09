@@ -1,0 +1,26 @@
+diff --git a/cjs/use-sync-external-store-shim.development.js b/cjs/use-sync-external-store-shim.development.js
+index c849ab8c215488ba2a54ed1ea2b07370abf27807..6f7e9f368be97cd0ee3e93adeaf3452de20d236a 100644
+--- a/cjs/use-sync-external-store-shim.development.js
++++ b/cjs/use-sync-external-store-shim.development.js
+@@ -220,7 +220,7 @@ function useSyncExternalStore$1(subscribe, getSnapshot, getServerSnapshot) {
+ 
+ var canUseDOM = !!(typeof window !== 'undefined' && typeof window.document !== 'undefined' && typeof window.document.createElement !== 'undefined');
+ 
+-var isServerEnvironment = !canUseDOM;
++var isServerEnvironment = false;
+ 
+ var shim = isServerEnvironment ? useSyncExternalStore$1 : useSyncExternalStore;
+ var useSyncExternalStore$2 = React.useSyncExternalStore !== undefined ? React.useSyncExternalStore : shim;
+diff --git a/shim/index.js b/shim/index.js
+index bde36f38efdb3d9bd4b00d24bdfe8864ce1df789..cba3c3b9052389100f8d1ba422fcb467ae87e14e 100644
+--- a/shim/index.js
++++ b/shim/index.js
+@@ -1,7 +1,3 @@
+ 'use strict';
+ 
+-if (process.env.NODE_ENV === 'production') {
+-  module.exports = require('../cjs/use-sync-external-store-shim.production.min.js');
+-} else {
+-  module.exports = require('../cjs/use-sync-external-store-shim.development.js');
+-}
++module.exports = require('../cjs/use-sync-external-store-shim.production.min.js');
