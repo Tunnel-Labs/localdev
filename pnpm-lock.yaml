@@ -1,5 +1,10 @@
 lockfileVersion: 5.4
 
+patchedDependencies:
+  react@17.0.2:
+    hash: 5lm66n5vhosypbhs3xvx6uilci
+    path: patches/react@17.0.2.patch
+
 specifiers:
   '@fastify/express': ^2.2.0
   '@leondreamed/fast-sort': ^3.2.0
@@ -13,7 +18,7 @@ specifiers:
   '@types/inquirer-autocomplete-prompt': ^3.0.0
   '@types/kill-port': ^2.0.0
   '@types/minimist': ^1.2.2
-  '@types/react': ^18.0.26
+  '@types/react': ^17.0.52
   '@types/shell-quote': ^1.7.1
   '@types/signal-exit': ^3.0.1
   '@types/tcp-port-used': ^1.0.1
@@ -53,7 +58,7 @@ specifiers:
   patch-console: ^2.0.0
   pretty-ms: ^8.0.0
   proxy-memoize: ^2.0.0
-  react: ^18.2.0
+  react: ^17.0.2
   requrl: ^3.0.2
   rfdc: ^1.3.0
   shell-quote: ^1.7.4
@@ -71,7 +76,8 @@ specifiers:
   typescript: ^4.9.4
   unique-concat: ^0.2.2
   use-force-update: ^1.0.11
-  valtio: ^1.8.0
+  use-sync-external-store: ^1.2.0
+  valtio: ^1.8.2
   wait-port: ^1.0.4
   wrap-ansi: ^8.0.1
   xterm-headless: ^5.0.0
@@ -80,7 +86,7 @@ specifiers:
 dependencies:
   '@fastify/express': 2.2.0
   '@leondreamed/fast-sort': 3.2.0
-  '@leondreamed/ink-text-input': 4.0.3_jn2dagfghh7etwsaqkj4ezjof4
+  '@leondreamed/ink-text-input': 4.0.3_hwdckmkclg6khu5focru6ak6cm
   '@stdlib/utils-noop': 0.0.13
   ansi-align: 3.0.1
   ansi-center-align: 1.0.1
@@ -100,7 +106,7 @@ dependencies:
   got: 12.5.3
   http-proxy: 1.18.1
   http-proxy-middleware: 2.0.6_@types+express@4.17.15
-  ink: /@leondreamed/ink/3.2.0_kzbn2opkn2327fwg5yzwzya5o4
+  ink: /@leondreamed/ink/3.2.0_q5o373oqrklnndq2vhekyuzhxi
   inquirer: 9.1.4
   inquirer-autocomplete-prompt: 3.0.0_inquirer@9.1.4
   js-sdsl: 4.2.0
@@ -116,7 +122,7 @@ dependencies:
   patch-console: 2.0.0
   pretty-ms: 8.0.0
   proxy-memoize: 2.0.0
-  react: 18.2.0
+  react: 17.0.2_5lm66n5vhosypbhs3xvx6uilci
   requrl: 3.0.2
   rfdc: 1.3.0
   shell-quote: 1.7.4
@@ -132,8 +138,9 @@ dependencies:
   tmp-promise: 3.0.3
   typesafe-emitter: 2.1.0
   unique-concat: 0.2.2
-  use-force-update: 1.0.11_react@18.2.0
-  valtio: 1.8.0_react@18.2.0
+  use-force-update: 1.0.11_react@17.0.2
+  use-sync-external-store: 1.2.0_react@17.0.2
+  valtio: 1.8.2_react@17.0.2
   wait-port: 1.0.4
   wrap-ansi: 8.0.1
   xterm-headless: 5.1.0
@@ -148,7 +155,7 @@ devDependencies:
   '@types/inquirer-autocomplete-prompt': 3.0.0
   '@types/kill-port': 2.0.0
   '@types/minimist': 1.2.2
-  '@types/react': 18.0.26
+  '@types/react': 17.0.52
   '@types/shell-quote': 1.7.1
   '@types/signal-exit': 3.0.1
   '@types/tcp-port-used': 1.0.1
@@ -665,7 +672,7 @@ packages:
     resolution: {integrity: sha512-JrsBqaqiHKK4NJwu3yRAHWoxcI+4iZlMCEglWh53PYaRCKy7cB9f2FoSmgBRgxVvAFuip9H3GT06GPhkmIMSbA==}
     dev: false
 
-  /@leondreamed/ink-text-input/4.0.3_jn2dagfghh7etwsaqkj4ezjof4:
+  /@leondreamed/ink-text-input/4.0.3_hwdckmkclg6khu5focru6ak6cm:
     resolution: {integrity: sha512-uOGRZ7VkzK992hTK9Z3wUGBG4BXjg+pHe4xqSbvw3p/OhlC7/OgAkrFBfC+NqJ6Vr1Eeo8ZgRLLInm6TGQ3PrA==}
     engines: {node: '>=10'}
     peerDependencies:
@@ -673,12 +680,12 @@ packages:
       react: ^16.5.2 || ^17.0.0
     dependencies:
       chalk: 4.1.2
-      ink: /@leondreamed/ink/3.2.0_kzbn2opkn2327fwg5yzwzya5o4
-      react: 18.2.0
+      ink: /@leondreamed/ink/3.2.0_q5o373oqrklnndq2vhekyuzhxi
+      react: 17.0.2_5lm66n5vhosypbhs3xvx6uilci
       type-fest: 0.15.1
     dev: false
 
-  /@leondreamed/ink/3.2.0_kzbn2opkn2327fwg5yzwzya5o4:
+  /@leondreamed/ink/3.2.0_q5o373oqrklnndq2vhekyuzhxi:
     resolution: {integrity: sha512-Mbbjs0CSpP2x6NJrv4GcqG7DoPgYUi5bUxJZ+qWEF1ZhDC7pNCcdgMaoLldpEZswNl7fehgufffHjCondLfrPQ==}
     engines: {node: '>=10'}
     peerDependencies:
@@ -691,7 +698,7 @@ packages:
       react-devtools-core:
         optional: true
     dependencies:
-      '@types/react': 18.0.26
+      '@types/react': 17.0.52
       ansi-escapes: 4.3.2
       auto-bind: 4.0.0
       chalk: 4.1.2
@@ -703,8 +710,8 @@ packages:
       is-ci: 2.0.0
       lodash: 4.17.21
       patch-console: 1.0.0
-      react: 18.2.0
-      react-reconciler: 0.26.2_react@18.2.0
+      react: 17.0.2_5lm66n5vhosypbhs3xvx6uilci
+      react-reconciler: 0.26.2_react@17.0.2
       scheduler: 0.20.2
       signal-exit: 3.0.7
       slice-ansi: 3.0.0
@@ -2256,8 +2263,8 @@ packages:
   /@types/range-parser/1.2.4:
     resolution: {integrity: sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==}
 
-  /@types/react/18.0.26:
-    resolution: {integrity: sha512-hCR3PJQsAIXyxhTNSiDFY//LhnMZWpNNr5etoCqx/iUfGc5gXWtQR2Phl908jVR6uPXacojQWTg4qRpkxTuGug==}
+  /@types/react/17.0.52:
+    resolution: {integrity: sha512-vwk8QqVODi0VaZZpDXQCmEmiOuyjEFPY7Ttaw5vjM112LOq37yz1CDJGrRJwA1fYEq4Iitd5rnjd1yWAc/bT+A==}
     dependencies:
       '@types/prop-types': 15.7.5
       '@types/scheduler': 0.16.2
@@ -8264,10 +8271,6 @@ packages:
       ipaddr.js: 1.9.1
     dev: false
 
-  /proxy-compare/2.3.0:
-    resolution: {integrity: sha512-c3L2CcAi7f7pvlD0D7xsF+2CQIW8C3HaYx2Pfgq8eA4HAl3GAH6/dVYsyBbYF/0XJs2ziGLrzmz5fmzPm6A0pQ==}
-    dev: false
-
   /proxy-compare/2.4.0:
     resolution: {integrity: sha512-FD8KmQUQD6Mfpd0hywCOzcon/dbkFP8XBd9F1ycbKtvVsfv6TsFUKJ2eC0Iz2y+KzlkdT1Z8SY6ZSgm07zOyqg==}
     dev: false
@@ -8374,7 +8377,7 @@ packages:
       strip-json-comments: 2.0.1
     dev: true
 
-  /react-reconciler/0.26.2_react@18.2.0:
+  /react-reconciler/0.26.2_react@17.0.2:
     resolution: {integrity: sha512-nK6kgY28HwrMNwDnMui3dvm3rCFjZrcGiuwLc5COUipBK5hWHLOxMJhSnSomirqWwjPBJKV1QcbkI0VJr7Gl1Q==}
     engines: {node: '>=0.10.0'}
     peerDependencies:
@@ -8382,16 +8385,18 @@ packages:
     dependencies:
       loose-envify: 1.4.0
       object-assign: 4.1.1
-      react: 18.2.0
+      react: 17.0.2_5lm66n5vhosypbhs3xvx6uilci
       scheduler: 0.20.2
     dev: false
 
-  /react/18.2.0:
-    resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
+  /react/17.0.2_5lm66n5vhosypbhs3xvx6uilci:
+    resolution: {integrity: sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==}
     engines: {node: '>=0.10.0'}
     dependencies:
       loose-envify: 1.4.0
+      object-assign: 4.1.1
     dev: false
+    patched: true
 
   /read-cmd-shim/4.0.0:
     resolution: {integrity: sha512-yILWifhaSEEytfXI76kB9xEEiG1AiozaCJZ83A87ytjRiN+jVibXjedjCRNjoZviinhG+4UkalO3mWTd8u5O0Q==}
@@ -9931,20 +9936,20 @@ packages:
     resolution: {integrity: sha512-dsBD6GbytSMj9YDb3jVzSRENwFh50oUORnWBeSHfo0Lnwv2KMm/J4npyGy1P9rivUPsUGLjTA53XqAFqpe0nww==}
     dev: true
 
-  /use-force-update/1.0.11_react@18.2.0:
+  /use-force-update/1.0.11_react@17.0.2:
     resolution: {integrity: sha512-h4SICYgTJHon8w9dFIqdqR1Vrzdgl4YaRfRwhmAh01kBGljzTICanyfaFU8C4etuEfRdYpE+04XX2ZrEhOWKXQ==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
     dependencies:
-      react: 18.2.0
+      react: 17.0.2_5lm66n5vhosypbhs3xvx6uilci
     dev: false
 
-  /use-sync-external-store/1.2.0_react@18.2.0:
+  /use-sync-external-store/1.2.0_react@17.0.2:
     resolution: {integrity: sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
     dependencies:
-      react: 18.2.0
+      react: 17.0.2_5lm66n5vhosypbhs3xvx6uilci
     dev: false
 
   /util-deprecate/1.0.2:
@@ -9986,33 +9991,18 @@ packages:
       builtins: 5.0.1
     dev: true
 
-  /valtio/1.8.0_react@18.2.0:
-    resolution: {integrity: sha512-lNw7wM0Qb9iBzXMju+XCn+UiIlf5uCe5pcI8XRqcvxEZ/mnRXyKXoOodPDKB8cIAVekA3Q3zWA7rboCdS4ea7g==}
+  /valtio/1.8.2_react@17.0.2:
+    resolution: {integrity: sha512-ypFWPi3aY04tojWAFPbTYBDw5iFaCDbKAJ2XqhmY2XOSorNtaCZJNg++FSssv8gMJwmPXfrU/RjncQtsoOHbUg==}
     engines: {node: '>=12.7.0'}
     peerDependencies:
-      '@babel/helper-module-imports': '>=7.12'
-      '@babel/types': '>=7.13'
-      aslemammad-vite-plugin-macro: '>=1.0.0-alpha.1'
-      babel-plugin-macros: '>=3.0'
       react: '>=16.8'
-      vite: '>=2.8.6'
     peerDependenciesMeta:
-      '@babel/helper-module-imports':
-        optional: true
-      '@babel/types':
-        optional: true
-      aslemammad-vite-plugin-macro:
-        optional: true
-      babel-plugin-macros:
-        optional: true
       react:
         optional: true
-      vite:
-        optional: true
     dependencies:
-      proxy-compare: 2.3.0
-      react: 18.2.0
-      use-sync-external-store: 1.2.0_react@18.2.0
+      proxy-compare: 2.4.0
+      react: 17.0.2_5lm66n5vhosypbhs3xvx6uilci
+      use-sync-external-store: 1.2.0_react@17.0.2
     dev: false
 
   /vary/1.1.2:

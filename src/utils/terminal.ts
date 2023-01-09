@@ -126,6 +126,8 @@ export class TerminalUpdater {
 		)
 		localdevState.inkInstance = ref(
 			render(React.createElement(LocaldevUi, { mode: this.mode }), {
+				debug: true,
+
 				// We pass in a "noop stream" to Ink's `stdout` because we use our own rendering function for Ink (the built-in rendering function for Ink has flickering issues)
 				// @ts-expect-error: not a perfect type match but works at runtime
 				stdout: new PassThrough(),
