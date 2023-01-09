@@ -2,7 +2,7 @@ import TextInput from '@leondreamed/ink-text-input'
 import chalk from 'chalk'
 import type { DOMElement } from 'ink'
 import { Box, measureElement, Text, useInput } from 'ink'
-import { useEffect, useRef } from 'react'
+import { createElement, useEffect, useRef } from 'react'
 
 import {
 	runCommandFromCommandBox,
@@ -118,7 +118,7 @@ export function LocaldevUi(props: { mode: string }) {
 			<Box borderStyle="round" flexDirection="column" flexShrink={0}>
 				{activeCommandBoxPaneComponent !== null && (
 					<Box flexDirection="column">
-						<activeCommandBoxPaneComponent />
+						{createElement(activeCommandBoxPaneComponent)}
 						<Text dimColor>{'─'.repeat(terminalWidth - 2)}</Text>
 					</Box>
 				)}

@@ -126,8 +126,6 @@ export class TerminalUpdater {
 		)
 		localdevState.inkInstance = ref(
 			render(React.createElement(LocaldevUi, { mode: this.mode }), {
-				debug: true,
-
 				// We pass in a "noop stream" to Ink's `stdout` because we use our own rendering function for Ink (the built-in rendering function for Ink has flickering issues)
 				// @ts-expect-error: not a perfect type match but works at runtime
 				stdout: new PassThrough(),
@@ -143,10 +141,10 @@ export class TerminalUpdater {
 			}) as any
 		)
 
-		// patchConsole((_stream, data) => {
-		// 	const localdevLogs = Service.get('$localdev')
-		// 	localdevLogs.process.addLogs(data.trimEnd())
-		// })
+		patchConsole((_stream, data) => {
+			const localdevLogs = Service.get('$localdev')
+			localdevLogs.process.addLogs(data.trimEnd())
+		})
 
 		this.write(ansiEscapes.cursorHide)
 		const lines = '\n'.repeat(termSize.rows)
