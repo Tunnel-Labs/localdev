@@ -17,7 +17,7 @@ import { createMkcertCerts } from '~/utils/mkcert.js'
 import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/store.js'
 
-export async function setupLocaldevServer() {
+export async function setupLocaldevServer({ port }: { port: number }) {
 	const localDomains = [
 		'localdev.test',
 		...(localdevState.localdevConfig.localDomains ?? []),
@@ -30,7 +30,7 @@ export async function setupLocaldevServer() {
 		res.writeHead(200, { 'Content-Type': 'text/plain' })
 		res.end('OK')
 	})
-	testHttpServer.listen(7357)
+	testHttpServer.listen(port)
 
 	const logProvider = () => ({
 		...console,
@@ -71,12 +71,12 @@ export async function setupLocaldevServer() {
 			target: null!,
 			router(req) {
 				if (req.hostname === 'localdev.test') {
-					return 'http://localhost:7357'
+					return `http://localhost:${port}`
 				}
 
 				return (
 					localdevState.localdevConfig.proxyRouter?.(req) ??
-					'http://localhost:7357'
+					`http://localhost:${port}`
 				)
 			},
 		})

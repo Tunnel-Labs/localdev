@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import type { DOMElement } from 'ink'
 import { Box, measureElement, Text, useInput } from 'ink'
 import { createElement, useEffect, useRef } from 'react'
+import invariant from 'tiny-invariant'
 
 import {
 	runCommandFromCommandBox,
@@ -12,8 +13,30 @@ import {
 import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
 import { useTerminalSize } from '~/utils/terminal.js'
 
+function LocaldevLogsBox({ height, width }: { height: number; width: number }) {
+	const { terminalUpdater } = useLocaldevSnapshot()
+
+	const getWrappedLogLinesToDisplay = () => {
+		if (terminalUpdater === null) return []
+
+		const { virtualTerminal } = terminalUpdater
+		console.log(virtualTerminal.buffer.active)
+
+		// const virtualTerminalLines: string[] = []
+		// for (let lineIndex = 0; lineIndex < 1; lineIndex += 1) {
+		// 	const line = virtualTerminal.buffer.active.getLine(lineIndex)
+		// 	invariant(line !== undefined, 'line should not be undefined')
+		// 	virtualTerminalLines.push(line.translateToString())
+		// }
+
+		return []
+	}
+
+	return <Box>{getWrappedLogLinesToDisplay()}</Box>
+}
+
 /**
-	Note: Do **not** log anything inside the component, because logs trigger state updates (since we display them in the logs box).
+	Note: Be careful to **not** log anything inside the component, because logs trigger state updates (since we display them in the logs box).
 
 	Instead, write your logs inside a `useEffect` to prevent infinite re-rendering
 */
@@ -67,23 +90,6 @@ export function LocaldevUi(props: { mode: string }) {
 		activeCommandBoxPaneComponent,
 	])
 
-	const getWrappedLogLinesToDisplay = () => {
-		if (logsBoxIncludingTopLineHeight === null) return []
-
-		// If the log scroll mode state is active, we want to make sure we only render the logs that
-		// were displayed when the scroll mode state became active to make the logs continuous when the user
-		// scrolls up
-		// if (logScrollModeState.active) {
-		// 	return wrappedLogLines.slice(
-		// 		logScrollModeState.wrappedLogLinesLength -
-		// 			logsBoxIncludingTopLineHeight,
-		// 		logScrollModeState.wrappedLogLinesLength
-		// 	)
-		// } else {
-		return wrappedLogLinesToDisplay.slice(-logsBoxIncludingTopLineHeight)
-		// }
-	}
-
 	return (
 		<Box
 			flexDirection="column"
@@ -102,17 +108,13 @@ export function LocaldevUi(props: { mode: string }) {
 					</Box>
 				))}
 
-			<Box
-				ref={logsBoxRef}
-				flexDirection="column"
-				justifyContent="flex-end"
-				flexGrow={1}
-			>
-				{getWrappedLogLinesToDisplay().map((logLine, i) => (
-					<Text key={i} wrap="truncate">
-						{logLine}
-					</Text>
-				))}
+			<Box ref={logsBoxRef} flexGrow={1}>
+				{logsBoxIncludingTopLineHeight !== null && (
+					<LocaldevLogsBox
+						height={logsBoxIncludingTopLineHeight - 2}
+						width={terminalWidth}
+					/>
+				)}
 			</Box>
 
 			<Box borderStyle="round" flexDirection="column" flexShrink={0}>

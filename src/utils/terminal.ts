@@ -78,21 +78,7 @@ export class TerminalUpdater {
 	}
 
 	write(data: string | Buffer) {
-		// Note: we don't currently do anything with the virtual terminal, but in the future it would be optimal to
-		// display the virtual terminal's buffer in the log box for programs like `start-docker` which use ansi-escape
-		// codes to manipulate the cursor and display dynamically-updating output
-		// this.virtualTerminal.write(data)
-		// const virtualTerminalLines: string[] = []
-		// for (
-		// 	let lineIndex = 0;
-		// 	lineIndex < this.virtualTerminal.buffer.active.length;
-		// 	lineIndex += 1
-		// ) {
-		// 	const line = this.virtualTerminal.buffer.active.getLine(lineIndex)
-		// 	invariant(line !== undefined, 'line should not be undefined')
-		// 	virtualTerminalLines.push(line.translateToString())
-		// }
-
+		this.virtualTerminal.write(data)
 		process.stderr.write(data)
 	}
 
