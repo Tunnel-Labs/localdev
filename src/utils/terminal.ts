@@ -131,10 +131,10 @@ export class TerminalUpdater {
 				stdout: new PassThrough(),
 
 				// We use a mock `process.stdin` so that we can control the input that ink processes. In particular, when log scroll mode is active, we want to make sure that ink doesn't process the key that's pressed to exit log scroll mode.
-				// stdin: this.inkStdin,
+				stdin: this.inkStdin,
 
 				// We handle Ctrl+C manually
-				exitOnCtrlC: true,
+				exitOnCtrlC: false,
 
 				// We use our own console patches.
 				patchConsole: false,

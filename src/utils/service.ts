@@ -99,7 +99,10 @@ export class Service {
 			}
 
 			let command: string[]
-			let commandOptions: IBasePtyForkOptions = {}
+			const commandOptions: IBasePtyForkOptions = {
+				cwd: this.spec.command.cwd,
+				env: this.spec.command.env,
+			}
 
 			if ('string' in this.spec.command) {
 				command = shellQuote.parse(this.spec.command.string) as string[]
@@ -110,7 +113,6 @@ export class Service {
 					'run',
 					this.spec.command.commandName,
 				]
-				commandOptions = {}
 			}
 
 			localdevState.serviceStatuses[this.spec.id] = 'pending'

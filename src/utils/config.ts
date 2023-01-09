@@ -20,10 +20,16 @@ export const serviceSpecSchema = z.object({
 		})
 		.optional(),
 
-	command: z.union([
-		z.object({ string: z.string() }),
-		z.object({ packageName: z.string(), commandName: z.string() }),
-	]),
+	command: z.intersection(
+		z.object({
+			cwd: z.string().optional(),
+			env: z.record(z.string(), z.string()).optional(),
+		}),
+		z.union([
+			z.object({ string: z.string() }),
+			z.object({ packageName: z.string(), commandName: z.string() }),
+		])
+	),
 })
 
 export const localdevConfigSchema = z.object({
@@ -39,7 +45,11 @@ export const localdevConfigSchema = z.object({
 	services: z.record(z.string(), serviceSpecSchema).optional(),
 
 	localDomains: z.string().array().optional(),
-	proxyRouter: z.function().args(z.any()).returns(z.string().optional()).optional(),
+	proxyRouter: z
+		.function()
+		.args(z.any())
+		.returns(z.string().optional())
+		.optional(),
 	commands: z.function().args(z.any()).returns(z.any().array()).optional(),
 })
 
