@@ -27,7 +27,9 @@ export default {
       healthCheck: {
         port: 3001
       },
-      command: "npm run start"
+      command: {
+        string: "npm run start"
+      }
     },
   },
   localDomains: ['my-website.test'],
