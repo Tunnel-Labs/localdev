@@ -2,8 +2,8 @@ import ansiAlign from 'ansi-align'
 import chalk from 'chalk'
 import { Box, Text } from 'ink'
 import { outdent } from 'outdent'
+import { useSnapshot } from 'valtio'
 
-import { useReactiveState } from '~/utils/reactivity.js'
 import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/store.js'
 
@@ -11,9 +11,7 @@ import { localdevState } from '~/utils/store.js'
 	The logs pane just informs the user that logs are being streamed (the logs themselves aren't displayed in the logs pane, but rather in the logs box)
 */
 export function LogsPane() {
-	const { logsBoxServiceId } = useReactiveState(() => ({
-		logsBoxServiceId: localdevState.logsBoxServiceId,
-	}))
+	const { logsBoxServiceId } = useSnapshot(localdevState)
 
 	// The logs pane should not be displayed if `logsBoxServiceId` is null
 	if (logsBoxServiceId === null) {

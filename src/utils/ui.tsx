@@ -3,13 +3,13 @@ import chalk from 'chalk'
 import type { DOMElement } from 'ink'
 import { Box, measureElement, Text, useInput } from 'ink'
 import { useEffect, useRef } from 'react'
+import { useSnapshot } from 'valtio'
 
 import {
 	runCommandFromCommandBox,
 	selectNextCommand,
 	selectPreviousCommand,
 } from '~/utils/command.js'
-import { useReactiveState } from '~/utils/reactivity.js'
 import { localdevState } from '~/utils/store.js'
 import { useTerminalSize } from '~/utils/terminal.js'
 
@@ -21,13 +21,13 @@ import { useTerminalSize } from '~/utils/terminal.js'
 export function LocaldevUi(props: { mode: string }) {
 	const logsBoxRef = useRef<DOMElement>(null)
 	const terminalSize = useTerminalSize()
-	const state = useReactiveState(() => ({
-		logsBoxIncludingTopLineHeight: localdevState.logsBoxIncludingTopLineHeight,
-		activeCommandBoxPaneComponent: localdevState.activeCommandBoxPaneComponent,
-		hijackedServiceId: localdevState.hijackedServiceId,
-		wrappedLogLinesToDisplay: localdevState.wrappedLogLinesToDisplay,
-		commandBoxInput: localdevState.commandBoxInput,
-	}))
+	const {
+		logsBoxIncludingTopLineHeight,
+		activeCommandBoxPaneComponent,
+		hijackedServiceId,
+		wrappedLogLinesToDisplay,
+		commandBoxInput,
+	} = useSnapshot(localdevState)
 
 	const terminalHeight = terminalSize.rows
 	const terminalWidth = terminalSize.columns
@@ -65,11 +65,11 @@ export function LocaldevUi(props: { mode: string }) {
 	}, [
 		logsBoxRef.current,
 		// The logs box should resize whenever the active command box pane is changed
-		state.activeCommandBoxPaneComponent,
+		activeCommandBoxPaneComponent,
 	])
 
 	const getWrappedLogLinesToDisplay = () => {
-		if (state.logsBoxIncludingTopLineHeight === null) return []
+		if (logsBoxIncludingTopLineHeight === null) return []
 
 		// If the log scroll mode state is active, we want to make sure we only render the logs that
 		// were displayed when the scroll mode state became active to make the logs continuous when the user
@@ -81,9 +81,7 @@ export function LocaldevUi(props: { mode: string }) {
 		// 		logScrollModeState.wrappedLogLinesLength
 		// 	)
 		// } else {
-		return state.wrappedLogLinesToDisplay.slice(
-			-state.logsBoxIncludingTopLineHeight
-		)
+		return wrappedLogLinesToDisplay.slice(-logsBoxIncludingTopLineHeight)
 		// }
 	}
 
@@ -95,15 +93,15 @@ export function LocaldevUi(props: { mode: string }) {
 			width={terminalWidth}
 		>
 			{/* We hide the title when the logs overflow so that the logs are unbroken when the user scrolls up to view overflowed logs */}
-			{(state.logsBoxIncludingTopLineHeight === null ||
-				state.wrappedLogLinesToDisplay.length <=
-					state.logsBoxIncludingTopLineHeight - 1) && (
-				<Box alignSelf="center" flexDirection="row">
-					<Text bold>localdev</Text>
-					<Text> </Text>
-					<Text dimColor>[{props.mode}]</Text>
-				</Box>
-			)}
+			{logsBoxIncludingTopLineHeight === null ||
+				(wrappedLogLinesToDisplay.length <=
+					logsBoxIncludingTopLineHeight - 1 && (
+					<Box alignSelf="center" flexDirection="row">
+						<Text bold>localdev</Text>
+						<Text> </Text>
+						<Text dimColor>[{props.mode}]</Text>
+					</Box>
+				))}
 
 			<Box
 				ref={logsBoxRef}
@@ -119,16 +117,16 @@ export function LocaldevUi(props: { mode: string }) {
 			</Box>
 
 			<Box borderStyle="round" flexDirection="column" flexShrink={0}>
-				{state.activeCommandBoxPaneComponent !== null && (
+				{activeCommandBoxPaneComponent !== null && (
 					<Box flexDirection="column">
-						<state.activeCommandBoxPaneComponent />
+						<activeCommandBoxPaneComponent />
 						<Text dimColor>{'─'.repeat(terminalWidth - 2)}</Text>
 					</Box>
 				)}
 				{/* When hijacking a service, we disable the text input box since we want to forward all input to the hijacked service */}
-				{state.hijackedServiceId === null && (
+				{hijackedServiceId === null && (
 					<TextInput.default
-						value={state.commandBoxInput}
+						value={commandBoxInput}
 						onChange={(input) => {
 							localdevState.commandBoxInput = input
 						}}

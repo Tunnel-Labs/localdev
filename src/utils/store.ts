@@ -6,6 +6,7 @@ import { type ref } from 'valtio'
 import { proxyWithComputed, subscribeKey } from 'valtio/utils'
 
 import { type LocaldevConfig } from '~/index.js'
+import { type ServiceStatus } from '~/types/service.js'
 import type { TerminalUpdater } from '~/utils/terminal.js'
 
 // eslint-disable-next-line @typescript-eslint/ban-types -- object is used in the original type
@@ -59,7 +60,9 @@ function createLocaldevState() {
 				Note: `wrappedLogLinesToDisplay` is a mutable string array and not a computed property because we want to be able to
 				incrementally update it instead of always re-computing it.
 			*/
-			wrappedLogLinesToDisplay: [],
+			wrappedLogLinesToDisplay: [] as string[],
+
+			serviceStatuses: {} as Record<string, ServiceStatus>,
 		},
 		{
 			serviceIdsToLog: memoize((snap) => {
