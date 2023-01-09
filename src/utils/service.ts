@@ -146,8 +146,7 @@ export class Service {
 			(payload: LogsAddedEventPayload) => void
 		>()
 
-		// Whenever `serviceIdsToLog` changes, we need to re-calculate `wrappedLogLinesToDisplay` and re-add all listeners
-		subscribeKey(localdevState, 'serviceIdsToLog', () => {
+		const resetServiceListeners = () => {
 			// Clear all old listeners
 			for (const [
 				oldServiceIdToLog,
@@ -188,7 +187,11 @@ export class Service {
 				service.process.emitter.on('logsAdded', listener)
 				currentListenersMap.set(serviceId, listener)
 			}
-		})
+		}
+
+		// Whenever `serviceIdsToLog` changes, we need to re-calculate `wrappedLogLinesToDisplay` and re-add all listeners
+		subscribeKey(localdevState, 'serviceIdsToLog', resetServiceListeners)
+		resetServiceListeners()
 	}
 
 	get name() {

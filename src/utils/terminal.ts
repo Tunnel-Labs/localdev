@@ -141,10 +141,10 @@ export class TerminalUpdater {
 			}) as any
 		)
 
-		patchConsole((_stream, data) => {
-			const localdevLogs = Service.get('$localdev')
-			localdevLogs.process.addLogs(data.trimEnd())
-		})
+		// patchConsole((_stream, data) => {
+		// 	const localdevLogs = Service.get('$localdev')
+		// 	localdevLogs.process.addLogs(data.trimEnd())
+		// })
 
 		this.write(ansiEscapes.cursorHide)
 		const lines = '\n'.repeat(termSize.rows)

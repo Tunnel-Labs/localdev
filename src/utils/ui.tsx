@@ -68,7 +68,6 @@ export function LocaldevUi(props: { mode: string }) {
 	])
 
 	const getWrappedLogLinesToDisplay = () => {
-		console.log(wrappedLogLinesToDisplay)
 		if (logsBoxIncludingTopLineHeight === null) return []
 
 		// If the log scroll mode state is active, we want to make sure we only render the logs that
