@@ -5,7 +5,7 @@ patchedDependencies:
     hash: 5lm66n5vhosypbhs3xvx6uilci
     path: patches/react@17.0.2.patch
   use-sync-external-store@1.2.0:
-    hash: zr7675mw22hnqhhebotxww4izm
+    hash: esgf43txke5kclaiyhuyfzhzxy
     path: patches/use-sync-external-store@1.2.0.patch
 
 specifiers:
@@ -10132,7 +10132,7 @@ packages:
       react: 17.0.2_5lm66n5vhosypbhs3xvx6uilci
     dev: false
 
-  /use-sync-external-store/1.2.0_zr7675mw22hnqhhebotxww4izm_react@17.0.2:
+  /use-sync-external-store/1.2.0_esgf43txke5kclaiyhuyfzhzxy_react@17.0.2:
     resolution: {integrity: sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
@@ -10191,7 +10191,7 @@ packages:
     dependencies:
       proxy-compare: 2.4.0
       react: 17.0.2_5lm66n5vhosypbhs3xvx6uilci
-      use-sync-external-store: 1.2.0_zr7675mw22hnqhhebotxww4izm_react@17.0.2
+      use-sync-external-store: 1.2.0_esgf43txke5kclaiyhuyfzhzxy_react@17.0.2
     dev: false
 
   /vary/1.1.2:

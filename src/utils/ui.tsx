@@ -1,36 +1,38 @@
-import TextInput from '@leondreamed/ink-text-input'
-import chalk from 'chalk'
-import type { DOMElement } from 'ink'
-import { Box, measureElement, Text, useInput } from 'ink'
-import { createElement, useEffect, useRef } from 'react'
-import invariant from 'tiny-invariant'
+import TextInput from "@leondreamed/ink-text-input";
+import chalk from "chalk";
+import type { DOMElement } from "ink";
+import { Box, measureElement, Text, useInput } from "ink";
+import { createElement, useEffect, useRef } from "react";
 
 import {
-	runCommandFromCommandBox,
-	selectNextCommand,
-	selectPreviousCommand,
-} from '~/utils/command.js'
-import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
-import { useTerminalSize } from '~/utils/terminal.js'
+  runCommandFromCommandBox,
+  selectNextCommand,
+  selectPreviousCommand,
+} from "~/utils/command.js";
+import { localdevState, useLocaldevSnapshot } from "~/utils/store.js";
+import { useTerminalSize } from "~/utils/terminal.js";
 
 function LocaldevLogsBox({ height, width }: { height: number; width: number }) {
-	const { terminalUpdater } = useLocaldevSnapshot()
+  const { terminalUpdater, wrappedLogLinesToDisplay } = useLocaldevSnapshot();
 
-	console.log('render')
-	const getWrappedLogLinesToDisplay = () => {
-		if (terminalUpdater === null) return []
+  const getWrappedLogLinesToDisplay = () => {
+    if (terminalUpdater === null) return [];
 
-		// const virtualTerminalLines: string[] = []
-		// for (let lineIndex = 0; lineIndex < 1; lineIndex += 1) {
-		// 	const line = virtualTerminal.buffer.active.getLine(lineIndex)
-		// 	invariant(line !== undefined, 'line should not be undefined')
-		// 	virtualTerminalLines.push(line.translateToString())
-		// }
+    // const virtualTerminalLines: string[] = []
+    // for (let lineIndex = 0; lineIndex < 1; lineIndex += 1) {
+    // 	const line = virtualTerminal.buffer.active.getLine(lineIndex)
+    // 	invariant(line !== undefined, 'line should not be undefined')
+    // 	virtualTerminalLines.push(line.translateToString())
+    // }
 
-		return []
-	}
+    return wrappedLogLinesToDisplay.join("\n");
+  };
 
-	return <Box>{getWrappedLogLinesToDisplay()}</Box>
+  return (
+    <Box>
+      <Text>{getWrappedLogLinesToDisplay()}</Text>
+    </Box>
+  );
 }
 
 /**
@@ -39,102 +41,102 @@ function LocaldevLogsBox({ height, width }: { height: number; width: number }) {
 	Instead, write your logs inside a `useEffect` to prevent infinite re-rendering
 */
 export function LocaldevUi(props: { mode: string }) {
-	const logsBoxRef = useRef<DOMElement>(null)
-	const terminalSize = useTerminalSize()
-	const {
-		logsBoxIncludingTopLineHeight,
-		activeCommandBoxPaneComponent,
-		hijackedServiceId,
-		wrappedLogLinesToDisplay,
-		commandBoxInput,
-	} = useLocaldevSnapshot()
+  const logsBoxRef = useRef<DOMElement>(null);
+  const terminalSize = useTerminalSize();
+  const {
+    logsBoxIncludingTopLineHeight,
+    activeCommandBoxPaneComponent,
+    hijackedServiceId,
+    wrappedLogLinesToDisplay,
+    commandBoxInput,
+  } = useLocaldevSnapshot();
 
-	const terminalHeight = terminalSize.rows
-	const terminalWidth = terminalSize.columns
+  const terminalHeight = terminalSize.rows;
+  const terminalWidth = terminalSize.columns;
 
-	useInput(async (string, key) => {
-		if (key.ctrl && string === 'c') {
-			// Write a newline to prevent the last line of the UI from being deleted
-			process.stderr.write('\n')
-			process.exit(0)
-		}
+  useInput(async (string, key) => {
+    if (key.ctrl && string === "c") {
+      // Write a newline to prevent the last line of the UI from being deleted
+      process.stderr.write("\n");
+      process.exit(0);
+    }
 
-		if (key.return) {
-			await runCommandFromCommandBox()
-		} else if (key.upArrow) {
-			selectPreviousCommand()
-		} else if (key.downArrow) {
-			selectNextCommand()
-		} else if (key.escape) {
-			if (localdevState.activeCommandBoxPaneComponent === null) {
-				localdevState.commandBoxInput = ''
-			} else {
-				localdevState.activeCommandBoxPaneComponent = null
-			}
-		}
-	})
+    if (key.return) {
+      await runCommandFromCommandBox();
+    } else if (key.upArrow) {
+      selectPreviousCommand();
+    } else if (key.downArrow) {
+      selectNextCommand();
+    } else if (key.escape) {
+      if (localdevState.activeCommandBoxPaneComponent === null) {
+        localdevState.commandBoxInput = "";
+      } else {
+        localdevState.activeCommandBoxPaneComponent = null;
+      }
+    }
+  });
 
-	useEffect(() => {
-		// We delay the measurement until the next tick so that Ink gets a chance to render the component before we measure the logs box height
-		setTimeout(() => {
-			if (logsBoxRef.current !== null) {
-				const { height } = measureElement(logsBoxRef.current)
-				localdevState.logsBoxIncludingTopLineHeight = height + 1
-			}
-		}, 0)
-	}, [
-		logsBoxRef.current,
-		// The logs box should resize whenever the active command box pane is changed
-		activeCommandBoxPaneComponent,
-	])
+  useEffect(() => {
+    // We delay the measurement until the next tick so that Ink gets a chance to render the component before we measure the logs box height
+    setTimeout(() => {
+      if (logsBoxRef.current !== null) {
+        const { height } = measureElement(logsBoxRef.current);
+        localdevState.logsBoxIncludingTopLineHeight = height + 1;
+      }
+    }, 0);
+  }, [
+    logsBoxRef.current,
+    // The logs box should resize whenever the active command box pane is changed
+    activeCommandBoxPaneComponent,
+  ]);
 
-	return (
-		<Box
-			flexDirection="column"
-			position="relative"
-			height={terminalHeight}
-			width={terminalWidth}
-		>
-			{/* We hide the title when the logs overflow so that the logs are unbroken when the user scrolls up to view overflowed logs */}
-			{logsBoxIncludingTopLineHeight === null ||
-				(wrappedLogLinesToDisplay.length <=
-					logsBoxIncludingTopLineHeight - 1 && (
-					<Box alignSelf="center" flexDirection="row">
-						<Text bold>localdev</Text>
-						<Text> </Text>
-						<Text dimColor>[{props.mode}]</Text>
-					</Box>
-				))}
+  return (
+    <Box
+      flexDirection="column"
+      position="relative"
+      height={terminalHeight}
+      width={terminalWidth}
+    >
+      {/* We hide the title when the logs overflow so that the logs are unbroken when the user scrolls up to view overflowed logs */}
+      {logsBoxIncludingTopLineHeight === null ||
+        (wrappedLogLinesToDisplay.length <=
+          logsBoxIncludingTopLineHeight - 1 && (
+          <Box alignSelf="center" flexDirection="row">
+            <Text bold>localdev</Text>
+            <Text> </Text>
+            <Text dimColor>[{props.mode}]</Text>
+          </Box>
+        ))}
 
-			<Box ref={logsBoxRef} flexGrow={1}>
-				{logsBoxIncludingTopLineHeight !== null && (
-					<LocaldevLogsBox
-						height={logsBoxIncludingTopLineHeight - 2}
-						width={terminalWidth}
-					/>
-				)}
-			</Box>
+      <Box ref={logsBoxRef} flexGrow={1}>
+        {logsBoxIncludingTopLineHeight !== null && (
+          <LocaldevLogsBox
+            height={logsBoxIncludingTopLineHeight - 2}
+            width={terminalWidth}
+          />
+        )}
+      </Box>
 
-			<Box borderStyle="round" flexDirection="column" flexShrink={0}>
-				{activeCommandBoxPaneComponent !== null && (
-					<Box flexDirection="column">
-						{createElement(activeCommandBoxPaneComponent)}
-						<Text dimColor>{'─'.repeat(terminalWidth - 2)}</Text>
-					</Box>
-				)}
-				{/* When hijacking a service, we disable the text input box since we want to forward all input to the hijacked service */}
-				{hijackedServiceId === null && (
-					<TextInput.default
-						value={commandBoxInput}
-						onChange={(input) => {
-							localdevState.commandBoxInput = input
-						}}
-						placeholder={`Type ${chalk.bold(
-							'help'
-						)} and press enter for a list of commands`}
-					/>
-				)}
-			</Box>
-		</Box>
-	)
+      <Box borderStyle="round" flexDirection="column" flexShrink={0}>
+        {activeCommandBoxPaneComponent !== null && (
+          <Box flexDirection="column">
+            {createElement(activeCommandBoxPaneComponent)}
+            <Text dimColor>{"─".repeat(terminalWidth - 2)}</Text>
+          </Box>
+        )}
+        {/* When hijacking a service, we disable the text input box since we want to forward all input to the hijacked service */}
+        {hijackedServiceId === null && (
+          <TextInput.default
+            value={commandBoxInput}
+            onChange={(input) => {
+              localdevState.commandBoxInput = input;
+            }}
+            placeholder={`Type ${chalk.bold(
+              "help"
+            )} and press enter for a list of commands`}
+          />
+        )}
+      </Box>
+    </Box>
+  );
 }
