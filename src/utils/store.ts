@@ -1,9 +1,13 @@
 import type { FastifyInstance } from 'fastify'
 import type { DOMElement, Instance } from 'ink'
+import { createProxy, isChanged } from 'proxy-compare'
 import { memoize } from 'proxy-memoize'
 import type React from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import useForceUpdate from 'use-force-update'
 import { type ref } from 'valtio'
 import { proxyWithComputed, subscribeKey } from 'valtio/utils'
+import { type INTERNAL_Snapshot, snapshot, subscribe } from 'valtio/vanilla'
 
 import { type LocaldevConfig } from '~/index.js'
 import { type ServiceStatus } from '~/types/service.js'
@@ -106,3 +110,48 @@ function createLocaldevState() {
 }
 
 export const localdevState = createLocaldevState()
+
+/**
+	Copied from `node_modules/valtio/esm/index.mjs` but removed the use of `useSyncExternalStore` (since it doesn't seem to work with Ink)
+*/
+export function useLocaldevSnapshot(): INTERNAL_Snapshot<typeof localdevState> {
+	const forceUpdate = useForceUpdate()
+
+	const lastSnapshot = useRef<any>()
+	const lastAffected = useRef<any>()
+	const currSnapshot = useRef<any>(snapshot(localdevState))
+
+	useEffect(() => {
+		const unsubscribe = subscribe(localdevState, () => {
+			const nextSnapshot = snapshot(localdevState)
+			try {
+				if (
+					lastSnapshot.current &&
+					lastAffected.current &&
+					!isChanged(
+						lastSnapshot.current,
+						nextSnapshot,
+						lastAffected.current,
+						/* @__PURE__ */ new WeakMap()
+					)
+				) {
+					return lastSnapshot.current
+				}
+			} catch {}
+
+			lastSnapshot.current = currSnapshot
+			currSnapshot.current = nextSnapshot
+			forceUpdate()
+		})
+		return unsubscribe
+	}, [])
+
+	const currAffected = /* @__PURE__ */ new WeakMap()
+	useEffect(() => {
+		lastSnapshot.current = currSnapshot
+		lastAffected.current = currAffected
+	})
+
+	const proxyCache = useMemo(() => /* @__PURE__ */ new WeakMap(), [])
+	return createProxy(currSnapshot, currAffected, proxyCache).current
+}

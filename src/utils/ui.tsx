@@ -3,14 +3,13 @@ import chalk from 'chalk'
 import type { DOMElement } from 'ink'
 import { Box, measureElement, Text, useInput } from 'ink'
 import { useEffect, useRef } from 'react'
-import { useSnapshot } from 'valtio'
 
 import {
 	runCommandFromCommandBox,
 	selectNextCommand,
 	selectPreviousCommand,
 } from '~/utils/command.js'
-import { localdevState } from '~/utils/store.js'
+import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
 import { useTerminalSize } from '~/utils/terminal.js'
 
 /**
@@ -27,7 +26,7 @@ export function LocaldevUi(props: { mode: string }) {
 		hijackedServiceId,
 		wrappedLogLinesToDisplay,
 		commandBoxInput,
-	} = useSnapshot(localdevState)
+	} = useLocaldevSnapshot()
 
 	const terminalHeight = terminalSize.rows
 	const terminalWidth = terminalSize.columns

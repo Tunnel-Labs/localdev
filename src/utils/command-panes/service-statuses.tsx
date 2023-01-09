@@ -1,12 +1,11 @@
 import chalk from 'chalk'
 import { Box, Text } from 'ink'
-import { useSnapshot } from 'valtio'
 
 import { Service } from '~/utils/service.js'
-import { localdevState } from '~/utils/store.js'
+import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
 
 export function ServiceStatusesPane() {
-	const snap = useSnapshot(localdevState)
+	const snap = useLocaldevSnapshot()
 
 	const serviceIds = snap.servicesEnabled
 		? Object.keys(localdevState.localdevConfig.services ?? {})
