@@ -1,5 +1,3 @@
-import fs from 'node:fs'
-
 import ansiEscapes from 'ansi-escapes'
 import type { FastifyInstance } from 'fastify'
 import type { DOMElement, Instance } from 'ink'
@@ -147,6 +145,7 @@ function createLocaldevState() {
 		state.terminalUpdater.logsBoxVirtualTerminal.write(
 			ansiEscapes.clearTerminal
 		)
+
 		resizeVirtualTerminal(terminalSize().columns, newHeight)
 		for (const line of state.wrappedLogLinesToDisplay.slice(0, -1)) {
 			state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)

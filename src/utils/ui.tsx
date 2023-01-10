@@ -74,6 +74,9 @@ export function LocaldevUi() {
 		logsBoxRef.current,
 		// The logs box should resize whenever the active command box pane is changed
 		activeCommandBoxPaneComponent,
+		// The logs box should resize whenever the terminal is resized
+		terminalHeight,
+		terminalWidth,
 	])
 
 	return (
