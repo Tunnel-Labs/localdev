@@ -8,7 +8,8 @@ import wrapAnsi from 'wrap-ansi'
 export function getWrappedText(text: string): string[] {
 	const terminalWidth = terminalSize().columns
 	return splitLines(
-		wrapAnsi(text, terminalWidth, {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- broken types
+		(wrapAnsi.default ?? wrapAnsi)(text, terminalWidth, {
 			trim: false,
 			hard: true,
 		})

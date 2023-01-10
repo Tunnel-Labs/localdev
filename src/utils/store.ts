@@ -10,7 +10,10 @@ import { type INTERNAL_Snapshot, subscribe } from 'valtio/vanilla'
 
 import { type LocaldevConfig } from '~/index.js'
 import { type ServiceStatus } from '~/types/service.js'
-import type { TerminalUpdater } from '~/utils/terminal.js'
+import {
+	type TerminalUpdater,
+	getLogsBoxVirtualTerminalOutput,
+} from '~/utils/terminal.js'
 
 // eslint-disable-next-line @typescript-eslint/ban-types -- object is used in the original type
 type Ref<T extends object> = ReturnType<typeof ref<T>>
@@ -66,6 +69,9 @@ function createLocaldevState() {
 			wrappedLogLinesToDisplay: [] as string[],
 
 			serviceStatuses: {} as Record<string, ServiceStatus>,
+
+			// We make the output of the logs box virtual terminal part of the state so that we can control rendering order: we always want Ink to display whatever is in this variable at all times on the screen
+			logsBoxVirtualTerminalOutput: '',
 		},
 		{
 			serviceIdsToLog: memoize((snap) => {
@@ -107,26 +113,27 @@ function createLocaldevState() {
 
 	// Whenever the `wrappedLogLinesToDisplay` array changes, we should update the logs box virtual terminal
 	subscribe(state.wrappedLogLinesToDisplay, () => {
-		if (state.terminalUpdater !== null) {
-			state.terminalUpdater.logsBoxVirtualTerminal.write(
-				ansiEscapes.clearTerminal
-			)
-			for (const line of state.wrappedLogLinesToDisplay) {
-				state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
-			}
+		if (state.terminalUpdater === null) return
+		state.terminalUpdater.logsBoxVirtualTerminal.write(
+			ansiEscapes.clearTerminal
+		)
+		for (const line of state.wrappedLogLinesToDisplay) {
+			state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
 		}
+
+		state.logsBoxVirtualTerminalOutput = getLogsBoxVirtualTerminalOutput()
 	})
 
 	subscribeKey(state, 'logsBoxHeight', (newHeight) => {
-		if (state.terminalUpdater !== null && newHeight !== null) {
-			state.terminalUpdater.logsBoxVirtualTerminal.write(
-				ansiEscapes.clearTerminal
-			)
-			state.terminalUpdater.logsBoxVirtualTerminal.resize(
-				terminalSize().columns,
-				newHeight - 1
-			)
-		}
+		if (state.terminalUpdater === null || newHeight === null) return
+		state.terminalUpdater.logsBoxVirtualTerminal.write(
+			ansiEscapes.clearTerminal
+		)
+		state.terminalUpdater.logsBoxVirtualTerminal.resize(
+			terminalSize().columns,
+			newHeight
+		)
+		state.logsBoxVirtualTerminalOutput = getLogsBoxVirtualTerminalOutput()
 	})
 
 	return state

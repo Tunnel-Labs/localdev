@@ -6,7 +6,6 @@ import { either, flags } from 'compose-regexp'
 import type { IBasePtyForkOptions } from 'node-pty'
 import shellQuote from 'shell-quote'
 import invariant from 'tiny-invariant'
-import { subscribe } from 'valtio'
 import { subscribeKey } from 'valtio/utils'
 import waitPort from 'wait-port'
 
@@ -162,8 +161,9 @@ export class Service {
 			currentListenersMap.clear()
 
 			// We re-calculate all log lines
-			localdevState.wrappedLogLinesToDisplay.length = 0
-			localdevState.wrappedLogLinesToDisplay.push(
+			localdevState.wrappedLogLinesToDisplay.splice(
+				0,
+				localdevState.wrappedLogLinesToDisplay.length,
 				...getWrappedLogLinesToDisplay()
 			)
 
