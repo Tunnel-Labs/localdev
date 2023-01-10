@@ -1,5 +1,5 @@
 {
-	"extends": "lionconfig/tsconfig",
+	"extends": "lionconfig/tsconfig.json",
 	"compilerOptions": {
 		"outDir": "dist",
 		"rootDir": "src",
