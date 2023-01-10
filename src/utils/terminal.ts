@@ -1,11 +1,12 @@
 /* eslint-disable no-bitwise */
 
 import { type Buffer } from 'node:buffer'
-import fs from 'node:fs'
 import { PassThrough } from 'node:stream'
 
+import { centerAlign } from 'ansi-center-align'
 import ansiEscapes from 'ansi-escapes'
 import ansiStyles from 'ansi-styles'
+import chalk from 'chalk'
 import consoleClear from 'console-clear'
 import { render } from 'ink'
 import renderer from 'ink/build/renderer.js'
@@ -572,10 +573,8 @@ export function getLogsBoxVirtualTerminalOutput(): string {
 	// Count the number of lines from the bottom which have not been outputted to
 	let linesFromBottomWithNoOutput: number
 
-	// If the viewport is non-zero, it means that there are enough log lines to span the entire terminal, i.e. all lines have output
-	if (activeBuffer.viewportY !== 0) {
-		linesFromBottomWithNoOutput = 0
-	} else {
+	// If the viewport is zero, it means that there aren't enough log lines to span the entire terminal
+	if (activeBuffer.viewportY === 0) {
 		linesFromBottomWithNoOutput = 0
 
 		for (
@@ -594,6 +593,8 @@ export function getLogsBoxVirtualTerminalOutput(): string {
 
 			linesFromBottomWithNoOutput += 1
 		}
+	} else {
+		linesFromBottomWithNoOutput = 0
 	}
 
 	for (
@@ -612,8 +613,19 @@ export function getLogsBoxVirtualTerminalOutput(): string {
 		outputLines.push(currentOutputLine)
 	}
 
-	const output =
-		'\n'.repeat(linesFromBottomWithNoOutput) + outputLines.join('\n')
+	let output: string
+	if (linesFromBottomWithNoOutput > 0) {
+		const titleLine = centerAlign(
+			chalk.underline.bold('localdev'),
+			terminalSize().columns
+		)
+		output =
+			titleLine +
+			'\n'.repeat(linesFromBottomWithNoOutput) +
+			outputLines.join('\n')
+	} else {
+		output = outputLines.join('\n')
+	}
 
 	return output
 }

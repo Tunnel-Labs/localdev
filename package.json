@@ -31,7 +31,7 @@
 		"@leondreamed/ink-text-input": "^4.0.3",
 		"@stdlib/utils-noop": "^0.0.13",
 		"ansi-align": "^3.0.1",
-		"ansi-center-align": "^1.0.1",
+		"ansi-center-align": "^1.0.3",
 		"ansi-escapes": "^6.0.0",
 		"ansi-styles": "^6.2.1",
 		"array-uniq": "^3.0.0",

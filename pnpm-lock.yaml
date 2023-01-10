@@ -19,7 +19,7 @@ specifiers:
   '@types/tcp-port-used': ^1.0.1
   '@types/wrap-ansi': ^8.0.1
   ansi-align: ^3.0.1
-  ansi-center-align: ^1.0.1
+  ansi-center-align: ^1.0.3
   ansi-escapes: ^6.0.0
   ansi-styles: ^6.2.1
   array-uniq: ^3.0.0
@@ -87,7 +87,7 @@ dependencies:
   '@leondreamed/ink-text-input': 4.0.3_hwdckmkclg6khu5focru6ak6cm
   '@stdlib/utils-noop': 0.0.13
   ansi-align: 3.0.1
-  ansi-center-align: 1.0.1
+  ansi-center-align: 1.0.3
   ansi-escapes: 6.0.0
   ansi-styles: 6.2.1
   array-uniq: 3.0.0
@@ -2857,8 +2857,8 @@ packages:
     dependencies:
       string-width: 4.2.3
 
-  /ansi-center-align/1.0.1:
-    resolution: {integrity: sha512-9pOoJmhUFO4GrVAEvfVZtvrqwrqq898mmpNaaZmUnThB17szDXMFTbqvy8odQaTa7c9YNtVb3nxJj1bfYun3ow==}
+  /ansi-center-align/1.0.3:
+    resolution: {integrity: sha512-G5J9T8Onvwp0bczeZycH9keHuz1LlUmSlgEOako6hZ3SKP5MrbW9hQOoxu6C/KQlTuOyKdF71z6QHmMdV2kZKA==}
     dependencies:
       split-lines: 3.0.0
       string-length: 5.0.1
