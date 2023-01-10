@@ -248,6 +248,7 @@ export class TerminalUpdater {
 					// We wait until the next tick to allow all non-forced terminal updates to run first (this fixes the problem of rendering over "ghost" values of `previousOutputs`)
 					setTimeout(() => {
 						if (localdevState.terminalUpdater === null) return
+						localdevState.terminalUpdater.logsBoxVirtualTerminal.resize(terminalSize().columns, localdevState.logsBoxHeight)
 						// When the terminal resizes, all the overflowed wrapped lines become unaligned, so we reset these variables
 						localdevState.nextOverflowedWrappedLogLineIndexToOutput = 0
 						localdevState.wrappedLogLinesToDisplay.splice(
@@ -539,13 +540,15 @@ const defaultCell: IBufferCell = {
 	Loops over the virtual terminal and returns the output (including ANSI sequences)
 */
 export function getLogsBoxVirtualTerminalOutput(): string {
-	const logsBoxVirtualTerminal =
-		localdevState.terminalUpdater?.logsBoxVirtualTerminal
-	invariant(
-		logsBoxVirtualTerminal !== undefined,
-		'logsBoxVirtualTerminal is not undefined'
-	)
-	const logsBoxHeight = localdevState.logsBoxHeight ?? 0
+	if (
+		localdevState.logsBoxHeight === null ||
+		localdevState.terminalUpdater === null
+	) {
+		return ''
+	}
+
+	const { logsBoxVirtualTerminal } = localdevState.terminalUpdater
+	const { logsBoxHeight } = localdevState
 
 	const activeBuffer = logsBoxVirtualTerminal.buffer.active
 	const outputLines: string[] = []
