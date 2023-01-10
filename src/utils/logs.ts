@@ -12,7 +12,6 @@ import wrapAnsi from 'wrap-ansi'
 import type { WrappedLogLineData } from '~/types/logs.js'
 import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/store.js'
-import { getWrappedText } from '~/utils/text.js'
 
 const stderrLogColors = ['green', 'yellow', 'blue', 'magenta', 'cyan'] as const
 let stderrLogColorsIndex = 0
@@ -45,16 +44,16 @@ export function getWrappedLogLinesToDisplay(): string[] {
 		})
 		wrappedLogLinesData.push(
 			...unwrappedLogLines.flatMap((unwrappedLogLine) => {
-				// We deliberately only add a prefix once so that it's easy to tell when output was wrapped vs when output was a new line
-				const logLineText: string =
+				const prefix =
 					localdevState.logsBoxServiceId === null
 						? // Only add a prefix when there's multiple text
-						  `${chalk[getServicePrefixColor(serviceSpec.id)](serviceName)}: ${
-								unwrappedLogLine.text
-						  }`
-						: unwrappedLogLine.text
+						  `${chalk[getServicePrefixColor(serviceSpec.id)](serviceName)}: `
+						: ''
 
-				const wrappedLogLineText = getWrappedText(logLineText)
+				const wrappedLogLineText = wrapLineWithPrefix({
+					prefix,
+					unwrappedLine: unwrappedLogLine.text,
+				})
 
 				return wrappedLogLineText.map((text, wrappedLineIndex) => ({
 					serviceId: serviceSpec.id,
