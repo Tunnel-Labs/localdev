@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import { Box, Text } from 'ink'
+import { ServiceStatus } from '~/types/service.js'
 
 import { Service } from '~/utils/service.js'
 import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
@@ -20,7 +21,7 @@ export function ServiceStatusesPane() {
 		}
 	})
 
-	const getServiceStatusCircle = (status: Service['status']) => {
+	const getServiceStatusCircle = (status: ServiceStatus) => {
 		switch (status) {
 			case 'ready': {
 				return chalk.green('●')

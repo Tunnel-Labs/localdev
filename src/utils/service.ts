@@ -232,7 +232,7 @@ export class Service {
 	}
 
 	stop() {
-		this.status = 'failed'
+		this.status = 'stopped'
 		this.process.stop()
 	}
 

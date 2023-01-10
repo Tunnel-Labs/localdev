@@ -1,1 +1,1 @@
-export type ServiceStatus = 'ready' | 'pending' | 'failed' | 'unknown'
+export type ServiceStatus = 'ready' | 'pending' | 'failed' | 'stopped'
