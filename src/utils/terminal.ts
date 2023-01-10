@@ -9,7 +9,7 @@ import { render } from 'ink'
 import renderer from 'ink/build/renderer.js'
 import debounce from 'just-debounce-it'
 import throttle from 'just-throttle'
-import ansiStyles from 'node_modules/chalk/source/vendor/ansi-styles/index.js'
+import ansiStyles from 'ansi-styles'
 import patchConsole from 'patch-console'
 import React, { useCallback, useEffect, useState } from 'react'
 import onExit from 'signal-exit'
@@ -298,7 +298,7 @@ export class TerminalUpdater {
 			localdevState.wrappedLogLinesToDisplay.slice(
 				0,
 				localdevState.wrappedLogLinesToDisplay.length -
-					localdevState.logsBoxHeight
+				localdevState.logsBoxHeight
 			)
 
 		if (overflowedWrappedLogLines.length === 0) return ''
@@ -324,7 +324,7 @@ export class TerminalUpdater {
 			overflowedWrappedLogLineIndex <
 			Math.min(
 				localdevState.nextOverflowedWrappedLogLineIndexToOutput +
-					numTerminalRows,
+				numTerminalRows,
 				overflowedWrappedLogLines.length
 			);
 			overflowedWrappedLogLineIndex += 1
