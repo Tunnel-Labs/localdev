@@ -11,7 +11,7 @@ import wrapAnsi from 'wrap-ansi'
 
 import type { WrappedLogLineData } from '~/types/logs.js'
 import { Service } from '~/utils/service.js'
-import { localdevState } from '~/utils/store.js'
+import { localdevState } from '~/utils/state.js'
 
 const stderrLogColors = ['green', 'yellow', 'blue', 'magenta', 'cyan'] as const
 let stderrLogColorsIndex = 0

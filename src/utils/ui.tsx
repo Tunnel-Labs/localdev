@@ -9,7 +9,7 @@ import {
 	selectNextCommand,
 	selectPreviousCommand,
 } from '~/utils/command.js'
-import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
+import { localdevState, useLocaldevSnapshot } from '~/utils/state.js'
 import { useTerminalSize } from '~/utils/terminal.js'
 
 function LocaldevLogsBox() {

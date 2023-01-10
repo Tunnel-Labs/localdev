@@ -12,7 +12,7 @@ import invariant from 'tiny-invariant'
 import type { UnwrappedLogLineData, WrappedLogLineData } from '~/types/logs.js'
 import type { ProcessEmitter } from '~/types/process.js'
 import { wrapLineWithPrefix } from '~/utils/logs.js'
-import { localdevState } from '~/utils/store.js'
+import { localdevState } from '~/utils/state.js'
 import { getWrappedText } from '~/utils/text.js'
 
 export class Process {

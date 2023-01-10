@@ -1,7 +1,7 @@
 import shellQuote from 'shell-quote'
 
 import { getLocaldevCommandSpecs } from '~/utils/commands.js'
-import { localdevState } from '~/utils/store.js'
+import { localdevState } from '~/utils/state.js'
 
 export async function runCommand(command: string) {
 	const commandName = command.split(' ')[0]

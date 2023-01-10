@@ -6,7 +6,6 @@ import { findUp } from 'find-up'
 import { z } from 'zod'
 
 import type { LocaldevConfig } from '~/types/config.js'
-import { localdevState } from '~/utils/store.js'
 
 export const serviceSpecSchema = z.object({
 	name: z.string().optional(),
@@ -125,4 +124,3 @@ export async function getLocaldevConfig({
 		deepmerge(sharedLocaldevConfig, localLocaldevConfig)
 	) as LocaldevConfig
 }
-

@@ -3,7 +3,7 @@ import { Box, Text } from 'ink'
 import React from 'react'
 
 import { getLocaldevCommandSpecs } from '~/utils/commands.js'
-import { useLocaldevSnapshot } from '~/utils/store.js'
+import { useLocaldevSnapshot } from '~/utils/state.js'
 
 export function HelpPane() {
 	const { activeHelpCommand } = useLocaldevSnapshot()

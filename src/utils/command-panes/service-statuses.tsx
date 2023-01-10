@@ -4,7 +4,7 @@ import React from 'react'
 
 import { type ServiceStatus } from '~/types/service.js'
 import { Service } from '~/utils/service.js'
-import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
+import { localdevState, useLocaldevSnapshot } from '~/utils/state.js'
 
 export function ServiceStatusesPane() {
 	const snap = useLocaldevSnapshot()

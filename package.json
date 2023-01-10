@@ -9,6 +9,7 @@
 	"exports": "./src/index.ts",
 	"scripts": {
 		"dev": "ts-node ./src/bin/localdev.ts",
+		"dev:config": "ts-node ./src/bin/localdev.ts --config examples/localdev.config.mjs",
 		"build": "ts-node ./scripts/build.ts",
 		"lint": "eslint --cache --fix .",
 		"test": "vitest run"

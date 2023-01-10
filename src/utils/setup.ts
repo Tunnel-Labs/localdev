@@ -15,7 +15,7 @@ import invariant from 'tiny-invariant'
 import { cli } from '~/utils/cli.js'
 import { createMkcertCerts } from '~/utils/mkcert.js'
 import { Service } from '~/utils/service.js'
-import { localdevState } from '~/utils/store.js'
+import { localdevState } from '~/utils/state.js'
 
 export async function setupLocaldevServer({ port }: { port: number }) {
 	const localDomains = [

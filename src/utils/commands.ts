@@ -12,7 +12,7 @@ import { ServiceStatusesPane } from '~/utils/command-panes/service-statuses.js'
 import { clearLogs } from '~/utils/logs.js'
 import { spawnProcess } from '~/utils/process.js'
 import { Service } from '~/utils/service.js'
-import { localdevState } from '~/utils/store.js'
+import { localdevState } from '~/utils/state.js'
 
 export function createCommand(name: string) {
 	return new Command(name).helpOption(false).exitOverride()

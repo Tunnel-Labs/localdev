@@ -4,7 +4,7 @@ import path from 'node:path'
 import onetime from 'onetime'
 
 import { cli } from '~/utils/cli.js'
-import { localdevState } from '~/utils/store.js'
+import { localdevState } from '~/utils/state.js'
 
 export const getMkcertCertsDir = onetime(async () => {
 	const mkcertCertsDir = path.join(

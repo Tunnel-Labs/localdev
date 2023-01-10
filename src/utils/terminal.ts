@@ -25,8 +25,8 @@ import {
 	getWrappedLogLinesToDisplay,
 } from '~/utils/logs.js'
 import { Service } from '~/utils/service.js'
+import { localdevState } from '~/utils/state.js'
 import { MockStdin } from '~/utils/stdin.js'
-import { localdevState } from '~/utils/store.js'
 import { LocaldevUi } from '~/utils/ui.js'
 
 // xterm-headless is a CommonJS module
@@ -298,7 +298,7 @@ export class TerminalUpdater {
 			localdevState.wrappedLogLinesToDisplay.slice(
 				0,
 				localdevState.wrappedLogLinesToDisplay.length -
-				localdevState.logsBoxHeight
+					localdevState.logsBoxHeight
 			)
 
 		if (overflowedWrappedLogLines.length === 0) return ''
@@ -324,7 +324,7 @@ export class TerminalUpdater {
 			overflowedWrappedLogLineIndex <
 			Math.min(
 				localdevState.nextOverflowedWrappedLogLineIndexToOutput +
-				numTerminalRows,
+					numTerminalRows,
 				overflowedWrappedLogLines.length
 			);
 			overflowedWrappedLogLineIndex += 1

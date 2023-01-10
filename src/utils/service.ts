@@ -18,7 +18,7 @@ import {
 	wrapLineWithPrefix,
 } from '~/utils/logs.js'
 import { Process } from '~/utils/process.js'
-import { localdevState } from '~/utils/store.js'
+import { localdevState } from '~/utils/state.js'
 
 const _ansiCursorRegexp = flags.add(
 	'g',
@@ -193,10 +193,11 @@ export class Service {
 			}
 		}
 
-		// Whenever `serviceIdsToLog` changes, we need to re-calculate `wrappedLogLinesToDisplay` and re-add all listeners
+		// Whenever `serviceIdsToLog` or `logsBoxServiceId` changes, we need to re-calculate `wrappedLogLinesToDisplay` and re-add all listeners
 		subscribeKey(localdevState, 'serviceIdsToLog', () => {
 			resetServiceListeners()
 		})
+
 		resetServiceListeners()
 	}
 

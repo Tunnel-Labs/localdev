@@ -8,7 +8,7 @@ import {
 } from '~/utils/config.js'
 import { Service } from '~/utils/service.js'
 import { setupLocaldevServer } from '~/utils/setup.js'
-import { localdevState } from '~/utils/store.js'
+import { localdevState } from '~/utils/state.js'
 import { TerminalUpdater } from '~/utils/terminal.js'
 
 await program

@@ -2,7 +2,7 @@ import { Text, useInput } from 'ink'
 import React from 'react'
 
 import { Service } from '~/utils/service.js'
-import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
+import { localdevState, useLocaldevSnapshot } from '~/utils/state.js'
 
 /**
 	The logs pane just informs the user that logs are being streamed (the logs themselves aren't displayed in the logs pane, but rather in the logs box)
