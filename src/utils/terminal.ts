@@ -265,15 +265,15 @@ export class TerminalUpdater {
 	#getUpdateSequenceFromUpdatingOverflowedLines(): string {
 		let updateSequence = ''
 		// Don't log overflowed lines if the UI hasn't rendered yet
-		if (localdevState.logsBoxIncludingTopLineHeight === null) return ''
+		if (localdevState.logsBoxHeight === null) return ''
 
-		// The terminal can only display the last `logsBoxIncludingTopLineHeight` log lines, so the
+		// The terminal can only display the last `logsBoxHeight` log lines, so the
 		// lines until that are overflowed lines
 		const overflowedWrappedLogLines =
 			localdevState.wrappedLogLinesToDisplay.slice(
 				0,
 				localdevState.wrappedLogLinesToDisplay.length -
-					localdevState.logsBoxIncludingTopLineHeight
+					localdevState.logsBoxHeight
 			)
 
 		if (overflowedWrappedLogLines.length === 0) return ''

@@ -24,7 +24,7 @@ function createLocaldevState() {
 			servicesEnabled: true,
 			activeCommandBoxPaneComponent: null as Ref<React.FC> | null,
 			nextOverflowedWrappedLogLineIndexToOutput: 0,
-			logsBoxIncludingTopLineHeight: null as number | null,
+			logsBoxHeight: null as number | null,
 			/**
 				The ID of the service whose logs are displayed in the logs box. `null` represents the default services specified in `localdev.config.cjs`.
 			*/
@@ -117,7 +117,7 @@ function createLocaldevState() {
 		}
 	})
 
-	subscribeKey(state, 'logsBoxIncludingTopLineHeight', (newHeight) => {
+	subscribeKey(state, 'logsBoxHeight', (newHeight) => {
 		if (state.terminalUpdater !== null && newHeight !== null) {
 			state.terminalUpdater.logsBoxVirtualTerminal.write(
 				ansiEscapes.clearTerminal

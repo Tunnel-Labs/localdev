@@ -166,7 +166,7 @@ function getLogsBoxVirtualTerminalOutput(): string {
 		logsBoxVirtualTerminal !== undefined,
 		'logsBoxVirtualTerminal is not undefined'
 	)
-	const logsBoxHeight = localdevState.logsBoxIncludingTopLineHeight ?? 0
+	const logsBoxHeight = localdevState.logsBoxHeight ?? 0
 
 	// Scroll to the bottom to make sure that we're always outputting the most recently outputted lines
 	logsBoxVirtualTerminal.scrollToBottom()
@@ -218,7 +218,7 @@ export function LocaldevUi(props: { mode: string }) {
 	const logsBoxRef = useRef<DOMElement>(null)
 	const terminalSize = useTerminalSize()
 	const {
-		logsBoxIncludingTopLineHeight,
+		logsBoxHeight,
 		activeCommandBoxPaneComponent,
 		hijackedServiceId,
 		wrappedLogLinesToDisplay,
@@ -263,7 +263,7 @@ export function LocaldevUi(props: { mode: string }) {
 		setTimeout(() => {
 			if (logsBoxRef.current !== null) {
 				const { height } = measureElement(logsBoxRef.current)
-				localdevState.logsBoxIncludingTopLineHeight = height + 1
+				localdevState.logsBoxHeight = height
 			}
 		}, 0)
 	}, [
@@ -279,19 +279,8 @@ export function LocaldevUi(props: { mode: string }) {
 			height={terminalHeight}
 			width={terminalWidth}
 		>
-			{/* We hide the title when the logs overflow so that the logs are unbroken when the user scrolls up to view overflowed logs */}
-			{logsBoxIncludingTopLineHeight === null ||
-				(wrappedLogLinesToDisplay.length <=
-					logsBoxIncludingTopLineHeight - 1 && (
-					<Box alignSelf="center" flexDirection="row">
-						<Text bold>localdev</Text>
-						<Text> </Text>
-						<Text dimColor>[{props.mode}]</Text>
-					</Box>
-				))}
-
 			<Box ref={logsBoxRef} flexGrow={1}>
-				{logsBoxIncludingTopLineHeight !== null && <LocaldevLogsBox />}
+				{logsBoxHeight !== null && <LocaldevLogsBox />}
 			</Box>
 
 			<Box borderStyle="round" flexDirection="column" flexShrink={0}>
