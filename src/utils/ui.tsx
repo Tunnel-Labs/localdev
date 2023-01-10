@@ -192,12 +192,7 @@ function getLogsBoxVirtualTerminalOutput(): string {
 		outputLines.push(currentOutputLine)
 	}
 
-	const output = outputLines.join('\n')
-	if (outputLines.length < logsBoxHeight) {
-		return '\n'.repeat(logsBoxHeight - outputLines.length) + output
-	} else {
-		return output
-	}
+	return outputLines.join('\n')
 }
 
 function LocaldevLogsBox() {
