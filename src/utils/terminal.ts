@@ -30,6 +30,7 @@ import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/state.js'
 import { MockStdin } from '~/utils/stdin.js'
 import { LocaldevUi } from '~/utils/ui.js'
+import fs from 'node:fs'
 
 // xterm-headless is a CommonJS module
 const { Terminal } = xTermHeadless

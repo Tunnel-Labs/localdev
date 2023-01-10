@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+
 import ansiEscapes from 'ansi-escapes'
 import type { FastifyInstance } from 'fastify'
 import type { DOMElement, Instance } from 'ink'
@@ -129,11 +131,15 @@ function createLocaldevState() {
 		}
 
 		const lastLine = state.wrappedLogLinesToDisplay.at(-1)
-		if (lastLine !== undefined) {
-			state.terminalUpdater.logsBoxVirtualTerminal.write(lastLine)
-		}
 
-		state.logsBoxVirtualTerminalOutput = getLogsBoxVirtualTerminalOutput()
+		// `write` is asynchronous
+		if (lastLine !== undefined) {
+			void new Promise<void>((resolve) => {
+				state.terminalUpdater!.logsBoxVirtualTerminal.write(lastLine, resolve)
+			}).then(() => {
+				state.logsBoxVirtualTerminalOutput = getLogsBoxVirtualTerminalOutput()
+			})
+		}
 	})
 
 	subscribeKey(state, 'logsBoxHeight', (newHeight) => {
@@ -142,11 +148,20 @@ function createLocaldevState() {
 			ansiEscapes.clearTerminal
 		)
 		resizeVirtualTerminal(terminalSize().columns, newHeight)
-		for (const line of state.wrappedLogLinesToDisplay) {
+		for (const line of state.wrappedLogLinesToDisplay.slice(0, -1)) {
 			state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
 		}
 
-		state.logsBoxVirtualTerminalOutput = getLogsBoxVirtualTerminalOutput()
+		const lastLine = state.wrappedLogLinesToDisplay.at(-1)
+
+		// `write` is asynchronous
+		if (lastLine !== undefined) {
+			void new Promise<void>((resolve) => {
+				state.terminalUpdater!.logsBoxVirtualTerminal.write(lastLine, resolve)
+			}).then(() => {
+				state.logsBoxVirtualTerminalOutput = getLogsBoxVirtualTerminalOutput()
+			})
+		}
 	})
 
 	return state
