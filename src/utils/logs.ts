@@ -45,6 +45,7 @@ export function getWrappedLogLinesToDisplay(): string[] {
 		})
 		wrappedLogLinesData.push(
 			...unwrappedLogLines.flatMap((unwrappedLogLine) => {
+				// We deliberately only add a prefix once so that it's easy to tell when output was wrapped vs when output was a new line
 				const logLineText: string =
 					localdevState.logsBoxServiceId === null
 						? // Only add a prefix when there's multiple text
