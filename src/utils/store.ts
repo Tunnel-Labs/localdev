@@ -26,6 +26,9 @@ function createLocaldevState() {
 	const state = proxyWithComputed(
 		{
 			app: null as Ref<FastifyInstance> | null,
+			projectPath: null! as string,
+			localdevConfigPath: null! as string,
+			localdevLocalConfigPath: undefined as string | undefined,
 			localdevConfig: null! as LocaldevConfig,
 			activeHelpCommand: null as string | null,
 			servicesEnabled: true,

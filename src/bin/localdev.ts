@@ -1,7 +1,11 @@
 import { program } from 'commander'
 import { ref } from 'valtio'
 
-import { loadLocaldevConfig } from '~/utils/config.js'
+import {
+	getLocaldevConfig,
+	getLocaldevConfigPath,
+	getLocaldevLocalConfigPath,
+} from '~/utils/config.js'
 import { Service } from '~/utils/service.js'
 import { setupLocaldevServer } from '~/utils/setup.js'
 import { localdevState } from '~/utils/store.js'
@@ -15,9 +19,10 @@ await program
 		'-p, --port <number>',
 		'specify a port for the localdev proxy to listen to'
 	)
-	.option('-c, --config <path>', 'a path to the localdev configuration file')
+	.option('--project <path>', 'a path to your project folder', process.cwd())
+	.option('--config <path>', 'a path to the localdev configuration file')
 	.option(
-		'-l, --local-config <path>',
+		'--local-config <path>',
 		'a path to the localdev local configuration file'
 	)
 	.option('--no-services', "don't start dev services")
@@ -28,11 +33,20 @@ await program
 			port?: string
 			config?: string
 			localConfig?: string
+			project: string
 		}) => {
-			await loadLocaldevConfig({
+			localdevState.projectPath = options.project
+			localdevState.localdevConfigPath = await getLocaldevConfigPath({
 				configPath: options.config,
+			})
+			localdevState.localdevLocalConfigPath = await getLocaldevLocalConfigPath({
 				localConfigPath: options.localConfig,
 			})
+			localdevState.localdevConfig = await getLocaldevConfig({
+				configPath: localdevState.localdevConfigPath,
+				localConfigPath: localdevState.localdevLocalConfigPath,
+			})
+
 			await setupLocaldevServer({ port: Number(options.port ?? 7357) })
 			const localdevService = new Service('$localdev')
 

@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import path from 'node:path'
 
 import { deepmerge } from 'deepmerge-ts'
 import { findUp } from 'find-up'
@@ -57,13 +58,14 @@ export const localdevConfigSchema = z.object({
 
 export async function getLocaldevConfigPath(options?: { configPath?: string }) {
 	if (options?.configPath !== undefined) {
-		if (!fs.existsSync(options.configPath)) {
+		const fullConfigPath = path.resolve(process.cwd(), options.configPath)
+		if (!fs.existsSync(fullConfigPath)) {
 			throw new Error(
-				`localdev config file not found at specified path \`${options.configPath}\``
+				`localdev config file not found at specified path \`${fullConfigPath}\``
 			)
 		}
 
-		return options.configPath
+		return fullConfigPath
 	}
 
 	const configPath =
@@ -78,17 +80,21 @@ export async function getLocaldevConfigPath(options?: { configPath?: string }) {
 	return configPath
 }
 
-export async function getLocalLocaldevConfigPath(options?: {
+export async function getLocaldevLocalConfigPath(options?: {
 	localConfigPath?: string
 }): Promise<string | undefined> {
 	if (options?.localConfigPath !== undefined) {
-		if (!fs.existsSync(options.localConfigPath)) {
+		const fullLocalConfigPath = path.resolve(
+			process.cwd(),
+			options.localConfigPath
+		)
+		if (!fs.existsSync(fullLocalConfigPath)) {
 			throw new Error(
-				`local localdev config file not found at specified path \`${options.localConfigPath}\``
+				`local localdev config file not found at specified path \`${fullLocalConfigPath}\``
 			)
 		}
 
-		return options.localConfigPath
+		return fullLocalConfigPath
 	}
 
 	const localLocaldevConfigPath =
@@ -99,36 +105,24 @@ export async function getLocalLocaldevConfigPath(options?: {
 	return localLocaldevConfigPath
 }
 
-export async function getLocaldevConfig(options?: {
-	configPath?: string
+export async function getLocaldevConfig({
+	configPath,
+	localConfigPath,
+}: {
+	configPath: string
 	localConfigPath?: string
 }) {
-	const sharedLocaldevConfigPath = await getLocaldevConfigPath({
-		configPath: options?.configPath,
-	})
-
-	const localLocaldevConfigPath = await getLocalLocaldevConfigPath({
-		localConfigPath: options?.localConfigPath,
-	})
-
-	const { default: sharedLocaldevConfig } = (await import(
-		sharedLocaldevConfigPath
-	)) as { default: LocaldevConfig }
+	const { default: sharedLocaldevConfig } = (await import(configPath)) as {
+		default: LocaldevConfig
+	}
 
 	const localLocaldevConfig =
-		localLocaldevConfigPath === undefined
+		localConfigPath === undefined
 			? {}
-			: ((await import(localLocaldevConfigPath)) as { default: LocaldevConfig })
-					.default
+			: ((await import(localConfigPath)) as { default: LocaldevConfig }).default
 
 	return localdevConfigSchema.parse(
 		deepmerge(sharedLocaldevConfig, localLocaldevConfig)
 	) as LocaldevConfig
 }
 
-export async function loadLocaldevConfig(options?: {
-	configPath?: string
-	localConfigPath?: string
-}) {
-	localdevState.localdevConfig = await getLocaldevConfig(options)
-}

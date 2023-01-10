@@ -9,7 +9,6 @@ import { HelpPane } from '~/utils/command-panes/help.js'
 import { HijackPane } from '~/utils/command-panes/hijack.js'
 import { LogsPane } from '~/utils/command-panes/logs.js'
 import { ServiceStatusesPane } from '~/utils/command-panes/service-statuses.js'
-import { getLocaldevConfigPath } from '~/utils/config.js'
 import { clearLogs } from '~/utils/logs.js'
 import { spawnProcess } from '~/utils/process.js'
 import { Service } from '~/utils/service.js'
@@ -77,8 +76,7 @@ const defaultCommandSpecs = [
 				createCommand('open')
 					.summary('open the config file')
 					.action(async () => {
-						const localdevConfigPath = await getLocaldevConfigPath()
-						await open(`vscode://${localdevConfigPath}`)
+						await open(`vscode://${localdevState.localdevConfigPath}`)
 					})
 			)
 			.addCommand(
