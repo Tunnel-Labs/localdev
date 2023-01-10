@@ -1,14 +1,11 @@
+import ansiEscapes from 'ansi-escapes'
 import type { FastifyInstance } from 'fastify'
 import type { DOMElement, Instance } from 'ink'
-import { createProxy, isChanged } from 'proxy-compare'
 import { memoize } from 'proxy-memoize'
 import type React from 'react'
-import { useEffect, useMemo, useRef } from 'react'
-import useForceUpdate from 'use-force-update'
 import { type ref, useSnapshot } from 'valtio'
 import { proxyWithComputed, subscribeKey } from 'valtio/utils'
-import { type INTERNAL_Snapshot, snapshot, subscribe } from 'valtio/vanilla'
-import fs from 'node:fs'
+import { type INTERNAL_Snapshot, subscribe } from 'valtio/vanilla'
 
 import { type LocaldevConfig } from '~/index.js'
 import { type ServiceStatus } from '~/types/service.js'
@@ -108,9 +105,9 @@ function createLocaldevState() {
 	})
 
 	// Whenever the `wrappedLogLinesToDisplay` array changes, we should update the logs box virtual terminal
-	subscribeKey(state, 'wrappedLogLinesToDisplay', () => {
+	subscribe(state.wrappedLogLinesToDisplay, () => {
 		if (state.terminalUpdater !== null) {
-			state.terminalUpdater.logsBoxVirtualTerminal.clear()
+			state.terminalUpdater.logsBoxVirtualTerminal.write(ansiEscapes.clearTerminal)
 			for (const line of state.wrappedLogLinesToDisplay) {
 				state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
 			}

@@ -7,6 +7,8 @@ import type { DOMElement } from 'ink'
 import { Box, measureElement, Text, useInput } from 'ink'
 import { createElement, useEffect, useRef } from 'react'
 import invariant from 'tiny-invariant'
+import useForceUpdate from 'use-force-update'
+import { subscribe } from 'valtio'
 import { type IBufferCell } from 'xterm-headless'
 
 import {
@@ -16,6 +18,7 @@ import {
 } from '~/utils/command.js'
 import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
 import { useTerminalSize } from '~/utils/terminal.js'
+import fs from 'node:fs'
 
 function getFgColorAnsiSequenceFromCell(cell: IBufferCell) {
 	if (cell.isFgDefault()) {
@@ -157,25 +160,30 @@ const defaultCell: IBufferCell = {
 /**
 	Loops over the virtual terminal and returns the output (including ANSI sequences)
 */
-function getLogsBoxVirtualTerminalOutput(): string {
+function getLogsBoxVirtualTerminalOutput({ height }): string {
 	const logsBoxVirtualTerminal =
 		localdevState.terminalUpdater?.logsBoxVirtualTerminal
-	invariant(logsBoxVirtualTerminal !== undefined, 'logsBoxVirtualTerminal is not undefined')
+	invariant(
+		logsBoxVirtualTerminal !== undefined,
+		'logsBoxVirtualTerminal is not undefined'
+	)
 
 	const activeBuffer = logsBoxVirtualTerminal.buffer.active
 	let output = ''
 	let curCell: IBufferCell = { ...defaultCell }
-	const nextCell: IBufferCell = {} as IBufferCell
+	let nextCell = activeBuffer.getNullCell()
 
-	for (let lineIndex = 0; lineIndex < activeBuffer.length; lineIndex += 1) {
+	for (let lineIndex = 0; lineIndex < height; lineIndex += 1) {
 		const bufferLine = activeBuffer.getLine(lineIndex)
 		invariant(bufferLine !== undefined, 'bufferLine should not be undefined')
 
 		for (let col = 0; col < bufferLine.length; col += 1) {
-			bufferLine.getCell(col, nextCell)
+			nextCell = bufferLine.getCell(col)!
 			output += getAnsiUpdateSequenceForCellUpdate(curCell, nextCell)
 			curCell = nextCell
 		}
+
+		output += '\n'
 	}
 
 	return output
@@ -184,14 +192,13 @@ function getLogsBoxVirtualTerminalOutput(): string {
 function LocaldevLogsBox({ height, width }: { height: number; width: number }) {
 	const { terminalUpdater } = useLocaldevSnapshot()
 
-	const getWrappedLogLinesToDisplay = () => {
-		if (terminalUpdater === null) return ''
-		return getLogsBoxVirtualTerminalOutput()
+	if (terminalUpdater === null) {
+		return null
 	}
 
 	return (
 		<Box>
-			<Text>{getWrappedLogLinesToDisplay()}</Text>
+			<Text>{getLogsBoxVirtualTerminalOutput({ height })}</Text>
 		</Box>
 	)
 }
@@ -211,6 +218,14 @@ export function LocaldevUi(props: { mode: string }) {
 		wrappedLogLinesToDisplay,
 		commandBoxInput,
 	} = useLocaldevSnapshot()
+	const forceUpdate = useForceUpdate()
+
+	useEffect(() => {
+		subscribe(localdevState.wrappedLogLinesToDisplay, () => {
+			// process.exit(1)
+			forceUpdate()
+		})
+	}, [])
 
 	const terminalHeight = terminalSize.rows
 	const terminalWidth = terminalSize.columns

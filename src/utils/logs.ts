@@ -119,7 +119,7 @@ export function deactivateLogScrollMode() {
 }
 
 export function clearLogs() {
-	localdevState.wrappedLogLinesToDisplay = []
+	localdevState.wrappedLogLinesToDisplay.length = 0
 }
 
 export function wrapLineWithPrefix({
