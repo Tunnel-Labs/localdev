@@ -21,6 +21,7 @@
 		"ansi-align": "^3.0.1",
 		"ansi-center-align": "^1.0.1",
 		"ansi-escapes": "^6.0.0",
+		"ansi-styles": "^6.2.1",
 		"array-uniq": "^3.0.0",
 		"boxen": "^7.0.1",
 		"chalk": "^5.2.0",

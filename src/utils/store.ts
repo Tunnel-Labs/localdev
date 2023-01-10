@@ -5,9 +5,10 @@ import { memoize } from 'proxy-memoize'
 import type React from 'react'
 import { useEffect, useMemo, useRef } from 'react'
 import useForceUpdate from 'use-force-update'
-import { useSnapshot, type ref } from 'valtio'
+import { type ref, useSnapshot } from 'valtio'
 import { proxyWithComputed, subscribeKey } from 'valtio/utils'
 import { type INTERNAL_Snapshot, snapshot, subscribe } from 'valtio/vanilla'
+import fs from 'node:fs'
 
 import { type LocaldevConfig } from '~/index.js'
 import { type ServiceStatus } from '~/types/service.js'
@@ -103,6 +104,16 @@ function createLocaldevState() {
 				force: true,
 				updateOverflowedLines: true,
 			})
+		}
+	})
+
+	// Whenever the `wrappedLogLinesToDisplay` array changes, we should update the logs box virtual terminal
+	subscribeKey(state, 'wrappedLogLinesToDisplay', () => {
+		if (state.terminalUpdater !== null) {
+			state.terminalUpdater.logsBoxVirtualTerminal.clear()
+			for (const line of state.wrappedLogLinesToDisplay) {
+				state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
+			}
 		}
 	})
 

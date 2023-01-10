@@ -66,7 +66,7 @@ export class TerminalUpdater {
 	updateIntervalId: NodeJS.Timer | undefined
 	mode: string
 	inkStdin = new MockStdin()
-	virtualTerminal = new Terminal({
+	logsBoxVirtualTerminal = new Terminal({
 		rows: terminalSize().rows,
 		cols: terminalSize().columns,
 		// Enable experimental options
@@ -78,7 +78,6 @@ export class TerminalUpdater {
 	}
 
 	write(data: string | Buffer) {
-		this.virtualTerminal.write(data)
 		process.stderr.write(data)
 	}
 
