@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+
 import ansiEscapes from 'ansi-escapes'
 import type { FastifyInstance } from 'fastify'
 import type { DOMElement, Instance } from 'ink'
@@ -14,7 +16,6 @@ import {
 	type TerminalUpdater,
 	getLogsBoxVirtualTerminalOutput,
 } from '~/utils/terminal.js'
-import fs from 'node:fs'
 
 // eslint-disable-next-line @typescript-eslint/ban-types -- object is used in the original type
 type Ref<T extends object> = ReturnType<typeof ref<T>>
@@ -118,10 +119,8 @@ function createLocaldevState() {
 		state.terminalUpdater.logsBoxVirtualTerminal.write(
 			ansiEscapes.clearTerminal
 		)
-		fs.writeFileSync('/users/leondreamed/logs.txt', '')
 		for (const line of state.wrappedLogLinesToDisplay) {
 			state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
-			fs.appendFileSync('/users/leondreamed/logs.txt', line + '\n')
 		}
 
 		state.logsBoxVirtualTerminalOutput = getLogsBoxVirtualTerminalOutput()
@@ -136,6 +135,10 @@ function createLocaldevState() {
 			terminalSize().columns,
 			newHeight
 		)
+		for (const line of state.wrappedLogLinesToDisplay) {
+			state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
+		}
+
 		state.logsBoxVirtualTerminalOutput = getLogsBoxVirtualTerminalOutput()
 	})
 
