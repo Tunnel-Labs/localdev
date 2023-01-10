@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify'
 import type { DOMElement, Instance } from 'ink'
 import { memoize } from 'proxy-memoize'
 import type React from 'react'
+import terminalSize from 'term-size'
 import { type ref, useSnapshot } from 'valtio'
 import { proxyWithComputed, subscribeKey } from 'valtio/utils'
 import { type INTERNAL_Snapshot, subscribe } from 'valtio/vanilla'
@@ -107,10 +108,24 @@ function createLocaldevState() {
 	// Whenever the `wrappedLogLinesToDisplay` array changes, we should update the logs box virtual terminal
 	subscribe(state.wrappedLogLinesToDisplay, () => {
 		if (state.terminalUpdater !== null) {
-			state.terminalUpdater.logsBoxVirtualTerminal.write(ansiEscapes.clearTerminal)
+			state.terminalUpdater.logsBoxVirtualTerminal.write(
+				ansiEscapes.clearTerminal
+			)
 			for (const line of state.wrappedLogLinesToDisplay) {
 				state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
 			}
+		}
+	})
+
+	subscribeKey(state, 'logsBoxIncludingTopLineHeight', (newHeight) => {
+		if (state.terminalUpdater !== null && newHeight !== null) {
+			state.terminalUpdater.logsBoxVirtualTerminal.write(
+				ansiEscapes.clearTerminal
+			)
+			state.terminalUpdater.logsBoxVirtualTerminal.resize(
+				terminalSize().columns,
+				newHeight - 1
+			)
 		}
 	})
 
@@ -121,6 +136,7 @@ export const localdevState = createLocaldevState()
 
 /**
 	Copied from `node_modules/valtio/esm/index.mjs` but removed the use of `useSyncExternalStore` (since it doesn't seem to work with Ink)
+	TODO (since I don't want to fork valtio when publishing to npm)
 */
 export function useLocaldevSnapshot(): INTERNAL_Snapshot<typeof localdevState> {
 	return useSnapshot(localdevState)

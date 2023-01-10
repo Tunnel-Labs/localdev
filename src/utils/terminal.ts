@@ -243,6 +243,10 @@ export class TerminalUpdater {
 					setTimeout(() => {
 						// When the terminal resizes, all the overflowed wrapped lines become unaligned, so we reset these variables
 						localdevState.nextOverflowedWrappedLogLineIndexToOutput = 0
+						localdevState.terminalUpdater?.logsBoxVirtualTerminal.resize(
+							terminalSize().columns,
+							terminalSize().rows
+						)
 						localdevState.wrappedLogLinesToDisplay =
 							getWrappedLogLinesToDisplay()
 

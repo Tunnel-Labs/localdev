@@ -18,7 +18,6 @@ import {
 } from '~/utils/command.js'
 import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
 import { useTerminalSize } from '~/utils/terminal.js'
-import fs from 'node:fs'
 
 function getFgColorAnsiSequenceFromCell(cell: IBufferCell) {
 	if (cell.isFgDefault()) {
@@ -160,36 +159,48 @@ const defaultCell: IBufferCell = {
 /**
 	Loops over the virtual terminal and returns the output (including ANSI sequences)
 */
-function getLogsBoxVirtualTerminalOutput({ height }): string {
+function getLogsBoxVirtualTerminalOutput(): string {
 	const logsBoxVirtualTerminal =
 		localdevState.terminalUpdater?.logsBoxVirtualTerminal
 	invariant(
 		logsBoxVirtualTerminal !== undefined,
 		'logsBoxVirtualTerminal is not undefined'
 	)
+	const logsBoxHeight = localdevState.logsBoxIncludingTopLineHeight ?? 0
+
+	// Scroll to the bottom to make sure that we're always outputting the most recently outputted lines
+	logsBoxVirtualTerminal.scrollToBottom()
 
 	const activeBuffer = logsBoxVirtualTerminal.buffer.active
-	let output = ''
+	const outputLines: string[] = []
 	let curCell: IBufferCell = { ...defaultCell }
 	let nextCell = activeBuffer.getNullCell()
 
-	for (let lineIndex = 0; lineIndex < height; lineIndex += 1) {
-		const bufferLine = activeBuffer.getLine(lineIndex)
-		invariant(bufferLine !== undefined, 'bufferLine should not be undefined')
-
+	for (
+		let lineIndex = Math.max(0, activeBuffer.length - logsBoxHeight);
+		lineIndex < activeBuffer.length;
+		lineIndex += 1
+	) {
+		let currentOutputLine = ''
+		const bufferLine = activeBuffer.getLine(lineIndex)!
 		for (let col = 0; col < bufferLine.length; col += 1) {
 			nextCell = bufferLine.getCell(col)!
-			output += getAnsiUpdateSequenceForCellUpdate(curCell, nextCell)
+			currentOutputLine += getAnsiUpdateSequenceForCellUpdate(curCell, nextCell)
 			curCell = nextCell
 		}
 
-		output += '\n'
+		outputLines.push(currentOutputLine)
 	}
 
-	return output
+	const output = outputLines.join('\n')
+	if (outputLines.length < logsBoxHeight) {
+		return '\n'.repeat(logsBoxHeight - outputLines.length) + output
+	} else {
+		return output
+	}
 }
 
-function LocaldevLogsBox({ height, width }: { height: number; width: number }) {
+function LocaldevLogsBox() {
 	const { terminalUpdater } = useLocaldevSnapshot()
 
 	if (terminalUpdater === null) {
@@ -198,7 +209,7 @@ function LocaldevLogsBox({ height, width }: { height: number; width: number }) {
 
 	return (
 		<Box>
-			<Text>{getLogsBoxVirtualTerminalOutput({ height })}</Text>
+			<Text>{getLogsBoxVirtualTerminalOutput()}</Text>
 		</Box>
 	)
 }
@@ -285,12 +296,7 @@ export function LocaldevUi(props: { mode: string }) {
 				))}
 
 			<Box ref={logsBoxRef} flexGrow={1}>
-				{logsBoxIncludingTopLineHeight !== null && (
-					<LocaldevLogsBox
-						height={logsBoxIncludingTopLineHeight - 2}
-						width={terminalWidth}
-					/>
-				)}
+				{logsBoxIncludingTopLineHeight !== null && <LocaldevLogsBox />}
 			</Box>
 
 			<Box borderStyle="round" flexDirection="column" flexShrink={0}>
