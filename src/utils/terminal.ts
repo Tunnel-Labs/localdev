@@ -243,12 +243,15 @@ export class TerminalUpdater {
 					setTimeout(() => {
 						// When the terminal resizes, all the overflowed wrapped lines become unaligned, so we reset these variables
 						localdevState.nextOverflowedWrappedLogLineIndexToOutput = 0
+						localdevState.terminalUpdater?.logsBoxVirtualTerminal.write(
+							ansiEscapes.clearTerminal
+						)
 						localdevState.terminalUpdater?.logsBoxVirtualTerminal.resize(
 							terminalSize().columns,
 							terminalSize().rows
 						)
-						localdevState.wrappedLogLinesToDisplay =
-							getWrappedLogLinesToDisplay()
+						localdevState.wrappedLogLinesToDisplay.length = 0
+						localdevState.wrappedLogLinesToDisplay.push(...getWrappedLogLinesToDisplay())
 
 						// We need to hard clear the console in order to preserve the continuity of overflowed logs as the terminal resize causes some lines to overflow
 						consoleClear(/* isSoft */ false)
