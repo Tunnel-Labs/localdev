@@ -69,7 +69,6 @@ export class TerminalUpdater {
 	previousOutput = ''
 	hasPressAnyKeyToContinueNoticeBeenWritten = false
 	updateIntervalId: NodeJS.Timer | undefined
-	mode: string
 	inkStdin = new MockStdin()
 	logsBoxVirtualTerminal = new Terminal({
 		rows: terminalSize().rows,
@@ -77,10 +76,6 @@ export class TerminalUpdater {
 		// Enable experimental options
 		allowProposedApi: true,
 	})
-
-	constructor({ mode }: { mode: 'development' | 'test' }) {
-		this.mode = mode
-	}
 
 	write(data: string | Buffer) {
 		process.stderr.write(data)
@@ -115,7 +110,7 @@ export class TerminalUpdater {
 			ServiceStatusesPane as any
 		)
 		localdevState.inkInstance = ref(
-			render(React.createElement(LocaldevUi, { mode: this.mode }), {
+			render(React.createElement(LocaldevUi), {
 				// We pass in a "noop stream" to Ink's `stdout` because we use our own rendering function for Ink (the built-in rendering function for Ink has flickering issues)
 				// @ts-expect-error: not a perfect type match but works at runtime
 				stdout: new PassThrough(),

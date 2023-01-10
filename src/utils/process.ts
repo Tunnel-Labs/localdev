@@ -113,7 +113,7 @@ export class Process {
 		return wrappedLogLineData.map((logLine) => logLine.text)
 	}
 
-	spawn({ mode }: { mode: 'test' | 'development' }) {
+	spawn() {
 		if (this.command === null) {
 			throw new Error('No command was specified for this process')
 		}
@@ -121,12 +121,6 @@ export class Process {
 		const env: Record<string, string> = {
 			...process.env,
 			FORCE_COLOR: '3',
-			NODE_ENV: mode,
-			ENV: mode,
-		}
-
-		if (mode === 'test') {
-			env.TEST = '1'
 		}
 
 		const [commandName, ...commandArgs] = this.command
@@ -154,7 +148,7 @@ export class Process {
 
 	restart() {
 		this.stop()
-		this.spawn({ mode: 'development' })
+		this.spawn()
 	}
 }
 
@@ -196,7 +190,7 @@ export function spawnProcess(args: {
 
 	process.emitter.on('logsAdded', listener)
 
-	process.spawn({ mode: 'development' })
+	process.spawn()
 	process.emitter.on('exited', () => {
 		process.emitter.removeAllListeners()
 	})

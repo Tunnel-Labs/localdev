@@ -14,7 +14,6 @@ import { TerminalUpdater } from '~/utils/terminal.js'
 await program
 	.name('localdev')
 	.description('An interactive TUI for local development')
-	.option('-t, --test', 'run the dev script in test mode')
 	.option(
 		'-p, --port <number>',
 		'specify a port for the localdev proxy to listen to'
@@ -61,7 +60,7 @@ await program
 				for (const service of services) {
 					if (service.spec.startAutomatically) {
 						service
-							.run({ mode: options.test ? 'test' : 'development' })
+							.run()
 							.catch((error) => {
 								console.error(error)
 								service.status = 'failed'
@@ -74,9 +73,7 @@ await program
 
 			localdevService.initialize()
 
-			const terminalUpdater = new TerminalUpdater({
-				mode: options.test ? 'test' : 'development',
-			})
+			const terminalUpdater = new TerminalUpdater()
 			localdevState.terminalUpdater = ref(terminalUpdater)
 			terminalUpdater.start()
 		}
