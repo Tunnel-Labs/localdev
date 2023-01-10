@@ -15,6 +15,7 @@ import { type ServiceStatus } from '~/types/service.js'
 import {
 	type TerminalUpdater,
 	getLogsBoxVirtualTerminalOutput,
+	resizeVirtualTerminal,
 } from '~/utils/terminal.js'
 
 // eslint-disable-next-line @typescript-eslint/ban-types -- object is used in the original type
@@ -131,10 +132,7 @@ function createLocaldevState() {
 		state.terminalUpdater.logsBoxVirtualTerminal.write(
 			ansiEscapes.clearTerminal
 		)
-		state.terminalUpdater.logsBoxVirtualTerminal.resize(
-			terminalSize().columns,
-			newHeight
-		)
+		resizeVirtualTerminal(terminalSize().columns, newHeight)
 		for (const line of state.wrappedLogLinesToDisplay) {
 			state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
 		}

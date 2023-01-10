@@ -49,6 +49,7 @@ specifiers:
   inquirer: ^9.1.4
   inquirer-autocomplete-prompt: ^3.0.0
   js-sdsl: ^4.2.0
+  just-debounce-it: ^3.2.0
   just-throttle: ^4.2.0
   kill-port: ^2.0.1
   lionconfig: ^2.3.1
@@ -116,6 +117,7 @@ dependencies:
   inquirer: 9.1.4
   inquirer-autocomplete-prompt: 3.0.0_inquirer@9.1.4
   js-sdsl: 4.2.0
+  just-debounce-it: 3.2.0
   just-throttle: 4.2.0
   kill-port: 2.0.1
   mem: 9.0.2
@@ -6573,6 +6575,10 @@ packages:
     resolution: {integrity: sha512-POQXvpdL69+CluYsillJ7SUhKvytYjW9vG/GKpnf+xP8UWgYEM/RaMzHHofbALDiKbbP1W8UEYmgGl39WkPZsg==}
     engines: {'0': node >= 0.2.0}
     dev: true
+
+  /just-debounce-it/3.2.0:
+    resolution: {integrity: sha512-WXzwLL0745uNuedrCsCs3rpmfD6DBaf7uuVwaq98/8dafURfgQaBsSpjiPp5+CW6Vjltwy9cOGI6qE71b3T8iQ==}
+    dev: false
 
   /just-throttle/4.2.0:
     resolution: {integrity: sha512-/iAZv1953JcExpvsywaPKjSzfTiCLqeguUTE6+VmK15mOcwxBx7/FHrVvS4WEErMR03TRazH8kcBSHqMagYIYg==}

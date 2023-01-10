@@ -7,6 +7,7 @@ import ansiEscapes from 'ansi-escapes'
 import consoleClear from 'console-clear'
 import { render } from 'ink'
 import renderer from 'ink/build/renderer.js'
+import debounce from 'just-debounce-it'
 import throttle from 'just-throttle'
 import ansiStyles from 'node_modules/chalk/source/vendor/ansi-styles/index.js'
 import patchConsole from 'patch-console'
@@ -239,16 +240,33 @@ export class TerminalUpdater {
 	}
 
 	#setTerminalResizeListeners() {
+		this.logsBoxVirtualTerminal.onResize(() => {
+			// TODO: figure out why I need to delay this by a non-zero amount
+			setTimeout(() => {
+				localdevState.logsBoxVirtualTerminalOutput =
+					getLogsBoxVirtualTerminalOutput()
+			}, 50)
+		})
+
 		/**
 			When the terminal is resized, we recalculate the wrapped log lines to display.
 		*/
 		onTerminalResize(
 			throttle(
 				() => {
-					// We wait until the next tick to allow all non-forced terminal updates to run first (this fixes the problem of rendering over "ghost" values of `previousOutputs`)
+					// We wait until the next tick to allow all non-forced terminal updates to run first (this fixes the problem of rendering over "ghost" values of `previousOutput` values)
 					setTimeout(() => {
-						if (localdevState.terminalUpdater === null) return
-						localdevState.terminalUpdater.logsBoxVirtualTerminal.resize(terminalSize().columns, localdevState.logsBoxHeight)
+						if (
+							localdevState.terminalUpdater === null ||
+							localdevState.logsBoxHeight === null
+						) {
+							return
+						}
+
+						resizeVirtualTerminal(
+							terminalSize().columns,
+							localdevState.logsBoxHeight
+						)
 						// When the terminal resizes, all the overflowed wrapped lines become unaligned, so we reset these variables
 						localdevState.nextOverflowedWrappedLogLineIndexToOutput = 0
 						localdevState.wrappedLogLinesToDisplay.splice(
@@ -280,7 +298,7 @@ export class TerminalUpdater {
 			localdevState.wrappedLogLinesToDisplay.slice(
 				0,
 				localdevState.wrappedLogLinesToDisplay.length -
-					localdevState.logsBoxHeight
+				localdevState.logsBoxHeight
 			)
 
 		if (overflowedWrappedLogLines.length === 0) return ''
@@ -306,7 +324,7 @@ export class TerminalUpdater {
 			overflowedWrappedLogLineIndex <
 			Math.min(
 				localdevState.nextOverflowedWrappedLogLineIndexToOutput +
-					numTerminalRows,
+				numTerminalRows,
 				overflowedWrappedLogLines.length
 			);
 			overflowedWrappedLogLineIndex += 1
@@ -575,3 +593,12 @@ export function getLogsBoxVirtualTerminalOutput(): string {
 
 	return output
 }
+
+export const resizeVirtualTerminal = debounce(
+	(columns: number, rows: number) => {
+		if (localdevState.terminalUpdater === null) return
+		localdevState.terminalUpdater.logsBoxVirtualTerminal.resize(columns, rows)
+	},
+	50,
+	true
+)
