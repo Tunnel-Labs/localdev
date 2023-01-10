@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+
 import { deepmerge } from 'deepmerge-ts'
 import { findUp } from 'find-up'
 import { z } from 'zod'
@@ -53,7 +55,17 @@ export const localdevConfigSchema = z.object({
 	commands: z.function().args(z.any()).returns(z.any().array()).optional(),
 })
 
-export async function getLocaldevConfigPath() {
+export async function getLocaldevConfigPath(options?: { configPath?: string }) {
+	if (options?.configPath !== undefined) {
+		if (!fs.existsSync(options.configPath)) {
+			throw new Error(
+				`localdev config file not found at specified path \`${options.configPath}\``
+			)
+		}
+
+		return options.configPath
+	}
+
 	const configPath =
 		(await findUp('localdev.config.mjs')) ??
 		(await findUp('localdev.config.js')) ??
@@ -66,12 +78,38 @@ export async function getLocaldevConfigPath() {
 	return configPath
 }
 
-export async function getLocaldevConfig() {
-	const sharedLocaldevConfigPath = await getLocaldevConfigPath()
+export async function getLocalLocaldevConfigPath(options?: {
+	localConfigPath?: string
+}): Promise<string | undefined> {
+	if (options?.localConfigPath !== undefined) {
+		if (!fs.existsSync(options.localConfigPath)) {
+			throw new Error(
+				`local localdev config file not found at specified path \`${options.localConfigPath}\``
+			)
+		}
+
+		return options.localConfigPath
+	}
+
 	const localLocaldevConfigPath =
 		(await findUp('localdev.local.mjs')) ??
 		(await findUp('localdev.local.js')) ??
 		(await findUp('localdev.local.cjs'))
+
+	return localLocaldevConfigPath
+}
+
+export async function getLocaldevConfig(options?: {
+	configPath?: string
+	localConfigPath?: string
+}) {
+	const sharedLocaldevConfigPath = await getLocaldevConfigPath({
+		configPath: options?.configPath,
+	})
+
+	const localLocaldevConfigPath = await getLocalLocaldevConfigPath({
+		localConfigPath: options?.localConfigPath,
+	})
 
 	const { default: sharedLocaldevConfig } = (await import(
 		sharedLocaldevConfigPath
@@ -88,6 +126,9 @@ export async function getLocaldevConfig() {
 	) as LocaldevConfig
 }
 
-export async function loadLocaldevConfig() {
-	localdevState.localdevConfig = await getLocaldevConfig()
+export async function loadLocaldevConfig(options?: {
+	configPath?: string
+	localConfigPath?: string
+}) {
+	localdevState.localdevConfig = await getLocaldevConfig(options)
 }

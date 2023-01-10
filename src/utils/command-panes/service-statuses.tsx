@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { Box, Text } from 'ink'
-import { ServiceStatus } from '~/types/service.js'
 
+import { type ServiceStatus } from '~/types/service.js'
 import { Service } from '~/utils/service.js'
 import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
 

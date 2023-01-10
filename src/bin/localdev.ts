@@ -11,11 +11,28 @@ await program
 	.name('localdev')
 	.description('An interactive TUI for local development')
 	.option('-t, --test', 'run the dev script in test mode')
-	.option('-p, --port <number>', 'specify a port for the localdev proxy to listen to')
+	.option(
+		'-p, --port <number>',
+		'specify a port for the localdev proxy to listen to'
+	)
+	.option('-c, --config <path>', 'a path to the localdev configuration file')
+	.option(
+		'-l, --local-config <path>',
+		'a path to the localdev local configuration file'
+	)
 	.option('--no-services', "don't start dev services")
 	.action(
-		async (options: { test?: boolean; services?: boolean; port?: string }) => {
-			await loadLocaldevConfig()
+		async (options: {
+			test?: boolean
+			services?: boolean
+			port?: string
+			config?: string
+			localConfig?: string
+		}) => {
+			await loadLocaldevConfig({
+				configPath: options.config,
+				localConfigPath: options.localConfig,
+			})
 			await setupLocaldevServer({ port: Number(options.port ?? 7357) })
 			const localdevService = new Service('$localdev')
 

@@ -1,4 +1,4 @@
-/** @type {import('./src/types/config.js').LocaldevConfig} */
+/** @type {import('../src/types/config.js').LocaldevConfig} */
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
 	logServerEvents: true,
