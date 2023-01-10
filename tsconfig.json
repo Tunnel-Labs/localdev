@@ -4,7 +4,8 @@
 		"outDir": "dist",
 		"rootDir": "src",
 		"baseUrl": ".",
-		"jsx": "react-jsx",
+		// Can't use `react-jsx` because React 17 exports are broken
+		"jsx": "react",
 		"paths": {
 			"~/*": ["./src/*"]
 		}

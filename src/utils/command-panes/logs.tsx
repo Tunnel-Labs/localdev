@@ -2,6 +2,7 @@ import ansiAlign from 'ansi-align'
 import chalk from 'chalk'
 import { Box, Text } from 'ink'
 import { outdent } from 'outdent'
+import React from 'react'
 
 import { Service } from '~/utils/service.js'
 import { useLocaldevSnapshot } from '~/utils/store.js'

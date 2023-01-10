@@ -2,7 +2,7 @@ import TextInput from '@leondreamed/ink-text-input'
 import chalk from 'chalk'
 import type { DOMElement } from 'ink'
 import { Box, measureElement, Text, useInput } from 'ink'
-import { createElement, useEffect, useRef, useState } from 'react'
+import React, { createElement, useEffect, useRef } from 'react'
 
 import {
 	runCommandFromCommandBox,
@@ -13,8 +13,7 @@ import { localdevState, useLocaldevSnapshot } from '~/utils/store.js'
 import { useTerminalSize } from '~/utils/terminal.js'
 
 function LocaldevLogsBox() {
-	const { logsBoxVirtualTerminalOutput } =
-		useLocaldevSnapshot()
+	const { logsBoxVirtualTerminalOutput } = useLocaldevSnapshot()
 
 	return (
 		<Box>
