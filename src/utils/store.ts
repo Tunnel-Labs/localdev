@@ -1,14 +1,15 @@
-import fs from 'node:fs'
-
 import ansiEscapes from 'ansi-escapes'
 import type { FastifyInstance } from 'fastify'
 import type { DOMElement, Instance } from 'ink'
+import { createProxy, isChanged } from 'proxy-compare'
 import { memoize } from 'proxy-memoize'
 import type React from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import terminalSize from 'term-size'
-import { type ref, useSnapshot } from 'valtio'
+import useForceUpdate from 'use-force-update'
+import type { ref } from 'valtio'
 import { proxyWithComputed, subscribeKey } from 'valtio/utils'
-import { type INTERNAL_Snapshot, subscribe } from 'valtio/vanilla'
+import { type INTERNAL_Snapshot, snapshot, subscribe } from 'valtio/vanilla'
 
 import { type LocaldevConfig } from '~/index.js'
 import { type ServiceStatus } from '~/types/service.js'
@@ -147,8 +148,49 @@ export const localdevState = createLocaldevState()
 
 /**
 	Copied from `node_modules/valtio/esm/index.mjs` but removed the use of `useSyncExternalStore` (since it doesn't seem to work with Ink)
-	TODO (since I don't want to fork valtio when publishing to npm)
 */
 export function useLocaldevSnapshot(): INTERNAL_Snapshot<typeof localdevState> {
-	return useSnapshot(localdevState)
+	const currSnapshot = useRef(snapshot(localdevState))
+	const lastSnapshot = useRef<any>()
+	const lastAffected = useRef<any>()
+	const forceUpdate = useForceUpdate()
+
+	useEffect(() => {
+		const callback = () => {
+			const nextSnapshot = snapshot(localdevState)
+			try {
+				if (
+					lastSnapshot.current &&
+					lastAffected.current &&
+					!isChanged(
+						lastSnapshot.current,
+						nextSnapshot,
+						lastAffected.current,
+						/* @__PURE__ */ new WeakMap()
+					)
+				) {
+					return lastSnapshot.current
+				}
+			} catch {}
+
+			lastSnapshot.current = currSnapshot.current
+			currSnapshot.current = nextSnapshot
+			forceUpdate()
+		}
+
+		const unsubscribe = subscribe(localdevState, callback)
+		callback()
+		return unsubscribe
+	}, [])
+
+	const currAffected = /* @__PURE__ */ new WeakMap()
+	useEffect(() => {
+		lastSnapshot.current = currSnapshot
+		lastAffected.current = currAffected
+	})
+
+	const proxyCache = useMemo(() => /* @__PURE__ */ new WeakMap(), [])
+	return createProxy(currSnapshot.current, currAffected, proxyCache)
 }
+
+export { useSnapshot } from 'valtio'
