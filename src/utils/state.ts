@@ -124,8 +124,13 @@ function createLocaldevState() {
 		state.terminalUpdater.logsBoxVirtualTerminal.write(
 			ansiEscapes.clearTerminal
 		)
-		for (const line of state.wrappedLogLinesToDisplay) {
+		for (const line of state.wrappedLogLinesToDisplay.slice(0, -1)) {
 			state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
+		}
+
+		const lastLine = state.wrappedLogLinesToDisplay.at(-1)
+		if (lastLine !== undefined) {
+			state.terminalUpdater.logsBoxVirtualTerminal.write(lastLine)
 		}
 
 		state.logsBoxVirtualTerminalOutput = getLogsBoxVirtualTerminalOutput()
@@ -195,5 +200,3 @@ export function useLocaldevSnapshot(): INTERNAL_Snapshot<typeof localdevState> {
 	const proxyCache = useMemo(() => /* @__PURE__ */ new WeakMap(), [])
 	return createProxy(currSnapshot.current, currAffected, proxyCache)
 }
-
-export { useSnapshot } from 'valtio'

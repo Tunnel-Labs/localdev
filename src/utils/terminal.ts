@@ -1,6 +1,7 @@
 /* eslint-disable no-bitwise */
 
 import { type Buffer } from 'node:buffer'
+import fs from 'node:fs'
 import { PassThrough } from 'node:stream'
 
 import ansiEscapes from 'ansi-escapes'
@@ -568,9 +569,36 @@ export function getLogsBoxVirtualTerminalOutput(): string {
 	let curCell: IBufferCell = { ...defaultCell }
 	let nextCell = activeBuffer.getNullCell()
 
+	// Count the number of lines from the bottom which have not been outputted to
+	let linesFromBottomWithNoOutput: number
+
+	// If the viewport is non-zero, it means that there are enough log lines to span the entire terminal, i.e. all lines have output
+	if (activeBuffer.viewportY !== 0) {
+		linesFromBottomWithNoOutput = 0
+	} else {
+		linesFromBottomWithNoOutput = 0
+
+		for (
+			let lineIndex = activeBuffer.length - 1;
+			lineIndex > 0;
+			lineIndex -= 1
+		) {
+			const length = activeBuffer
+				.getLine(lineIndex)
+				?.translateToString()
+				.trim().length
+
+			if (length !== undefined && length !== 0) {
+				break
+			}
+
+			linesFromBottomWithNoOutput += 1
+		}
+	}
+
 	for (
 		let lineIndex = Math.max(0, activeBuffer.length - logsBoxHeight);
-		lineIndex < activeBuffer.length;
+		lineIndex < activeBuffer.length - linesFromBottomWithNoOutput;
 		lineIndex += 1
 	) {
 		let currentOutputLine = ''
@@ -584,7 +612,8 @@ export function getLogsBoxVirtualTerminalOutput(): string {
 		outputLines.push(currentOutputLine)
 	}
 
-	const output = outputLines.join('\n')
+	const output =
+		'\n'.repeat(linesFromBottomWithNoOutput) + outputLines.join('\n')
 
 	return output
 }
