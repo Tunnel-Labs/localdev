@@ -65,6 +65,8 @@ await program
 								console.error(error)
 								service.status = 'failed'
 							})
+					} else {
+						service.status = 'stopped'
 					}
 				}
 			} else {
