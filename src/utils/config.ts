@@ -46,18 +46,20 @@ export const localdevConfigSchema = z.object({
 
 	services: z.record(z.string(), serviceSpecSchema).optional(),
 
-	localProxy: z.union([
-		z.boolean(),
-		z.object({
-			port: z.number().optional().default(7357),
-			localDomains: z.string().array().optional(),
-			proxyRouter: z
-				.function()
-				.args(z.any())
-				.returns(z.string().optional())
-				.optional(),
-		}),
-	]).default(false),
+	localProxy: z
+		.union([
+			z.boolean(),
+			z.object({
+				port: z.number().optional().default(7357),
+				localDomains: z.string().array().optional(),
+				proxyRouter: z
+					.function()
+					.args(z.any())
+					.returns(z.string().optional())
+					.optional(),
+			}),
+		])
+		.default(false),
 	commands: z.function().args(z.any()).returns(z.any().array()).optional(),
 })
 
