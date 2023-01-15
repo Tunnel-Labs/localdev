@@ -12,15 +12,19 @@ import { createProxyMiddleware } from 'http-proxy-middleware'
 import { outdent } from 'outdent'
 import invariant from 'tiny-invariant'
 
+import { type LocaldevConfig } from '~/index.js'
 import { cli } from '~/utils/cli.js'
 import { createMkcertCerts } from '~/utils/mkcert.js'
 import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/state.js'
 
-export async function setupLocaldevServer({ port }: { port: number }) {
+export async function setupLocalProxy(
+	// eslint-disable-next-line @typescript-eslint/ban-types -- Need to exclude the "boolean" type
+	localProxyOptions: LocaldevConfig['localProxy'] & object
+) {
 	const localDomains = [
 		'localdev.test',
-		...(localdevState.localdevConfig.localDomains ?? []),
+		...(localProxyOptions.localDomains ?? []),
 	]
 	const { ca, key, cert } = await createMkcertCerts({
 		localDomains,
@@ -30,7 +34,7 @@ export async function setupLocaldevServer({ port }: { port: number }) {
 		res.writeHead(200, { 'Content-Type': 'text/plain' })
 		res.end('OK')
 	})
-	testHttpServer.listen(port)
+	testHttpServer.listen(localProxyOptions.port)
 
 	const logProvider = () => ({
 		...console,
@@ -71,12 +75,12 @@ export async function setupLocaldevServer({ port }: { port: number }) {
 			target: null!,
 			router(req) {
 				if (req.hostname === 'localdev.test') {
-					return `http://localhost:${port}`
+					return `http://localhost:${localProxyOptions.port}`
 				}
 
 				return (
-					localdevState.localdevConfig.proxyRouter?.(req) ??
-					`http://localhost:${port}`
+					localProxyOptions.proxyRouter?.(req) ??
+					`http://localhost:${localProxyOptions.port}`
 				)
 			},
 		})
@@ -185,5 +189,11 @@ export async function setupLocaldevServer({ port }: { port: number }) {
 		// `https://test.test` could not be resolved; `dnsmasq` is likely not started
 		console.info('Starting dnsmasq...')
 		await cli.sudo(['brew', 'services', 'start', 'dnsmasq'])
+	}
+}
+
+export async function setupLocaldevServer({ port }: { port: number }) {
+	if (localdevState.localdevConfig.localProxy) {
+		await setupLocalProxy({ port })
 	}
 }
