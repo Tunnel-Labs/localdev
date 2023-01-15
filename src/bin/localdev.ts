@@ -46,7 +46,7 @@ await program
 				localConfigPath: localdevState.localdevLocalConfigPath,
 			})
 
-			await setupLocaldevServer({ port: Number(options.port ?? 7357) })
+			await setupLocaldevServer()
 			const localdevService = new Service('$localdev')
 
 			if (options.services) {

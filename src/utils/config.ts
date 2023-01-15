@@ -48,7 +48,7 @@ export const localdevConfigSchema = z.object({
 
 	localProxy: z
 		.union([
-			z.boolean(),
+			z.literal(false),
 			z.object({
 				port: z.number().optional().default(7357),
 				localDomains: z.string().array().optional(),

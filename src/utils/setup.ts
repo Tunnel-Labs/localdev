@@ -192,8 +192,8 @@ export async function setupLocalProxy(
 	}
 }
 
-export async function setupLocaldevServer({ port }: { port: number }) {
+export async function setupLocaldevServer() {
 	if (localdevState.localdevConfig.localProxy) {
-		await setupLocalProxy({ port })
+		await setupLocalProxy(localdevState.localdevConfig.localProxy)
 	}
 }
