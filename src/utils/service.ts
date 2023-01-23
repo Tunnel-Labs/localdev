@@ -238,6 +238,8 @@ export class Service {
 	}
 
 	async run() {
+		this.status = 'pending'
+
 		// If we need to wait on another command, then we wait for the other command to be ready before creating the pty process
 		if (this.spec.dependsOn !== undefined) {
 			const dependsOnSpecs = this.spec.dependsOn.map(

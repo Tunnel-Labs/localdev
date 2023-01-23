@@ -161,6 +161,22 @@ const defaultCommandSpecs = [
 			})
 	),
 	defineCommandSpec(
+		createCommand('start')
+			.summary('start a service')
+			.argument('<serviceId>')
+			.action(async (serviceId: string) => {
+				if (!Service.has(serviceId)) {
+					console.error(`Service ${serviceId} does not exist.`)
+					return
+				}
+
+				console.info(`Starting service ${serviceId}`)
+				const service = Service.get(serviceId)
+
+				await service.run()
+			})
+	),
+	defineCommandSpec(
 		createCommand('restart')
 			.summary('restart a service')
 			.argument('<serviceId>')

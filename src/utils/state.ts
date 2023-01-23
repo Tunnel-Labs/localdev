@@ -169,7 +169,7 @@ function createLocaldevState() {
 export const localdevState = createLocaldevState()
 
 /**
-	Copied from `node_modules/valtio/esm/index.mjs` but removed the use of `useSyncExternalStore` (since it doesn't seem to work with Ink)
+	Copied from `node_modules/valtio/esm/index.mjs` but removed the use of `useSyncExternalStore` (since it doesn't work with Ink, see https://github.com/pmndrs/valtio/discussions/623)
 */
 export function useLocaldevSnapshot(): INTERNAL_Snapshot<typeof localdevState> {
 	const currSnapshot = useRef(snapshot(localdevState))
