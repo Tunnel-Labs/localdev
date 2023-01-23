@@ -17,7 +17,6 @@ specifiers:
   '@types/shell-quote': ^1.7.1
   '@types/signal-exit': ^3.0.1
   '@types/tcp-port-used': ^1.0.1
-  '@types/wrap-ansi': ^8.0.1
   ansi-align: ^3.0.1
   ansi-center-align: ^1.0.3
   ansi-escapes: ^6.0.0
@@ -77,7 +76,7 @@ specifiers:
   valtio: ^1.8.2
   vitest: ^0.26.3
   wait-port: ^1.0.4
-  wrap-ansi: ^8.0.1
+  wrap-ansi: ^8.1.0
   xterm-headless: ^5.1.0
   zod: ^3.20.2
 
@@ -142,7 +141,7 @@ dependencies:
   use-force-update: 1.0.11_react@17.0.2
   valtio: 1.8.2_react@17.0.2
   wait-port: 1.0.4
-  wrap-ansi: 8.0.1
+  wrap-ansi: 8.1.0
   xterm-headless: 5.1.0
   zod: 3.20.2
 
@@ -159,7 +158,6 @@ devDependencies:
   '@types/shell-quote': 1.7.1
   '@types/signal-exit': 3.0.1
   '@types/tcp-port-used': 1.0.1
-  '@types/wrap-ansi': 8.0.1
   lionconfig: 2.3.1_typescript@4.9.4
   typescript: 4.9.4
   vitest: 0.26.3
@@ -2380,10 +2378,6 @@ packages:
     resolution: {integrity: sha512-PBjIUxZHOuj0R15/xuwJYjFi+KZdNFrehocChv4g5hu6aFroHue8m0lBP0POdK2nKzbw0cgV1mws8+V/JAcEkQ==}
     dev: true
 
-  /@types/wrap-ansi/8.0.1:
-    resolution: {integrity: sha512-cjwgM6WWy9YakrQ36Pq0vg5XoNblVEaNq+/pHngKl4GyyDIxTeskPoG+tp4LsRk0lHrA4LaLJqlvYridi7mzlw==}
-    dev: true
-
   /@types/yauzl/2.10.0:
     resolution: {integrity: sha512-Cn6WYCm0tXv8p6k+A8PvbDG763EDpBoTzHdA+Q/MF6H3sapGjCm9NzoaJncJS9tUKSuCoDs9XHxYYsQDgxR6kw==}
     requiresBuild: true
@@ -3172,7 +3166,7 @@ packages:
       string-width: 5.1.2
       type-fest: 2.19.0
       widest-line: 4.0.1
-      wrap-ansi: 8.0.1
+      wrap-ansi: 8.1.0
 
   /brace-expansion/1.1.11:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
@@ -6011,7 +6005,7 @@ packages:
       string-width: 5.1.2
       strip-ansi: 7.0.1
       through: 2.3.8
-      wrap-ansi: 8.0.1
+      wrap-ansi: 8.1.0
 
   /internal-slot/1.0.4:
     resolution: {integrity: sha512-tA8URYccNzMo94s5MQZgH8NB/XTa6HsOo0MLfXTKKEnHVVdegzaQoFZ7Jp44bdvLvY2waT5dc+j5ICEswhi7UQ==}
@@ -10425,8 +10419,8 @@ packages:
       strip-ansi: 6.0.1
     dev: true
 
-  /wrap-ansi/8.0.1:
-    resolution: {integrity: sha512-QFF+ufAqhoYHvoHdajT/Po7KoXVBPXS2bgjIam5isfWJPfIOnQZ50JtUiVvCv/sjgacf3yRrt2ZKUZ/V4itN4g==}
+  /wrap-ansi/8.1.0:
+    resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
     dependencies:
       ansi-styles: 6.2.1
