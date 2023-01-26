@@ -112,9 +112,6 @@ function createLocaldevState() {
 
 	subscribeKey(state, 'logsBoxHeight', async (newHeight) => {
 		if (state.terminalUpdater === null || newHeight === null) return
-		state.terminalUpdater.logsBoxVirtualTerminal.write(
-			ansiEscapes.clearTerminal
-		)
 
 		resizeVirtualTerminal(terminalSize().columns, newHeight)
 		await state.terminalUpdater.refreshLogs()

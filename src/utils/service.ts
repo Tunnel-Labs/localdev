@@ -15,6 +15,7 @@ import { type ServiceStatus } from '~/types/service.js'
 import { getServicePrefixColor, wrapLine } from '~/utils/logs.js'
 import { Process } from '~/utils/process.js'
 import { localdevState } from '~/utils/state.js'
+import { getLogsBoxVirtualTerminalOutput } from '~/utils/terminal.js'
 
 const _ansiCursorRegexp = flags.add(
 	'g',
@@ -177,6 +178,9 @@ export class Service {
 							wrappedLine
 						)
 					}
+
+					localdevState.logsBoxVirtualTerminalOutput =
+						getLogsBoxVirtualTerminalOutput()
 				}
 
 				service.process.emitter.on('logLineAdded', logLineAddedListener)
