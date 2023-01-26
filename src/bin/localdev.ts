@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { program } from 'commander'
 import { ref } from 'valtio'
 
@@ -46,6 +49,11 @@ await program
 				localConfigPath: localdevState.localdevLocalConfigPath,
 			})
 
+			await fs.promises.mkdir(
+				path.join(localdevState.projectPath, 'node_modules/.localdev/logs'),
+				{ recursive: true }
+			)
+
 			await setupLocaldevServer()
 			const localdevService = new Service('$localdev')
 
@@ -59,12 +67,10 @@ await program
 
 				for (const service of services) {
 					if (service.spec.startAutomatically) {
-						service
-							.run()
-							.catch((error) => {
-								console.error(error)
-								service.status = 'failed'
-							})
+						service.run().catch((error) => {
+							console.error(error)
+							service.status = 'failed'
+						})
 					} else {
 						service.status = 'stopped'
 					}
@@ -73,7 +79,7 @@ await program
 				localdevState.servicesEnabled = false
 			}
 
-			localdevService.initialize()
+			await localdevService.initialize()
 
 			const terminalUpdater = new TerminalUpdater()
 			localdevState.terminalUpdater = ref(terminalUpdater)

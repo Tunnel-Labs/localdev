@@ -61,10 +61,19 @@ export class Process {
 		this.emitter.emit('logLineAdded', { unwrappedLine })
 	}
 
-	async getUnwrappedLogLinesData() {
-		return jsonl.parse<{ timestamp: number; unwrappedLine: string }>(
-			await fs.promises.readFile(this.#getLogsFilePath(), 'utf8')
-		)
+	async getUnwrappedLogLinesData(): Promise<
+		Array<{
+			timestamp: number
+			unwrappedLine: string
+		}>
+	> {
+		if (fs.existsSync(this.#getLogsFilePath())) {
+			return jsonl.parse<{ timestamp: number; unwrappedLine: string }>(
+				await fs.promises.readFile(this.#getLogsFilePath(), 'utf8')
+			)
+		} else {
+			return []
+		}
 	}
 
 	spawn() {

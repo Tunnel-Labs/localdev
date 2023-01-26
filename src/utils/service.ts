@@ -130,7 +130,7 @@ export class Service {
 		localdevState.serviceStatuses[this.spec.id] = status
 	}
 
-	initialize() {
+	async initialize() {
 		if (this.spec.id !== '$localdev') {
 			throw new Error(
 				'initialize() can only be called on the $localdev service'
@@ -142,7 +142,7 @@ export class Service {
 			(payload: LogLineAddedEventPayload) => void
 		>()
 
-		const resetServiceListeners = () => {
+		const resetServiceListeners = async () => {
 			// Clear all old listeners
 			for (const [
 				oldServiceIdToLog,
@@ -155,7 +155,7 @@ export class Service {
 			}
 
 			currentListenersMap.clear()
-			void localdevState.terminalUpdater?.refreshLogs()
+			await localdevState.terminalUpdater?.refreshLogs()
 
 			// We set up listeners for incremental addition to the log lines on new lines
 			for (const serviceId of localdevState.serviceIdsToLog) {
@@ -184,11 +184,11 @@ export class Service {
 			}
 		}
 
-		subscribeKey(localdevState, 'serviceIdsToLog', () => {
-			resetServiceListeners()
+		subscribeKey(localdevState, 'serviceIdsToLog', async () => {
+			await resetServiceListeners()
 		})
 
-		resetServiceListeners()
+		await resetServiceListeners()
 	}
 
 	get name() {

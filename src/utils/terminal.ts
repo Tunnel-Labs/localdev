@@ -338,19 +338,10 @@ export class TerminalUpdater {
 
 		await Promise.all(
 			localdevState.serviceIdsToLog.map(async (serviceId) => {
-				const localdevLogsDir = path.join(
-					localdevState.projectPath,
-					'node_modules/.localdev/logs'
-				)
-				const unwrappedServiceLogLinesData = jsonl.parse<{
-					timestamp: number
-					unwrappedLine: string
-				}>(
-					await fs.promises.readFile(
-						path.join(localdevLogsDir, `service/${serviceId}.jsonl`),
-						'utf8'
-					)
-				)
+				const service = Service.get(serviceId)
+				const unwrappedServiceLogLinesData =
+					await service.process.getUnwrappedLogLinesData()
+
 				for (const {
 					timestamp,
 					unwrappedLine,
