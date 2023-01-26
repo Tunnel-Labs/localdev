@@ -83,6 +83,7 @@ await program
 
 			const terminalUpdater = new TerminalUpdater()
 			localdevState.terminalUpdater = ref(terminalUpdater)
+
 			terminalUpdater.start()
 		}
 	)

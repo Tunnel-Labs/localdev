@@ -320,6 +320,7 @@ export class TerminalUpdater {
 	*/
 	async #getUpdateSequenceFromUpdatingOverflowedLines(): Promise<string> {
 		let updateSequence = ''
+
 		// Don't log overflowed lines if the UI hasn't rendered yet
 		if (localdevState.logsBoxHeight === null) return ''
 

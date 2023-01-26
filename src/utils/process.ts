@@ -50,8 +50,8 @@ export class Process {
 		const timestamp = options?.timestamp ?? Date.now()
 
 		// TODO: figure out how to strip cursor ansi sequences
-		fs.appendFileSync(
-			this.#getLogsFilePath(),
+		await fs.promises.appendFile(
+			await this.#getLogsFilePath(),
 			JSON.stringify({
 				timestamp,
 				unwrappedLine,
@@ -67,9 +67,9 @@ export class Process {
 			unwrappedLine: string
 		}>
 	> {
-		if (fs.existsSync(this.#getLogsFilePath())) {
+		if (fs.existsSync(await this.#getLogsFilePath())) {
 			return jsonl.parse<{ timestamp: number; unwrappedLine: string }>(
-				await fs.promises.readFile(this.#getLogsFilePath(), 'utf8')
+				await fs.promises.readFile(await this.#getLogsFilePath(), 'utf8')
 			)
 		} else {
 			return []
@@ -114,12 +114,14 @@ export class Process {
 		this.spawn()
 	}
 
-	#getLogsFilePath() {
+	async #getLogsFilePath() {
 		const localdevLogsDir = path.join(
 			localdevState.projectPath,
 			'node_modules/.localdev/logs'
 		)
-		return path.join(localdevLogsDir, `process/${this.id}.jsonl`)
+		const logsFilePath = path.join(localdevLogsDir, `process/${this.id}.jsonl`)
+		await fs.promises.mkdir(logsFilePath, { recursive: true })
+		return logsFilePath
 	}
 }
 
