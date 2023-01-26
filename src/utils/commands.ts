@@ -209,8 +209,8 @@ const defaultCommandSpecs = [
 	defineCommandSpec(
 		createCommand('clear')
 			.summary('clear logs')
-			.action(() => {
-				clearLogs()
+			.action(async () => {
+				await clearLogs()
 			})
 	),
 	defineCommandSpec(

@@ -1,6 +1,8 @@
 /* eslint-disable no-bitwise */
 
 import { type Buffer } from 'node:buffer'
+import fs from 'node:fs'
+import path from 'node:path'
 import { PassThrough } from 'node:stream'
 
 import { centerAlign } from 'ansi-center-align'
@@ -10,6 +12,8 @@ import chalk from 'chalk'
 import consoleClear from 'console-clear'
 import { render } from 'ink'
 import renderer from 'ink/build/renderer.js'
+import { jsonl } from 'js-jsonl'
+import { OrderedSet } from 'js-sdsl'
 import debounce from 'just-debounce-it'
 import throttle from 'just-throttle'
 import patchConsole from 'patch-console'
@@ -24,7 +28,9 @@ import { ServiceStatusesPane } from '~/utils/command-panes/service-statuses.js'
 import {
 	activateLogScrollMode,
 	deactivateLogScrollMode,
+	getServicePrefixColor,
 	getWrappedLogLinesToDisplay,
+	wrapLine,
 } from '~/utils/logs.js'
 import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/state.js'
@@ -130,7 +136,7 @@ export class TerminalUpdater {
 
 		patchConsole((_stream, data) => {
 			const localdevLogs = Service.get('$localdev')
-			localdevLogs.process.addLogs(data.trimEnd())
+			void localdevLogs.process.addUnwrappedLogLine(data.trimEnd())
 		})
 
 		this.write(ansiEscapes.cursorHide)
@@ -151,6 +157,38 @@ export class TerminalUpdater {
 		this.#registerStdinListener()
 		this.#setTerminalResizeListeners()
 		this.updateTerminal()
+	}
+
+	async updateOverflowedLines() {
+		const updateSequence =
+			await this.#getUpdateSequenceFromUpdatingOverflowedLines()
+		this.write(SYNC_START + updateSequence + SYNC_END)
+	}
+
+	async refreshLogs() {
+		if (localdevState.terminalUpdater === null) return
+
+		const wrappedLogLinesToDisplay = await getWrappedLogLinesToDisplay()
+
+		localdevState.terminalUpdater.logsBoxVirtualTerminal.write(
+			ansiEscapes.clearTerminal
+		)
+		for (const line of wrappedLogLinesToDisplay.slice(0, -1)) {
+			localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
+		}
+
+		const lastLine = wrappedLogLinesToDisplay.at(-1)
+		if (lastLine !== undefined) {
+			await new Promise<void>((resolve) => {
+				localdevState.terminalUpdater!.logsBoxVirtualTerminal.write(
+					lastLine,
+					resolve
+				)
+			})
+		}
+
+		localdevState.logsBoxVirtualTerminalOutput =
+			getLogsBoxVirtualTerminalOutput()
 	}
 
 	updateTerminal(options?: {
@@ -190,11 +228,6 @@ export class TerminalUpdater {
 			The string we want to write to the terminal to update the screen.
 		*/
 		let updateSequence = ansiEscapes.cursorHide
-
-		// If there are overflowed lines that need to be logged, then output them first
-		if (options?.updateOverflowedLines) {
-			updateSequence += this.#getUpdateSequenceFromUpdatingOverflowedLines()
-		}
 
 		const { columns: terminalWidth, rows: terminalHeight } = terminalSize()
 		const newOutput = renderer.default(
@@ -252,7 +285,7 @@ export class TerminalUpdater {
 			throttle(
 				() => {
 					// We wait until the next tick to allow all non-forced terminal updates to run first (this fixes the problem of rendering over "ghost" values of `previousOutput` values)
-					setTimeout(() => {
+					setTimeout(async () => {
 						if (
 							localdevState.terminalUpdater === null ||
 							localdevState.logsBoxHeight === null
@@ -266,16 +299,13 @@ export class TerminalUpdater {
 						)
 						// When the terminal resizes, all the overflowed wrapped lines become unaligned, so we reset these variables
 						localdevState.nextOverflowedWrappedLogLineIndexToOutput = 0
-						localdevState.wrappedLogLinesToDisplay.splice(
-							0,
-							localdevState.wrappedLogLinesToDisplay.length,
-							...getWrappedLogLinesToDisplay()
-						)
+						await localdevState.terminalUpdater.refreshLogs()
 
 						// We need to hard clear the console in order to preserve the continuity of overflowed logs as the terminal resize causes some lines to overflow
 						consoleClear(/* isSoft */ false)
 
-						this.updateTerminal({ force: true, updateOverflowedLines: true })
+						await this.updateOverflowedLines()
+						this.updateTerminal({ force: true })
 					}, 0)
 				},
 				200,
@@ -284,19 +314,73 @@ export class TerminalUpdater {
 		)
 	}
 
-	#getUpdateSequenceFromUpdatingOverflowedLines(): string {
+	/**
+		This function is called to output the overflowed lines into the current terminal scrollback buffer.
+		This is only called when the user enters "Scroll Mode" or exits the program.
+	*/
+	async #getUpdateSequenceFromUpdatingOverflowedLines(): Promise<string> {
 		let updateSequence = ''
 		// Don't log overflowed lines if the UI hasn't rendered yet
 		if (localdevState.logsBoxHeight === null) return ''
 
+		// We recreate the wrapped log lines to display
+		const wrappedLogLinesToDisplay = new OrderedSet<{
+			wrappedLineIndex: number
+			timestamp: number
+			wrappedLine: string
+		}>([], (l1, l2) => {
+			if (l1.timestamp === l2.timestamp) {
+				return l1.wrappedLineIndex - l2.wrappedLineIndex
+			} else {
+				return l1.timestamp - l2.timestamp
+			}
+		})
+
+		await Promise.all(
+			localdevState.serviceIdsToLog.map(async (serviceId) => {
+				const localdevLogsDir = path.join(
+					localdevState.projectPath,
+					'node_modules/.localdev/logs'
+				)
+				const unwrappedServiceLogLinesData = jsonl.parse<{
+					timestamp: number
+					unwrappedLine: string
+				}>(
+					await fs.promises.readFile(
+						path.join(localdevLogsDir, `service/${serviceId}.jsonl`),
+						'utf8'
+					)
+				)
+				for (const {
+					timestamp,
+					unwrappedLine,
+				} of unwrappedServiceLogLinesData) {
+					const prefix =
+						localdevState.logsBoxServiceId === null
+							? // Only add a prefix when there's multiple text
+							  `${chalk[getServicePrefixColor(serviceId)](
+									Service.get(serviceId).name
+							  )}: `
+							: undefined
+					for (const [wrappedLineIndex, wrappedLine] of wrapLine({
+						prefix,
+						unwrappedLine,
+					}).entries()) {
+						wrappedLogLinesToDisplay.insert({
+							timestamp,
+							wrappedLine,
+							wrappedLineIndex,
+						})
+					}
+				}
+			})
+		)
+
 		// The terminal can only display the last `logsBoxHeight` log lines, so the
 		// lines until that are overflowed lines
-		const overflowedWrappedLogLines =
-			localdevState.wrappedLogLinesToDisplay.slice(
-				0,
-				localdevState.wrappedLogLinesToDisplay.length -
-					localdevState.logsBoxHeight
-			)
+		const overflowedWrappedLogLines = [...wrappedLogLinesToDisplay]
+			.slice(0, wrappedLogLinesToDisplay.length - localdevState.logsBoxHeight)
+			.map((l) => l.wrappedLine)
 
 		if (overflowedWrappedLogLines.length === 0) return ''
 

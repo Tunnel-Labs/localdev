@@ -57,9 +57,18 @@ export const localdevConfigSchema = z.object({
 					.args(z.any())
 					.returns(z.string().optional())
 					.optional(),
+				httpsRedirect: z.union([
+					// `true` means redirect all requests to HTTPS
+					z.boolean(),
+					// An array of subdomains and subdomain patterns to redirect to HTTPS
+					z.string().array(),
+					// A function that takes a URL and returns whether to redirect it to HTTPS or not
+					z.function().args(z.string()).returns(z.boolean())
+				]).optional()
 			}),
 		])
 		.default(false),
+
 	commands: z.function().args(z.any()).returns(z.any().array()).optional(),
 })
 

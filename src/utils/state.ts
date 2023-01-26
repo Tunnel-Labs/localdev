@@ -15,7 +15,6 @@ import { type LocaldevConfig } from '~/index.js'
 import { type ServiceStatus } from '~/types/service.js'
 import {
 	type TerminalUpdater,
-	getLogsBoxVirtualTerminalOutput,
 	resizeVirtualTerminal,
 } from '~/utils/terminal.js'
 
@@ -59,7 +58,7 @@ function createLocaldevState() {
 			currentCommandHistoryIndex: 0,
 			logScrollModeState: {
 				active: false,
-			} as { active: true; wrappedLogLinesLength: number } | { active: false },
+			} as { active: boolean },
 			inkInstance: null as Ref<
 				Instance & {
 					isUnmounted: boolean
@@ -67,13 +66,6 @@ function createLocaldevState() {
 				}
 			> | null,
 			terminalUpdater: null as Ref<TerminalUpdater> | null,
-
-			/**
-				An array containing the all the log lines that should be displayed, including overflowed lines.
-				Note: `wrappedLogLinesToDisplay` is a mutable string array and not a computed property because we want to be able to
-				incrementally update it instead of always re-computing it.
-			*/
-			wrappedLogLinesToDisplay: [] as string[],
 
 			serviceStatuses: {} as Record<string, ServiceStatus>,
 
@@ -118,49 +110,14 @@ function createLocaldevState() {
 		}
 	})
 
-	// Whenever the `wrappedLogLinesToDisplay` array changes, we should update the logs box virtual terminal
-	subscribe(state.wrappedLogLinesToDisplay, () => {
-		if (state.terminalUpdater === null) return
-		state.terminalUpdater.logsBoxVirtualTerminal.write(
-			ansiEscapes.clearTerminal
-		)
-		for (const line of state.wrappedLogLinesToDisplay.slice(0, -1)) {
-			state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
-		}
-
-		const lastLine = state.wrappedLogLinesToDisplay.at(-1)
-
-		// `write` is asynchronous
-		if (lastLine !== undefined) {
-			void new Promise<void>((resolve) => {
-				state.terminalUpdater!.logsBoxVirtualTerminal.write(lastLine, resolve)
-			}).then(() => {
-				state.logsBoxVirtualTerminalOutput = getLogsBoxVirtualTerminalOutput()
-			})
-		}
-	})
-
-	subscribeKey(state, 'logsBoxHeight', (newHeight) => {
+	subscribeKey(state, 'logsBoxHeight', async (newHeight) => {
 		if (state.terminalUpdater === null || newHeight === null) return
 		state.terminalUpdater.logsBoxVirtualTerminal.write(
 			ansiEscapes.clearTerminal
 		)
 
 		resizeVirtualTerminal(terminalSize().columns, newHeight)
-		for (const line of state.wrappedLogLinesToDisplay.slice(0, -1)) {
-			state.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
-		}
-
-		const lastLine = state.wrappedLogLinesToDisplay.at(-1)
-
-		// `write` is asynchronous
-		if (lastLine !== undefined) {
-			void new Promise<void>((resolve) => {
-				state.terminalUpdater!.logsBoxVirtualTerminal.write(lastLine, resolve)
-			}).then(() => {
-				state.logsBoxVirtualTerminalOutput = getLogsBoxVirtualTerminalOutput()
-			})
-		}
+		await state.terminalUpdater.refreshLogs()
 	})
 
 	return state

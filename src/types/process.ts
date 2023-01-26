@@ -1,11 +1,10 @@
 import type TypedEmitter from 'typesafe-emitter'
 
-export interface LogsAddedEventPayload {
+export interface LogLineAddedEventPayload {
 	unwrappedLine: string
-	wrappedLine: string[]
 }
 
 export type ProcessEmitter = TypedEmitter<{
-	logsAdded(payload: LogsAddedEventPayload): void
+	logLineAdded(payload: LogLineAddedEventPayload): void
 	exited(exitCode: number): void
 }>

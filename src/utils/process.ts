@@ -1,20 +1,21 @@
 import { EventEmitter } from 'node:events'
+import fs from 'node:fs'
+import path from 'node:path'
 
-import chalk from 'chalk'
 import { deepmerge } from 'deepmerge-ts'
-import { OrderedSet } from 'js-sdsl'
+import { jsonl } from 'js-jsonl'
 import mem from 'mem'
 import type { IBasePtyForkOptions, IPty } from 'node-pty'
 import pty from 'node-pty'
 import shellQuote from 'shell-quote'
 import invariant from 'tiny-invariant'
 
-import type { UnwrappedLogLineData, WrappedLogLineData } from '~/types/logs.js'
 import type { ProcessEmitter } from '~/types/process.js'
-import { wrapLineWithPrefix } from '~/utils/logs.js'
 import { localdevState } from '~/utils/state.js'
-import { getWrappedText } from '~/utils/text.js'
 
+/**
+	We deliberately don't store unwrapped log lines in memory because they can be extremely large. Instead, they're saved in temporary files.
+*/
 export class Process {
 	static emitters: ProcessEmitter[] = []
 
@@ -23,22 +24,6 @@ export class Process {
 	commandOptions?: IBasePtyForkOptions
 	id: string
 	emitter: ProcessEmitter
-
-	/**
-		An array of all the log lines that a service has outputted, including overflowed logs.
-	*/
-	#unwrappedLogLinesData = new OrderedSet(
-		[] as UnwrappedLogLineData[],
-		(l1, l2) => l1.timestamp - l2.timestamp
-	)
-
-	#wrappedLogLineData = new OrderedSet([] as WrappedLogLineData[], (l1, l2) => {
-		if (l1.timestamp === l2.timestamp) {
-			return l1.wrappedLineIndex - l2.wrappedLineIndex
-		} else {
-			return l1.timestamp - l2.timestamp
-		}
-	})
 
 	constructor({
 		id,
@@ -58,59 +43,28 @@ export class Process {
 		Process.emitters.push(emitter)
 	}
 
-	addLogs(unwrappedText: string, options?: { timestamp?: number }) {
+	async addUnwrappedLogLine(
+		unwrappedLine: string,
+		options?: { timestamp?: number }
+	) {
 		const timestamp = options?.timestamp ?? Date.now()
+
 		// TODO: figure out how to strip cursor ansi sequences
+		fs.appendFileSync(
+			this.#getLogsFilePath(),
+			JSON.stringify({
+				timestamp,
+				unwrappedLine,
+			}) + '\n'
+		)
 
-		this.#unwrappedLogLinesData.insert({ text: unwrappedText, timestamp })
-		const wrappedLine = getWrappedText(unwrappedText)
-		const wrappedLogLineData = wrappedLine.map((line) => ({
-			text: line,
-			timestamp,
-		}))
-		for (const [
-			wrappedLineIndex,
-			wrappedLine,
-		] of wrappedLogLineData.entries()) {
-			this.#wrappedLogLineData.insert({ ...wrappedLine, wrappedLineIndex })
-		}
-
-		this.emitter.emit('logsAdded', {
-			wrappedLine,
-			unwrappedLine: unwrappedText,
-		})
+		this.emitter.emit('logLineAdded', { unwrappedLine })
 	}
 
-	getUnwrappedLogLines(options: {
-		withTimestamps: true
-	}): UnwrappedLogLineData[]
-
-	getUnwrappedLogLines(options?: {
-		withTimestamps?: false | undefined
-	}): string[]
-
-	getUnwrappedLogLines(options?: {
-		withTimestamps?: boolean
-	}): string[] | UnwrappedLogLineData[] {
-		const unwrappedLogLineData = [...this.#unwrappedLogLinesData]
-		if (options?.withTimestamps) {
-			return unwrappedLogLineData
-		}
-
-		return [...this.#unwrappedLogLinesData].map((logLine) => logLine.text)
-	}
-
-	getWrappedLogLines(options: { withTimestamps: true }): WrappedLogLineData[]
-	getWrappedLogLines(options?: { withTimestamps?: false | undefined }): string[]
-	getWrappedLogLines(options?: {
-		withTimestamps?: boolean
-	}): string[] | WrappedLogLineData[] {
-		const wrappedLogLineData = [...this.#wrappedLogLineData]
-		if (options?.withTimestamps) {
-			return wrappedLogLineData
-		}
-
-		return wrappedLogLineData.map((logLine) => logLine.text)
+	async getUnwrappedLogLinesData() {
+		return jsonl.parse<{ timestamp: number; unwrappedLine: string }>(
+			await fs.promises.readFile(this.#getLogsFilePath(), 'utf8')
+		)
 	}
 
 	spawn() {
@@ -135,8 +89,8 @@ export class Process {
 			this.emitter.emit('exited', exitCode)
 		})
 
-		this.ptyProcess.onData((data) => {
-			this.addLogs(data.trim())
+		this.ptyProcess.onData(async (data) => {
+			await this.addUnwrappedLogLine(data.trim())
 		})
 
 		return this.ptyProcess
@@ -149,6 +103,14 @@ export class Process {
 	restart() {
 		this.stop()
 		this.spawn()
+	}
+
+	#getLogsFilePath() {
+		const localdevLogsDir = path.join(
+			localdevState.projectPath,
+			'node_modules/.localdev/logs'
+		)
+		return path.join(localdevLogsDir, `process/${this.id}.jsonl`)
 	}
 }
 
@@ -183,12 +145,10 @@ export function spawnProcess(args: {
 	})
 
 	const listener = ({ unwrappedLine }: { unwrappedLine: string }) => {
-		const prefix = `${chalk[getProcessPrefixColor(args.id)](`#${args.id}:`)} `
-		const wrappedLines = wrapLineWithPrefix({ prefix, unwrappedLine })
-		localdevState.wrappedLogLinesToDisplay.push(...wrappedLines)
+		void process.addUnwrappedLogLine(unwrappedLine)
 	}
 
-	process.emitter.on('logsAdded', listener)
+	process.emitter.on('logLineAdded', listener)
 
 	process.spawn()
 	process.emitter.on('exited', () => {

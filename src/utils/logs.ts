@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import * as fastSort from '@leondreamed/fast-sort'
 import { centerAlign } from 'ansi-center-align'
 import ansiEscapes from 'ansi-escapes'
@@ -27,7 +30,7 @@ export const getServicePrefixColor = mem((_serviceId: string) => {
 /**
 	Returns an array of wrapped log lines to display on the screen based on state in localdevServerStore
 */
-export function getWrappedLogLinesToDisplay(): string[] {
+export async function getWrappedLogLinesToDisplay(): Promise<string[]> {
 	const serviceSpecsToLog = localdevState.serviceIdsToLog.map(
 		(serviceId) => Service.get(serviceId).spec
 	)
@@ -37,28 +40,28 @@ export function getWrappedLogLinesToDisplay(): string[] {
 	for (const serviceSpec of serviceSpecsToLog) {
 		const serviceName = Service.get(serviceSpec.id).name
 		// We need to get the unwrapped log lines because adding a prefix may affect the wrapping of the log line
-		const unwrappedLogLines = Service.get(
+		// eslint-disable-next-line no-await-in-loop
+		const unwrappedLogLinesData = await Service.get(
 			serviceSpec.id
-		).process.getUnwrappedLogLines({
-			withTimestamps: true,
-		})
+		).process.getUnwrappedLogLinesData()
+
 		wrappedLogLinesData.push(
-			...unwrappedLogLines.flatMap((unwrappedLogLine) => {
+			...unwrappedLogLinesData.flatMap(({ timestamp, unwrappedLine }) => {
 				const prefix =
 					localdevState.logsBoxServiceId === null
 						? // Only add a prefix when there's multiple text
 						  `${chalk[getServicePrefixColor(serviceSpec.id)](serviceName)}: `
-						: ''
+						: undefined
 
-				const wrappedLogLineText = wrapLineWithPrefix({
+				const wrappedLogLines = wrapLine({
 					prefix,
-					unwrappedLine: unwrappedLogLine.text,
+					unwrappedLine,
 				})
 
-				return wrappedLogLineText.map((text, wrappedLineIndex) => ({
+				return wrappedLogLines.map((text, wrappedLineIndex) => ({
 					serviceId: serviceSpec.id,
 					text,
-					timestamp: unwrappedLogLine.timestamp,
+					timestamp,
 					wrappedLineIndex,
 				}))
 			})
@@ -86,7 +89,6 @@ export function activateLogScrollMode() {
 	// We pause further updates by setting `logScrollModeState.active` to true
 	localdevState.logScrollModeState = {
 		active: true,
-		wrappedLogLinesLength: localdevState.wrappedLogLinesToDisplay.length,
 	}
 
 	const { rows: terminalHeight, columns: terminalWidth } = terminalSize()
@@ -118,29 +120,37 @@ export function deactivateLogScrollMode() {
 	localdevState.terminalUpdater.enableTerminalMouseSupport()
 }
 
-export function clearLogs() {
-	localdevState.wrappedLogLinesToDisplay.splice(
-		0,
-		localdevState.wrappedLogLinesToDisplay.length
+export async function clearLogs() {
+	const localdevLogsDir = path.join(
+		localdevState.projectPath,
+		'node_modules/.localdev/logs'
 	)
+
+	await fs.promises.rm(localdevLogsDir, { recursive: true })
+	localdevState.terminalUpdater?.logsBoxVirtualTerminal.clear()
 }
 
-export function wrapLineWithPrefix({
+export function wrapLine({
 	unwrappedLine,
 	prefix,
 }: {
 	unwrappedLine: string
-	prefix: string
-}) {
+	prefix?: string
+}): string[] {
 	const { columns: terminalWidth } = terminalSize()
-	const prefixLength = stringLength(prefix)
 
-	const wrappedLines = splitLines(
-		wrapAnsi(unwrappedLine, terminalWidth - prefixLength, {
-			hard: true,
-			trim: false,
-		})
-	).map((line) => prefix + line)
+	if (prefix) {
+		const prefixLength = stringLength(prefix)
 
-	return wrappedLines
+		return splitLines(
+			wrapAnsi(unwrappedLine, terminalWidth - prefixLength, {
+				hard: true,
+				trim: false,
+			})
+		).map((line) => prefix + line)
+	} else {
+		return splitLines(
+			wrapAnsi(unwrappedLine, terminalWidth, { hard: true, trim: false })
+		)
+	}
 }

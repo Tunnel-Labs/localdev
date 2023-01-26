@@ -9,6 +9,7 @@ import chalk from 'chalk'
 import { fastify } from 'fastify'
 import { got } from 'got'
 import { createProxyMiddleware } from 'http-proxy-middleware'
+import { minimatch } from 'minimatch'
 import { outdent } from 'outdent'
 import invariant from 'tiny-invariant'
 
@@ -52,17 +53,87 @@ export async function setupLocalProxy(
 		},
 	})
 
-	function createHttpServer() {
-		/**
-			The HTTP server redirects all requests to the HTTPS server
-		*/
-		const httpServer: http.Server = http.createServer((req, res) => {
-			res.writeHead(301, {
-				Location: 'https://' + String(req.headers.host) + (req.url ?? ''),
-			})
-			res.end()
+	async function createHttpServer() {
+		const httpProxy = createProxyMiddleware({
+			secure: false,
+			ws: true,
+			logProvider,
+			logLevel: 'error',
+			target: null!,
+			router(req) {
+				if (req.hostname === 'localdev.test') {
+					return `http://localhost:${localProxyOptions.port}`
+				}
+
+				return (
+					localProxyOptions.proxyRouter?.(req) ??
+					`http://localhost:${localProxyOptions.port}`
+				)
+			},
 		})
 
+		let httpServer!: http.Server
+		const httpProxyApp = fastify({
+			serverFactory(handler) {
+				httpServer = http.createServer(handler)
+				httpServer.on('error', (error) => {
+					console.error(error)
+				})
+				invariant(
+					httpProxy.upgrade !== undefined,
+					'`httpsProxy.upgrade` is not undefined'
+				)
+				httpServer.on('upgrade', httpProxy.upgrade)
+				return httpServer
+			},
+		})
+
+		httpProxyApp.addHook('onRequest', (request, response, next) => {
+			const redirect = () => {
+				void response.redirect(
+					301,
+					'https://' + String(request.hostname) + request.url
+				)
+			}
+
+			const { httpsRedirect } = localProxyOptions
+
+			if (httpsRedirect === undefined) {
+				next()
+			} else if (typeof httpsRedirect === 'boolean') {
+				if (httpsRedirect) {
+					redirect()
+				} else {
+					next()
+				}
+			} else if (
+				typeof httpsRedirect === 'string' ||
+				Array.isArray(httpsRedirect)
+			) {
+				if (
+					[httpsRedirect]
+						.flat()
+						.some((pattern) => minimatch(request.hostname, pattern))
+				) {
+					redirect()
+				} else {
+					next()
+				}
+			} else if (typeof httpsRedirect === 'function') {
+				if (httpsRedirect(request.hostname)) {
+					redirect()
+				} else {
+					next()
+				}
+			} else {
+				throw new TypeError('Unknown httpsRedirect argument type')
+			}
+		})
+
+		await httpProxyApp.register(fastifyExpress)
+		void httpProxyApp.use(httpProxy)
+		await httpProxyApp.ready()
+		// We listen on port 80 with Node's http server because listening on port 80 with fastify requires root privileges
 		httpServer.listen(80)
 	}
 
@@ -103,7 +174,7 @@ export async function setupLocalProxy(
 		httpsProxyApp.addHook('onRequest', (request, response, next) => {
 			if (request.hostname.endsWith('.localtest.me')) {
 				/**
-					Google Cloud doesn't support `.test` TLDs as redirect URLs, so instead, we specify a subdomain of `localtest.me` as a redirect URL. Google will
+					Google Cloud doesn't support `.test` TLDs as redirect URLs, so instead, we specify a subdomain of `localtest.me` as a redirect URL.
 				*/
 				const newUrl: string =
 					request.protocol +
@@ -113,7 +184,7 @@ export async function setupLocalProxy(
 
 				if (Service.has('$localdev')) {
 					const localdevService = Service.get('$localdev')
-					localdevService.process.addLogs(
+					void localdevService.process.addUnwrappedLogLine(
 						`Redirecting to ${newUrl} from a \`localtest.me\` domain...`
 					)
 				}
@@ -130,8 +201,7 @@ export async function setupLocalProxy(
 		httpsServer.listen(443)
 	}
 
-	createHttpServer()
-	await createHttpsServer()
+	await Promise.all([createHttpServer(), createHttpsServer()])
 
 	/**
 		Set up dnsmasq so you can visit local `*.test` domains

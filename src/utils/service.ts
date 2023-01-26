@@ -10,13 +10,9 @@ import { subscribeKey } from 'valtio/utils'
 import waitPort from 'wait-port'
 
 import type { ServiceSpec } from '~/types/config.js'
-import type { LogsAddedEventPayload } from '~/types/process.js'
+import type { LogLineAddedEventPayload } from '~/types/process.js'
 import { type ServiceStatus } from '~/types/service.js'
-import {
-	getServicePrefixColor,
-	getWrappedLogLinesToDisplay,
-	wrapLineWithPrefix,
-} from '~/utils/logs.js'
+import { getServicePrefixColor, wrapLine } from '~/utils/logs.js'
 import { Process } from '~/utils/process.js'
 import { localdevState } from '~/utils/state.js'
 
@@ -143,7 +139,7 @@ export class Service {
 
 		const currentListenersMap = new Map<
 			string,
-			(payload: LogsAddedEventPayload) => void
+			(payload: LogLineAddedEventPayload) => void
 		>()
 
 		const resetServiceListeners = () => {
@@ -153,47 +149,41 @@ export class Service {
 				listener,
 			] of currentListenersMap.entries()) {
 				Service.get(oldServiceIdToLog).process.emitter.removeListener(
-					'logsAdded',
+					'logLineAdded',
 					listener
 				)
 			}
 
 			currentListenersMap.clear()
-
-			// We re-calculate all log lines
-			localdevState.wrappedLogLinesToDisplay.splice(
-				0,
-				localdevState.wrappedLogLinesToDisplay.length,
-				...getWrappedLogLinesToDisplay()
-			)
+			void localdevState.terminalUpdater?.refreshLogs()
 
 			// We set up listeners for incremental addition to the log lines on new lines
 			for (const serviceId of localdevState.serviceIdsToLog) {
 				const service = Service.get(serviceId)
-				const listener = ({
+				const logLineAddedListener = ({
 					unwrappedLine,
-					wrappedLine,
-				}: LogsAddedEventPayload) => {
-					let wrappedLines: string[]
+				}: LogLineAddedEventPayload) => {
 					// If we're logging multiple services, we need to add a prefix to every wrapped line
-					if (localdevState.logsBoxServiceId === null) {
-						const prefix = `${chalk[getServicePrefixColor(service.spec.id)](
-							service.name
-						)}: `
-						wrappedLines = wrapLineWithPrefix({ unwrappedLine, prefix })
-					} else {
-						wrappedLines = wrappedLine
-					}
+					const prefix =
+						localdevState.logsBoxServiceId === null
+							? `${chalk[getServicePrefixColor(service.spec.id)](
+									service.name
+							  )}: `
+							: undefined
 
-					localdevState.wrappedLogLinesToDisplay.push(...wrappedLines)
+					const wrappedLines = wrapLine({ unwrappedLine, prefix })
+					for (const wrappedLine of wrappedLines) {
+						localdevState.terminalUpdater?.logsBoxVirtualTerminal.writeln(
+							wrappedLine
+						)
+					}
 				}
 
-				service.process.emitter.on('logsAdded', listener)
-				currentListenersMap.set(serviceId, listener)
+				service.process.emitter.on('logLineAdded', logLineAddedListener)
+				currentListenersMap.set(serviceId, logLineAddedListener)
 			}
 		}
 
-		// Whenever `serviceIdsToLog` or `logsBoxServiceId` changes, we need to re-calculate `wrappedLogLinesToDisplay` and re-add all listeners
 		subscribeKey(localdevState, 'serviceIdsToLog', () => {
 			resetServiceListeners()
 		})
@@ -249,7 +239,7 @@ export class Service {
 			await Promise.all(
 				dependsOnSpecs.map(async (dependsOnSpec) => {
 					const localdevLogs = Service.get('$localdev')
-					localdevLogs.process.addLogs(
+					await localdevLogs.process.addUnwrappedLogLine(
 						`${this.name} is waiting for ${
 							Service.get(dependsOnSpec.id).name
 						} to become healthy...`
