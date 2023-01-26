@@ -49,6 +49,10 @@ await program
 				localConfigPath: localdevState.localdevLocalConfigPath,
 			})
 
+			await fs.promises.rm(
+				path.join(localdevState.projectPath, 'node_modules/.localdev/logs'),
+				{ recursive: true }
+			)
 			await fs.promises.mkdir(
 				path.join(localdevState.projectPath, 'node_modules/.localdev/logs'),
 				{ recursive: true }

@@ -173,18 +173,8 @@ export class TerminalUpdater {
 		localdevState.terminalUpdater.logsBoxVirtualTerminal.write(
 			ansiEscapes.clearTerminal
 		)
-		for (const line of wrappedLogLinesToDisplay.slice(0, -1)) {
+		for (const line of wrappedLogLinesToDisplay) {
 			localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
-		}
-
-		const lastLine = wrappedLogLinesToDisplay.at(-1)
-		if (lastLine !== undefined) {
-			await new Promise<void>((resolve) => {
-				localdevState.terminalUpdater!.logsBoxVirtualTerminal.write(
-					lastLine,
-					resolve
-				)
-			})
 		}
 
 		localdevState.logsBoxVirtualTerminalOutput =
