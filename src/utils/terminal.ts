@@ -1,8 +1,6 @@
 /* eslint-disable no-bitwise */
 
 import { type Buffer } from 'node:buffer'
-import fs from 'node:fs'
-import path from 'node:path'
 import { PassThrough } from 'node:stream'
 
 import { centerAlign } from 'ansi-center-align'
@@ -12,7 +10,6 @@ import chalk from 'chalk'
 import consoleClear from 'console-clear'
 import { render } from 'ink'
 import renderer from 'ink/build/renderer.js'
-import { jsonl } from 'js-jsonl'
 import { OrderedSet } from 'js-sdsl'
 import debounce from 'just-debounce-it'
 import throttle from 'just-throttle'
@@ -170,9 +167,7 @@ export class TerminalUpdater {
 
 		const wrappedLogLinesToDisplay = await getWrappedLogLinesToDisplay()
 
-		localdevState.terminalUpdater.logsBoxVirtualTerminal.write(
-			ansiEscapes.clearTerminal
-		)
+		localdevState.terminalUpdater.logsBoxVirtualTerminal.clear()
 		for (const line of wrappedLogLinesToDisplay.slice(0, -1)) {
 			localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
 		}
@@ -460,7 +455,7 @@ export class TerminalUpdater {
 
 	#registerStdinListener() {
 		process.stdin.setRawMode(true)
-		process.stdin.on('data', (inputBuffer) => {
+		process.stdin.on('data', async (inputBuffer) => {
 			const { logScrollModeState } = localdevState
 
 			if (logScrollModeState.active) {
@@ -481,7 +476,7 @@ export class TerminalUpdater {
 				// ANSI escape sequences for scroll events (based on experimentation)
 				const isScrollEvent = input.startsWith('\u001B\u005B\u003C\u0036')
 				if (isScrollEvent) {
-					activateLogScrollMode()
+					await activateLogScrollMode()
 				}
 
 				this.inkStdin.send(inputBuffer)

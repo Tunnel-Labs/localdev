@@ -79,12 +79,14 @@ export async function getWrappedLogLinesToDisplay(): Promise<string[]> {
 	return wrappedLogLinesData.map((logLineData) => logLineData.text)
 }
 
-export function activateLogScrollMode() {
+export async function activateLogScrollMode() {
 	if (localdevState.terminalUpdater === null) {
 		return
 	}
 
-	localdevState.terminalUpdater.updateTerminal({ updateOverflowedLines: true })
+
+	await localdevState.terminalUpdater.updateOverflowedLines()
+	localdevState.terminalUpdater.updateTerminal()
 
 	// We pause further updates by setting `logScrollModeState.active` to true
 	localdevState.logScrollModeState = {

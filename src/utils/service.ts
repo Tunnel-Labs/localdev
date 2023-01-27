@@ -161,7 +161,7 @@ export class Service {
 			// We set up listeners for incremental addition to the log lines on new lines
 			for (const serviceId of localdevState.serviceIdsToLog) {
 				const service = Service.get(serviceId)
-				const logLineAddedListener = ({
+				const logLineAddedListener = async ({
 					unwrappedLine,
 				}: LogLineAddedEventPayload) => {
 					// If we're logging multiple services, we need to add a prefix to every wrapped line
@@ -173,10 +173,21 @@ export class Service {
 							: undefined
 
 					const wrappedLines = wrapLine({ unwrappedLine, prefix })
-					for (const wrappedLine of wrappedLines) {
-						localdevState.terminalUpdater?.logsBoxVirtualTerminal.writeln(
+
+					for (const wrappedLine of wrappedLines.slice(0, -1)) {
+						localdevState.terminalUpdater!.logsBoxVirtualTerminal.writeln(
 							wrappedLine
 						)
+					}
+
+					const lastLine = wrappedLines.at(-1)
+					if (lastLine !== undefined) {
+						await new Promise<void>((resolve) => {
+							localdevState.terminalUpdater!.logsBoxVirtualTerminal.writeln(
+								lastLine,
+								resolve
+							)
+						})
 					}
 
 					localdevState.logsBoxVirtualTerminalOutput =
