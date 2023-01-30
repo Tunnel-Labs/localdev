@@ -49,14 +49,12 @@ await program
 				localConfigPath: localdevState.localdevLocalConfigPath,
 			})
 
-			await fs.promises.rm(
-				path.join(localdevState.projectPath, 'node_modules/.localdev/logs'),
-				{ recursive: true }
+			const localdevLogsPath = path.join(
+				localdevState.projectPath,
+				'node_modules/.localdev/logs'
 			)
-			await fs.promises.mkdir(
-				path.join(localdevState.projectPath, 'node_modules/.localdev/logs'),
-				{ recursive: true }
-			)
+			await fs.promises.rm(localdevLogsPath, { recursive: true, force: true, })
+			await fs.promises.mkdir(localdevLogsPath, { recursive: true, force: true })
 
 			await setupLocaldevServer()
 			const localdevService = new Service('$localdev')

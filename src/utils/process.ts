@@ -118,7 +118,7 @@ export class Process {
 			'node_modules/.localdev/logs'
 		)
 		const logsFilePath = path.join(localdevLogsDir, `${this.id}.jsonl`)
-		await fs.promises.mkdir(path.dirname(logsFilePath), { recursive: true })
+		await fs.promises.mkdir(localdevLogsDir, { recursive: true })
 		return logsFilePath
 	}
 }

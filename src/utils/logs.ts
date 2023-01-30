@@ -128,7 +128,7 @@ export async function clearLogs() {
 		'node_modules/.localdev/logs'
 	)
 
-	await fs.promises.rm(localdevLogsDir, { recursive: true })
+	await fs.promises.rm(localdevLogsDir, { recursive: true, force: true })
 	localdevState.terminalUpdater?.logsBoxVirtualTerminal.clear()
 }
 
