@@ -184,8 +184,8 @@ export async function setupLocalProxy(
 
 				if (Service.has('$localdev')) {
 					const localdevService = Service.get('$localdev')
-					void localdevService.process.addUnwrappedLogLine(
-						`Redirecting to ${newUrl} from a \`localtest.me\` domain...`
+					void localdevService.process.addLogs(
+						`Redirecting to ${newUrl} from a \`localtest.me\` domain...\n`
 					)
 				}
 

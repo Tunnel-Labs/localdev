@@ -5,12 +5,13 @@ import chalk from 'chalk'
 import { either, flags } from 'compose-regexp'
 import type { IBasePtyForkOptions } from 'node-pty'
 import shellQuote from 'shell-quote'
+import splitLines from 'split-lines'
 import invariant from 'tiny-invariant'
 import { subscribeKey } from 'valtio/utils'
 import waitPort from 'wait-port'
 
 import type { ServiceSpec } from '~/types/config.js'
-import type { LogLineAddedEventPayload } from '~/types/process.js'
+import type { LogsAddedPayload } from '~/types/process.js'
 import { type ServiceStatus } from '~/types/service.js'
 import { getServicePrefixColor, wrapLine } from '~/utils/logs.js'
 import { Process } from '~/utils/process.js'
@@ -140,7 +141,7 @@ export class Service {
 
 		const currentListenersMap = new Map<
 			string,
-			(payload: LogLineAddedEventPayload) => void
+			(payload: LogsAddedPayload) => void
 		>()
 
 		const resetServiceListeners = async () => {
@@ -150,7 +151,7 @@ export class Service {
 				listener,
 			] of currentListenersMap.entries()) {
 				Service.get(oldServiceIdToLog).process.emitter.removeListener(
-					'logLineAdded',
+					'logsAdded',
 					listener
 				)
 			}
@@ -161,9 +162,7 @@ export class Service {
 			// We set up listeners for incremental addition to the log lines on new lines
 			for (const serviceId of localdevState.serviceIdsToLog) {
 				const service = Service.get(serviceId)
-				const logLineAddedListener = async ({
-					unwrappedLine,
-				}: LogLineAddedEventPayload) => {
+				const logsAddedListener = async ({ data }: LogsAddedPayload) => {
 					// If we're logging multiple services, we need to add a prefix to every wrapped line
 					const prefix =
 						localdevState.logsBoxServiceId === null
@@ -172,30 +171,33 @@ export class Service {
 							  )}: `
 							: undefined
 
-					const wrappedLines = wrapLine({ unwrappedLine, prefix })
-
-					for (const wrappedLine of wrappedLines.slice(0, -1)) {
-						localdevState.terminalUpdater!.logsBoxVirtualTerminal.writeln(
-							wrappedLine
-						)
-					}
-
-					const lastLine = wrappedLines.at(-1)
-					if (lastLine !== undefined) {
-						await new Promise<void>((resolve) => {
+					const unwrappedLines = splitLines(data)
+					for (const unwrappedLine of unwrappedLines) {
+						const wrappedLines = wrapLine({ unwrappedLine, prefix })
+						for (const wrappedLine of wrappedLines.slice(0, -1)) {
 							localdevState.terminalUpdater!.logsBoxVirtualTerminal.writeln(
-								lastLine,
-								resolve
+								wrappedLine
 							)
-						})
+						}
+
+						const lastLine = wrappedLines.at(-1)
+						if (lastLine !== undefined) {
+							// eslint-disable-next-line no-await-in-loop
+							await new Promise<void>((resolve) => {
+								localdevState.terminalUpdater!.logsBoxVirtualTerminal.write(
+									lastLine,
+									resolve
+								)
+							})
+						}
 					}
 
 					localdevState.logsBoxVirtualTerminalOutput =
 						getLogsBoxVirtualTerminalOutput()
 				}
 
-				service.process.emitter.on('logLineAdded', logLineAddedListener)
-				currentListenersMap.set(serviceId, logLineAddedListener)
+				service.process.emitter.on('logsAdded', logsAddedListener)
+				currentListenersMap.set(serviceId, logsAddedListener)
 			}
 		}
 
@@ -254,10 +256,10 @@ export class Service {
 			await Promise.all(
 				dependsOnSpecs.map(async (dependsOnSpec) => {
 					const localdevLogs = Service.get('$localdev')
-					await localdevLogs.process.addUnwrappedLogLine(
+					await localdevLogs.process.addLogs(
 						`${this.name} is waiting for ${
 							Service.get(dependsOnSpec.id).name
-						} to become healthy...`
+						} to become healthy...\n`
 					)
 					await Service.get(dependsOnSpec.id).waitForHealthy()
 				})

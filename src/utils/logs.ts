@@ -46,7 +46,7 @@ export async function getWrappedLogLinesToDisplay(): Promise<string[]> {
 		).process.getUnwrappedLogLinesData()
 
 		wrappedLogLinesData.push(
-			...unwrappedLogLinesData.flatMap(({ timestamp, unwrappedLine }) => {
+			...unwrappedLogLinesData.flatMap(({ timestamp, data }) => {
 				const prefix =
 					localdevState.logsBoxServiceId === null
 						? // Only add a prefix when there's multiple text
@@ -55,7 +55,7 @@ export async function getWrappedLogLinesToDisplay(): Promise<string[]> {
 
 				const wrappedLogLines = wrapLine({
 					prefix,
-					unwrappedLine,
+					unwrappedLine: data,
 				})
 
 				return wrappedLogLines.map((text, wrappedLineIndex) => ({

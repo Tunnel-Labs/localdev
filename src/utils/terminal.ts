@@ -16,6 +16,7 @@ import throttle from 'just-throttle'
 import patchConsole from 'patch-console'
 import React, { useCallback, useEffect, useState } from 'react'
 import onExit from 'signal-exit'
+import splitLines from 'split-lines'
 import terminalSize from 'term-size'
 import invariant from 'tiny-invariant'
 import { ref } from 'valtio'
@@ -133,7 +134,7 @@ export class TerminalUpdater {
 
 		patchConsole((_stream, data) => {
 			const localdevLogs = Service.get('$localdev')
-			void localdevLogs.process.addUnwrappedLogLine(data.trimEnd())
+			void localdevLogs.process.addLogs(data)
 		})
 
 		this.write(ansiEscapes.cursorHide)
@@ -166,8 +167,8 @@ export class TerminalUpdater {
 		if (localdevState.terminalUpdater === null) return
 
 		const wrappedLogLinesToDisplay = await getWrappedLogLinesToDisplay()
-
 		localdevState.terminalUpdater.logsBoxVirtualTerminal.clear()
+
 		for (const line of wrappedLogLinesToDisplay.slice(0, -1)) {
 			localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
 		}
@@ -338,10 +339,7 @@ export class TerminalUpdater {
 				const unwrappedServiceLogLinesData =
 					await service.process.getUnwrappedLogLinesData()
 
-				for (const {
-					timestamp,
-					unwrappedLine,
-				} of unwrappedServiceLogLinesData) {
+				for (const { timestamp, data } of unwrappedServiceLogLinesData) {
 					const prefix =
 						localdevState.logsBoxServiceId === null
 							? // Only add a prefix when there's multiple text
@@ -349,15 +347,19 @@ export class TerminalUpdater {
 									Service.get(serviceId).name
 							  )}: `
 							: undefined
-					for (const [wrappedLineIndex, wrappedLine] of wrapLine({
-						prefix,
-						unwrappedLine,
-					}).entries()) {
-						wrappedLogLinesToDisplay.insert({
-							timestamp,
-							wrappedLine,
-							wrappedLineIndex,
-						})
+
+					const unwrappedLines = splitLines(data)
+					for (const unwrappedLine of unwrappedLines) {
+						const wrappedLines = wrapLine({ unwrappedLine, prefix })
+						for (const [wrappedLineIndex, wrappedLine] of wrappedLines
+							.slice(0, -1)
+							.entries()) {
+							wrappedLogLinesToDisplay.insert({
+								timestamp,
+								wrappedLine,
+								wrappedLineIndex,
+							})
+						}
 					}
 				}
 			})

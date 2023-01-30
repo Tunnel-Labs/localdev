@@ -43,10 +43,7 @@ export class Process {
 		Process.emitters.push(emitter)
 	}
 
-	async addUnwrappedLogLine(
-		unwrappedLine: string,
-		options?: { timestamp?: number }
-	) {
+	async addLogs(data: string, options?: { timestamp?: number }) {
 		const timestamp = options?.timestamp ?? Date.now()
 
 		// TODO: figure out how to strip cursor ansi sequences
@@ -54,22 +51,23 @@ export class Process {
 			await this.#getLogsFilePath(),
 			JSON.stringify({
 				timestamp,
-				unwrappedLine,
+				data,
 			}) + '\n'
 		)
 
-		this.emitter.emit('logLineAdded', { unwrappedLine })
+		this.emitter.emit('logsAdded', { data })
 	}
 
 	async getUnwrappedLogLinesData(): Promise<
 		Array<{
 			timestamp: number
-			unwrappedLine: string
+			data: string
 		}>
 	> {
-		if (fs.existsSync(await this.#getLogsFilePath())) {
-			return jsonl.parse<{ timestamp: number; unwrappedLine: string }>(
-				await fs.promises.readFile(await this.#getLogsFilePath(), 'utf8')
+		const logsFilePath = await this.#getLogsFilePath()
+		if (fs.existsSync(logsFilePath)) {
+			return jsonl.parse<{ timestamp: number; data: string }>(
+				await fs.promises.readFile(logsFilePath, 'utf8')
 			)
 		} else {
 			return []
@@ -99,7 +97,7 @@ export class Process {
 		})
 
 		this.ptyProcess.onData(async (data) => {
-			await this.addUnwrappedLogLine(data.trim())
+			await this.addLogs(data)
 		})
 
 		return this.ptyProcess
@@ -155,11 +153,11 @@ export function spawnProcess(args: {
 		commandOptions: args.commandOptions,
 	})
 
-	const listener = ({ unwrappedLine }: { unwrappedLine: string }) => {
-		void process.addUnwrappedLogLine(unwrappedLine)
+	const logsAddedListener = ({ data }: { data: string }) => {
+		void process.addLogs(data)
 	}
 
-	process.emitter.on('logLineAdded', listener)
+	process.emitter.on('logsAdded', logsAddedListener)
 
 	process.spawn()
 	process.emitter.on('exited', () => {
