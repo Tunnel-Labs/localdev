@@ -53,8 +53,8 @@ await program
 				localdevState.projectPath,
 				'node_modules/.localdev/logs'
 			)
-			await fs.promises.rm(localdevLogsPath, { recursive: true, force: true, })
-			await fs.promises.mkdir(localdevLogsPath, { recursive: true, force: true })
+			await fs.promises.rm(localdevLogsPath, { recursive: true, force: true })
+			await fs.promises.mkdir(localdevLogsPath, { recursive: true })
 
 			await setupLocaldevServer()
 			const localdevService = new Service('$localdev')
