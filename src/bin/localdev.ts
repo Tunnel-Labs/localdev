@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { program } from 'commander'
+import killPort from 'kill-port'
 import { ref } from 'valtio'
 
 import {
@@ -28,6 +29,7 @@ await program
 		'a path to the localdev local configuration file'
 	)
 	.option('--no-services', "don't start dev services")
+	.option('--force', 'kill process on port if exists')
 	.action(
 		async (options: {
 			test?: boolean
@@ -36,7 +38,12 @@ await program
 			config?: string
 			localConfig?: string
 			project: string
+			force: boolean
 		}) => {
+			if (options.force) {
+				await killPort(options.port === undefined ? 7357 : Number(options.port))
+			}
+
 			localdevState.projectPath = options.project
 			localdevState.localdevConfigPath = await getLocaldevConfigPath({
 				configPath: options.config,

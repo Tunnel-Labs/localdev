@@ -84,7 +84,6 @@ export async function activateLogScrollMode() {
 		return
 	}
 
-
 	await localdevState.terminalUpdater.updateOverflowedLines()
 	localdevState.terminalUpdater.updateTerminal()
 
