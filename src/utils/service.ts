@@ -97,9 +97,13 @@ export class Service {
 			}
 
 			let command: string[]
-			const commandOptions: IBasePtyForkOptions = {
-				cwd: this.spec.command.cwd,
-				env: this.spec.command.env,
+			const commandOptions: IBasePtyForkOptions = {}
+			if (this.spec.command.cwd !== undefined) {
+				commandOptions.cwd = this.spec.command.cwd
+			}
+
+			if (this.spec.command.env !== undefined) {
+				commandOptions.env = this.spec.command.env
 			}
 
 			if ('string' in this.spec.command) {
