@@ -5,11 +5,13 @@ import path from 'node:path'
 import { deepmerge } from 'deepmerge-ts'
 import { jsonl } from 'js-jsonl'
 import mem from 'mem'
+import { nanoid } from 'nanoid-nice'
 import type { IBasePtyForkOptions, IPty } from 'node-pty'
 import pty from 'node-pty'
 import shellQuote from 'shell-quote'
 import invariant from 'tiny-invariant'
 
+import { type UnwrappedLogLineData } from '~/types/logs.js'
 import type { ProcessEmitter } from '~/types/process.js'
 import { localdevState } from '~/utils/state.js'
 
@@ -43,30 +45,27 @@ export class Process {
 		Process.emitters.push(emitter)
 	}
 
-	async addLogs(data: string, options?: { timestamp?: number }) {
+	async addLogs(text: string, options?: { timestamp?: number }) {
 		const timestamp = options?.timestamp ?? Date.now()
 
+		const unwrappedLineId = nanoid()
 		// TODO: figure out how to strip cursor ansi sequences
 		await fs.promises.appendFile(
 			await this.#getLogsFilePath(),
 			JSON.stringify({
+				id: unwrappedLineId,
 				timestamp,
-				data,
+				text,
 			}) + '\n'
 		)
 
-		this.emitter.emit('logsAdded', { data })
+		this.emitter.emit('logsAdded', { text, timestamp, id: unwrappedLineId })
 	}
 
-	async getUnwrappedLogLinesData(): Promise<
-		Array<{
-			timestamp: number
-			data: string
-		}>
-	> {
+	async getUnwrappedLogLinesData(): Promise<UnwrappedLogLineData[]> {
 		const logsFilePath = await this.#getLogsFilePath()
 		if (fs.existsSync(logsFilePath)) {
-			return jsonl.parse<{ timestamp: number; data: string }>(
+			return jsonl.parse<UnwrappedLogLineData>(
 				await fs.promises.readFile(logsFilePath, 'utf8')
 			)
 		} else {
@@ -153,8 +152,8 @@ export function spawnProcess(args: {
 		commandOptions: args.commandOptions,
 	})
 
-	const logsAddedListener = ({ data }: { data: string }) => {
-		void process.addLogs(data)
+	const logsAddedListener = ({ text }: UnwrappedLogLineData) => {
+		void process.addLogs(text)
 	}
 
 	process.emitter.on('logsAdded', logsAddedListener)

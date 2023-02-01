@@ -4,6 +4,7 @@ import path from 'node:path'
 import * as fastSort from '@leondreamed/fast-sort'
 import { centerAlign } from 'ansi-center-align'
 import ansiEscapes from 'ansi-escapes'
+import { Mutex } from 'async-mutex'
 import chalk from 'chalk'
 import mem from 'mem'
 import splitLines from 'split-lines'
@@ -15,6 +16,8 @@ import wrapAnsi from 'wrap-ansi'
 import type { WrappedLogLineData } from '~/types/logs.js'
 import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/state.js'
+
+export const logsMutex = new Mutex()
 
 const stderrLogColors = ['green', 'yellow', 'blue', 'magenta', 'cyan'] as const
 let stderrLogColorsIndex = 0
@@ -30,7 +33,9 @@ export const getServicePrefixColor = mem((_serviceId: string) => {
 /**
 	Returns an array of wrapped log lines to display on the screen based on state in localdevServerStore
 */
-export async function getWrappedLogLinesToDisplay(): Promise<string[]> {
+export async function getWrappedLogLinesDataToDisplay(): Promise<
+	WrappedLogLineData[]
+> {
 	const serviceSpecsToLog = localdevState.serviceIdsToLog.map(
 		(serviceId) => Service.get(serviceId).spec
 	)
@@ -46,7 +51,7 @@ export async function getWrappedLogLinesToDisplay(): Promise<string[]> {
 		).process.getUnwrappedLogLinesData()
 
 		wrappedLogLinesData.push(
-			...unwrappedLogLinesData.flatMap(({ timestamp, data }) => {
+			...unwrappedLogLinesData.flatMap(({ timestamp, text, id }) => {
 				const prefix =
 					localdevState.logsBoxServiceId === null
 						? // Only add a prefix when there's multiple text
@@ -55,10 +60,11 @@ export async function getWrappedLogLinesToDisplay(): Promise<string[]> {
 
 				const wrappedLogLines = wrapLine({
 					prefix,
-					unwrappedLine: data,
+					unwrappedLine: text,
 				})
 
 				return wrappedLogLines.map((text, wrappedLineIndex) => ({
+					unwrappedLineId: id,
 					serviceId: serviceSpec.id,
 					text,
 					timestamp,
@@ -76,7 +82,7 @@ export async function getWrappedLogLinesToDisplay(): Promise<string[]> {
 		{ asc: (logLineData) => logLineData.wrappedLineIndex },
 	])
 
-	return wrappedLogLinesData.map((logLineData) => logLineData.text)
+	return wrappedLogLinesData
 }
 
 export async function activateLogScrollMode() {

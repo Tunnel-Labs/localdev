@@ -1,10 +1,8 @@
 import type TypedEmitter from 'typesafe-emitter'
 
-export interface LogsAddedPayload {
-	data: string
-}
+import { type UnwrappedLogLineData } from '~/types/logs.js'
 
 export type ProcessEmitter = TypedEmitter<{
-	logsAdded(payload: LogsAddedPayload): void
+	logsAdded(logLineData: UnwrappedLogLineData): void
 	exited(exitCode: number): void
 }>

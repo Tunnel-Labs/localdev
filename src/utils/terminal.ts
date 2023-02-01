@@ -27,7 +27,8 @@ import {
 	activateLogScrollMode,
 	deactivateLogScrollMode,
 	getServicePrefixColor,
-	getWrappedLogLinesToDisplay,
+	getWrappedLogLinesDataToDisplay,
+	logsMutex,
 	wrapLine,
 } from '~/utils/logs.js'
 import { Service } from '~/utils/service.js'
@@ -75,6 +76,7 @@ export class TerminalUpdater {
 	previousOutput = ''
 	hasPressAnyKeyToContinueNoticeBeenWritten = false
 	updateIntervalId: NodeJS.Timer | undefined
+	lastUnwrappedLogLineIdRefreshed: string | undefined
 	inkStdin = new MockStdin()
 	logsBoxVirtualTerminal = new Terminal({
 		rows: terminalSize().rows,
@@ -82,7 +84,6 @@ export class TerminalUpdater {
 		// Enable experimental options
 		allowProposedApi: true,
 	})
-	areLogsRefreshing = false
 
 	write(data: string | Buffer) {
 		process.stderr.write(data)
@@ -165,27 +166,30 @@ export class TerminalUpdater {
 	}
 
 	async refreshLogs() {
-		if (localdevState.terminalUpdater === null) return
+		await logsMutex.runExclusive(async () => {
+			if (localdevState.terminalUpdater === null) return
+			const wrappedLogLinesToDisplay = await getWrappedLogLinesDataToDisplay()
+			localdevState.terminalUpdater.logsBoxVirtualTerminal.clear()
 
-		const wrappedLogLinesToDisplay = await getWrappedLogLinesToDisplay()
-		localdevState.terminalUpdater.logsBoxVirtualTerminal.clear()
+			for (const line of wrappedLogLinesToDisplay.slice(0, -1)) {
+				localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(line.text)
+			}
 
-		for (const line of wrappedLogLinesToDisplay.slice(0, -1)) {
-			localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(line)
-		}
+			const lastLine = wrappedLogLinesToDisplay.at(-1)
+			if (lastLine !== undefined) {
+				await new Promise<void>((resolve) => {
+					localdevState.terminalUpdater!.logsBoxVirtualTerminal.writeln(
+						lastLine.text,
+						resolve
+					)
+				})
 
-		const lastLine = wrappedLogLinesToDisplay.at(-1)
-		if (lastLine !== undefined) {
-			await new Promise<void>((resolve) => {
-				localdevState.terminalUpdater!.logsBoxVirtualTerminal.writeln(
-					lastLine,
-					resolve
-				)
-			})
-		}
+				this.lastUnwrappedLogLineIdRefreshed = lastLine.unwrappedLineId
+			}
 
-		localdevState.logsBoxVirtualTerminalOutput =
-			getLogsBoxVirtualTerminalOutput()
+			localdevState.logsBoxVirtualTerminalOutput =
+				getLogsBoxVirtualTerminalOutput()
+		})
 	}
 
 	updateTerminal(options?: {
@@ -340,7 +344,7 @@ export class TerminalUpdater {
 				const unwrappedServiceLogLinesData =
 					await service.process.getUnwrappedLogLinesData()
 
-				for (const { timestamp, data } of unwrappedServiceLogLinesData) {
+				for (const { timestamp, text } of unwrappedServiceLogLinesData) {
 					const prefix =
 						localdevState.logsBoxServiceId === null
 							? // Only add a prefix when there's multiple text
@@ -349,7 +353,7 @@ export class TerminalUpdater {
 							  )}: `
 							: undefined
 
-					const unwrappedLines = splitLines(data)
+					const unwrappedLines = splitLines(text.trimEnd())
 					for (const unwrappedLine of unwrappedLines) {
 						const wrappedLines = wrapLine({ unwrappedLine, prefix })
 						for (const [wrappedLineIndex, wrappedLine] of wrappedLines
