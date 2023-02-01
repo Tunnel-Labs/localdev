@@ -192,7 +192,7 @@ export class Service {
 						const unwrappedLines = splitLines(text.trimEnd())
 						for (const unwrappedLine of unwrappedLines) {
 							const wrappedLines = wrapLine({
-								unwrappedLine: unwrappedLine.trim(),
+								unwrappedLine: unwrappedLine.trimEnd(),
 								prefix,
 							})
 
