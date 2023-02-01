@@ -171,12 +171,16 @@ export class Service {
 							  )}: `
 							: undefined
 
-					const unwrappedLines = splitLines(data)
+					const unwrappedLines = splitLines(data.trimEnd())
 					for (const unwrappedLine of unwrappedLines) {
-						const wrappedLines = wrapLine({ unwrappedLine, prefix })
+						const wrappedLines = wrapLine({
+							unwrappedLine: unwrappedLine.trim(),
+							prefix,
+						})
+
 						for (const wrappedLine of wrappedLines.slice(0, -1)) {
 							localdevState.terminalUpdater!.logsBoxVirtualTerminal.writeln(
-								wrappedLine
+								wrappedLine.trimEnd()
 							)
 						}
 

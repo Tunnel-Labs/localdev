@@ -82,6 +82,7 @@ export class TerminalUpdater {
 		// Enable experimental options
 		allowProposedApi: true,
 	})
+	areLogsRefreshing = false
 
 	write(data: string | Buffer) {
 		process.stderr.write(data)
