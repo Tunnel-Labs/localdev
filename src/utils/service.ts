@@ -98,9 +98,7 @@ export class Service {
 
 			let command: string[]
 			const commandOptions: IBasePtyForkOptions = {}
-			if (this.spec.command.cwd !== undefined) {
-				commandOptions.cwd = this.spec.command.cwd
-			}
+			commandOptions.cwd = this.spec.command.cwd ?? localdevState.projectPath
 
 			if (this.spec.command.env !== undefined) {
 				commandOptions.env = this.spec.command.env
@@ -196,6 +194,8 @@ export class Service {
 								prefix,
 							})
 
+							localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln('')
+
 							for (const wrappedLine of wrappedLines.slice(0, -1)) {
 								localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(
 									wrappedLine.trimEnd()
@@ -206,8 +206,8 @@ export class Service {
 							if (lastLine !== undefined) {
 								// eslint-disable-next-line no-await-in-loop
 								await new Promise<void>((resolve) => {
-									localdevState.terminalUpdater!.logsBoxVirtualTerminal.writeln(
-										lastLine,
+									localdevState.terminalUpdater!.logsBoxVirtualTerminal.write(
+										lastLine.trimEnd(),
 										resolve
 									)
 								})

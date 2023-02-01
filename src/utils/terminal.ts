@@ -171,15 +171,16 @@ export class TerminalUpdater {
 			const wrappedLogLinesToDisplay = await getWrappedLogLinesDataToDisplay()
 			localdevState.terminalUpdater.logsBoxVirtualTerminal.clear()
 
+				localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln('')
 			for (const line of wrappedLogLinesToDisplay.slice(0, -1)) {
-				localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(line.text)
+				localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(line.text.trimEnd())
 			}
 
 			const lastLine = wrappedLogLinesToDisplay.at(-1)
 			if (lastLine !== undefined) {
 				await new Promise<void>((resolve) => {
-					localdevState.terminalUpdater!.logsBoxVirtualTerminal.writeln(
-						lastLine.text,
+					localdevState.terminalUpdater!.logsBoxVirtualTerminal.write(
+						lastLine.text.trimEnd(),
 						resolve
 					)
 				})
