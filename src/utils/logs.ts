@@ -60,7 +60,7 @@ export async function getWrappedLogLinesDataToDisplay(): Promise<
 
 				const wrappedLogLines = wrapLine({
 					prefix,
-					unwrappedLine: text,
+					unwrappedLine: text.trimEnd(),
 				})
 
 				return wrappedLogLines.map((text, wrappedLineIndex) => ({
