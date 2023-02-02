@@ -463,6 +463,7 @@ export class TerminalUpdater {
 
 	#registerStdinListener() {
 		process.stdin.setRawMode(true)
+		// TODO: this doesn't take into account "smooth scrolling", causing it to appear buggy when using this with a macOS trackpad
 		process.stdin.on('data', async (inputBuffer) => {
 			const { logScrollModeState } = localdevState
 
