@@ -308,7 +308,7 @@ export class TerminalUpdater {
 						// We need to hard clear the console in order to preserve the continuity of overflowed logs as the terminal resize causes some lines to overflow
 						consoleClear(/* isSoft */ false)
 
-						await this.updateOverflowedLines()
+						localdevState.nextOverflowedWrappedLogLineIndexToOutput = 0
 						this.updateTerminal({ force: true })
 					}, 0)
 				},
