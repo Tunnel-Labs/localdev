@@ -8,6 +8,7 @@ import ansiEscapes from 'ansi-escapes'
 import ansiStyles from 'ansi-styles'
 import chalk from 'chalk'
 import consoleClear from 'console-clear'
+import exitHook from 'exit-hook'
 import { render } from 'ink'
 import renderer from 'ink/build/renderer.js'
 import { OrderedSet } from 'js-sdsl'
@@ -15,7 +16,6 @@ import debounce from 'just-debounce-it'
 import throttle from 'just-throttle'
 import patchConsole from 'patch-console'
 import React, { useCallback, useEffect, useState } from 'react'
-import exitHook from 'exit-hook'
 import splitLines from 'split-lines'
 import terminalSize from 'term-size'
 import invariant from 'tiny-invariant'
@@ -362,9 +362,10 @@ export class TerminalUpdater {
 							unwrappedLine: unwrappedLine.trimEnd(),
 							prefix,
 						})
-						for (const [wrappedLineIndex, wrappedLine] of wrappedLines
-							.slice(0, -1)
-							.entries()) {
+						for (const [
+							wrappedLineIndex,
+							wrappedLine,
+						] of wrappedLines.entries()) {
 							wrappedLogLinesToDisplay.insert({
 								timestamp,
 								wrappedLine,
