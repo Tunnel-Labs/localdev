@@ -15,7 +15,7 @@ import debounce from 'just-debounce-it'
 import throttle from 'just-throttle'
 import patchConsole from 'patch-console'
 import React, { useCallback, useEffect, useState } from 'react'
-import onExit from 'signal-exit'
+import exitHook from 'exit-hook'
 import splitLines from 'split-lines'
 import terminalSize from 'term-size'
 import invariant from 'tiny-invariant'
@@ -150,7 +150,7 @@ export class TerminalUpdater {
 		this.updateIntervalId = setInterval(this.updateTerminal.bind(this), 50)
 
 		this.enableTerminalMouseSupport()
-		onExit(() => {
+		exitHook(() => {
 			this.disableTerminalMouseSupport()
 		})
 
@@ -171,9 +171,11 @@ export class TerminalUpdater {
 			const wrappedLogLinesToDisplay = await getWrappedLogLinesDataToDisplay()
 			localdevState.terminalUpdater.logsBoxVirtualTerminal.clear()
 
-				localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln('')
+			localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln('')
 			for (const line of wrappedLogLinesToDisplay.slice(0, -1)) {
-				localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(line.text.trimEnd())
+				localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(
+					line.text.trimEnd()
+				)
 			}
 
 			const lastLine = wrappedLogLinesToDisplay.at(-1)
@@ -356,7 +358,10 @@ export class TerminalUpdater {
 
 					const unwrappedLines = splitLines(text.trimEnd())
 					for (const unwrappedLine of unwrappedLines) {
-						const wrappedLines = wrapLine({ unwrappedLine, prefix })
+						const wrappedLines = wrapLine({
+							unwrappedLine: unwrappedLine.trimEnd(),
+							prefix,
+						})
 						for (const [wrappedLineIndex, wrappedLine] of wrappedLines
 							.slice(0, -1)
 							.entries()) {

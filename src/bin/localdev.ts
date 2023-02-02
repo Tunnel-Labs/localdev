@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { program } from 'commander'
+import { asyncExitHook } from 'exit-hook'
 import killPort from 'kill-port'
 import { ref } from 'valtio'
 
@@ -94,6 +95,13 @@ await program
 			localdevState.terminalUpdater = ref(terminalUpdater)
 
 			terminalUpdater.start()
+
+			asyncExitHook(
+				async () => {
+					await terminalUpdater.updateOverflowedLines()
+				},
+				{ minimumWait: 300 }
+			)
 		}
 	)
 	.parseAsync()
