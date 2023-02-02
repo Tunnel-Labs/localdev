@@ -23,7 +23,7 @@ await program
 		'-p, --port <number>',
 		'specify a port for the localdev proxy to listen to'
 	)
-	.option('--project <path>', 'a path to your project folder', process.cwd())
+	.option('--project <path>', 'a path to your project folder')
 	.option('--config <path>', 'a path to the localdev configuration file')
 	.option(
 		'--local-config <path>',
@@ -38,17 +38,18 @@ await program
 			port?: string
 			config?: string
 			localConfig?: string
-			project: string
+			project?: string
 			force: boolean
 		}) => {
 			if (options.force) {
 				await killPort(options.port === undefined ? 7357 : Number(options.port))
 			}
 
-			localdevState.projectPath = options.project
 			localdevState.localdevConfigPath = await getLocaldevConfigPath({
 				configPath: options.config,
 			})
+			localdevState.projectPath =
+				options.project ?? path.dirname(localdevState.localdevConfigPath)
 			localdevState.localdevLocalConfigPath = await getLocaldevLocalConfigPath({
 				localConfigPath: options.localConfig,
 			})
