@@ -106,7 +106,8 @@ export class VirtualLogsTerminal extends Omit(Terminal, ['write', 'writeln']) {
 				prefix,
 			})
 
-			;(this as unknown as InstanceType<typeof Terminal>).writeln('')
+			// eslint-disable-next-line no-await-in-loop
+			await this.writeln('')
 
 			for (const wrappedLine of wrappedLines.slice(0, -1)) {
 				// eslint-disable-next-line no-await-in-loop
@@ -156,13 +157,15 @@ export class VirtualLogsTerminal extends Omit(Terminal, ['write', 'writeln']) {
 
 	private async write(data: string | Buffer, resolve?: () => void) {
 		await this.writeMutex.runExclusive(() => {
-			;(this as unknown as InstanceType<typeof Terminal>).write(data, resolve)
+			// @ts-expect-error: override
+			super.write(data, resolve)
 		})
 	}
 
 	private async writeln(data: string | Buffer, resolve?: () => void) {
 		await this.writeMutex.runExclusive(() => {
-			;(this as unknown as InstanceType<typeof Terminal>).writeln(data, resolve)
+			// @ts-expect-error: override
+			super.writeln(data, resolve)
 		})
 	}
 }
