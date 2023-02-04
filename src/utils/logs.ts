@@ -82,20 +82,21 @@ export async function getWrappedLogLinesDataToDisplay(): Promise<
 	return wrappedLogLinesData
 }
 
-/**
-	When we activate log scroll mode, we need to freeze the terminal logs
-*/
 export async function activateLogScrollMode() {
 	if (localdevState.terminalUpdater === null) {
 		return
 	}
 
 	try {
-		// We acquire the logs mutex to prevent any other code from updating logs
-		await localdevState.terminalUpdater.virtualTerminal.writeMutex.acquire()
+		// We acquire the logs mutex to prevent other code from updating logs
+		await localdevState.terminalUpdater.virtualLogsTerminal.writeMutex.acquire()
 
-		await localdevState.terminalUpdater.updateOverflowedLines()
 		localdevState.terminalUpdater.updateTerminal()
+		await localdevState.terminalUpdater.updateOverflowedLines({
+			beforeLineId:
+				localdevState.terminalUpdater.virtualLogsTerminal
+					.lastLogLineIdWritten ?? undefined,
+		})
 		localdevState.logScrollModeState = { active: true }
 
 		const { rows: terminalHeight, columns: terminalWidth } = terminalSize()
@@ -115,7 +116,7 @@ export async function activateLogScrollMode() {
 		// We disable terminal mouse events so that the user can use the terminal's native handler for mouse and scroll events
 		localdevState.terminalUpdater.disableTerminalMouseSupport()
 	} finally {
-		localdevState.terminalUpdater.virtualTerminal.writeMutex.release()
+		localdevState.terminalUpdater.virtualLogsTerminal.writeMutex.release()
 	}
 }
 
@@ -137,7 +138,7 @@ export async function clearLogs() {
 	)
 
 	await fs.promises.rm(localdevLogsDir, { recursive: true, force: true })
-	await localdevState.terminalUpdater?.virtualTerminal.clear()
+	await localdevState.terminalUpdater?.virtualLogsTerminal.clear()
 }
 
 export function wrapLine({

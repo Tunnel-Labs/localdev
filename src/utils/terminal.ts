@@ -23,6 +23,10 @@ import invariant from 'tiny-invariant'
 import { ref } from 'valtio'
 import xTermHeadless, { type IBufferCell } from 'xterm-headless'
 
+import {
+	type UnwrappedLogLineData,
+	type WrappedLogLineData,
+} from '~/types/logs.js'
 import { ServiceStatusesPane } from '~/utils/command-panes/service-statuses.js'
 import {
 	activateLogScrollMode,
@@ -72,8 +76,15 @@ export function useTerminalSize() {
 const SYNC_START = '\u001B[?2026h'
 const SYNC_END = '\u001B[?2026l'
 
-export class VirtualTerminal extends Terminal {
+const Omit = <T, K extends keyof T, A extends any[]>(
+	Class: new (...args: A) => T,
+	keys: K[]
+): new (...args: A) => Omit<T, (typeof keys)[number]> => Class
+
+export class VirtualLogsTerminal extends Omit(Terminal, ['write', 'writeln']) {
 	public writeMutex = new Mutex()
+	public lastLogLineIdWritten: string | null = null
+
 	constructor() {
 		super({
 			rows: terminalSize().rows,
@@ -83,21 +94,74 @@ export class VirtualTerminal extends Terminal {
 		})
 	}
 
-	override async write(data: string | Buffer, resolve?: () => void) {
-		await this.writeMutex.runExclusive(() => {
-			super.write(data, resolve)
-		})
+	async writeUnwrappedLog(
+		data: UnwrappedLogLineData,
+		{ prefix }: { prefix?: string }
+	) {
+		const { id, text } = data
+		const unwrappedLines = splitLines(text.trimEnd())
+		for (const unwrappedLine of unwrappedLines) {
+			const wrappedLines = wrapLine({
+				unwrappedLine: unwrappedLine.trimEnd(),
+				prefix,
+			})
+
+			;(this as unknown as InstanceType<typeof Terminal>).writeln('')
+
+			for (const wrappedLine of wrappedLines.slice(0, -1)) {
+				// eslint-disable-next-line no-await-in-loop
+				await this.writeln(wrappedLine.trimEnd())
+			}
+
+			const lastLine = wrappedLines.at(-1)
+			if (lastLine !== undefined) {
+				// eslint-disable-next-line no-await-in-loop
+				await new Promise<void>((resolve, reject) => {
+					this.write(lastLine.trimEnd(), resolve).catch(reject)
+				})
+			}
+		}
+
+		localdevState.logsBoxVirtualTerminalOutput =
+			getLogsBoxVirtualTerminalOutput()
+		this.lastLogLineIdWritten = id
 	}
 
-	override async writeln(data: string | Buffer, resolve?: () => void) {
-		await this.writeMutex.runExclusive(() => {
-			super.writeln(data, resolve)
-		})
+	async writeWrappedLogs(wrappedLines: WrappedLogLineData[]) {
+		await this.writeln('')
+		for (const line of wrappedLines.slice(0, -1)) {
+			// eslint-disable-next-line no-await-in-loop
+			await this.writeln(line.text.trimEnd())
+		}
+
+		const lastLine = wrappedLines.at(-1)
+		if (lastLine !== undefined) {
+			await new Promise<void>((resolve, reject) => {
+				this.write(lastLine.text.trimEnd(), resolve).catch(reject)
+			})
+
+			this.lastLogLineIdWritten = lastLine.unwrappedLineId
+		}
+
+		localdevState.logsBoxVirtualTerminalOutput =
+			getLogsBoxVirtualTerminalOutput()
 	}
 
-	override async clear() {
+	override clear = async () => {
 		await this.writeMutex.runExclusive(() => {
 			super.clear()
+		})
+	}
+
+	private async write(data: string | Buffer, resolve?: () => void) {
+		await this.writeMutex.runExclusive(() => {
+			;(this as unknown as InstanceType<typeof Terminal>).write(data, resolve)
+		})
+	}
+
+	private async writeln(data: string | Buffer, resolve?: () => void) {
+		await this.writeMutex.runExclusive(() => {
+			;(this as unknown as InstanceType<typeof Terminal>).writeln(data, resolve)
 		})
 	}
 }
@@ -108,7 +172,7 @@ export class TerminalUpdater {
 	updateIntervalId: NodeJS.Timer | undefined
 	lastUnwrappedLogLineIdRefreshed: string | undefined
 	inkStdin = new MockStdin()
-	virtualTerminal = new VirtualTerminal()
+	virtualLogsTerminal = new VirtualLogsTerminal()
 
 	write(data: string | Buffer) {
 		process.stderr.write(data)
@@ -184,41 +248,21 @@ export class TerminalUpdater {
 		this.updateTerminal()
 	}
 
-	async updateOverflowedLines() {
+	async updateOverflowedLines(options?: { beforeLineId?: string }) {
 		const updateSequence =
-			await this.#getUpdateSequenceFromUpdatingOverflowedLines()
+			await this.#getUpdateSequenceFromUpdatingOverflowedLines({
+				beforeLineId: options?.beforeLineId,
+			})
 		this.write(SYNC_START + updateSequence + SYNC_END)
 	}
 
 	async refreshLogs() {
 		if (localdevState.terminalUpdater === null) return
 		const wrappedLogLinesToDisplay = await getWrappedLogLinesDataToDisplay()
-		await localdevState.terminalUpdater.virtualTerminal.clear()
-
-		await localdevState.terminalUpdater.virtualTerminal.writeln('')
-		for (const line of wrappedLogLinesToDisplay.slice(0, -1)) {
-			// eslint-disable-next-line no-await-in-loop
-			await localdevState.terminalUpdater.virtualTerminal.writeln(
-				line.text.trimEnd()
-			)
-		}
-
-		const lastLine = wrappedLogLinesToDisplay.at(-1)
-		if (lastLine !== undefined) {
-			await new Promise<void>((resolve, reject) => {
-				localdevState
-					.terminalUpdater!.virtualTerminal.write(
-						lastLine.text.trimEnd(),
-						resolve
-					)
-					.catch(reject)
-			})
-
-			this.lastUnwrappedLogLineIdRefreshed = lastLine.unwrappedLineId
-		}
-
-		localdevState.logsBoxVirtualTerminalOutput =
-			getLogsBoxVirtualTerminalOutput()
+		await localdevState.terminalUpdater.virtualLogsTerminal.clear()
+		await localdevState.terminalUpdater.virtualLogsTerminal.writeWrappedLogs(
+			wrappedLogLinesToDisplay
+		)
 	}
 
 	updateTerminal(options?: {
@@ -300,7 +344,7 @@ export class TerminalUpdater {
 	}
 
 	#setTerminalResizeListeners() {
-		this.virtualTerminal.onResize(() => {
+		this.virtualLogsTerminal.onResize(() => {
 			// TODO: figure out why I need to delay this by a non-zero amount
 			setTimeout(() => {
 				localdevState.logsBoxVirtualTerminalOutput =
@@ -327,14 +371,14 @@ export class TerminalUpdater {
 							terminalSize().columns,
 							localdevState.logsBoxHeight
 						)
-						// When the terminal resizes, all the overflowed wrapped lines become unaligned, so we reset these variables
+
+						// When the terminal resizes, all the overflowed wrapped lines become unaligned, so we need to re-output all of them. Since it's better to do this lazily, we reset these variables.
 						localdevState.nextOverflowedWrappedLogLineIndexToOutput = 0
 						await localdevState.terminalUpdater.refreshLogs()
 
 						// We need to hard clear the console in order to preserve the continuity of overflowed logs as the terminal resize causes some lines to overflow
 						consoleClear(/* isSoft */ false)
 
-						localdevState.nextOverflowedWrappedLogLineIndexToOutput = 0
 						this.updateTerminal({ force: true })
 					}, 0)
 				},
@@ -348,15 +392,20 @@ export class TerminalUpdater {
 		This function is called to output the overflowed lines into the current terminal scrollback buffer.
 		This is only called when the user enters "Scroll Mode" or exits the program.
 	*/
-	async #getUpdateSequenceFromUpdatingOverflowedLines(): Promise<string> {
+	async #getUpdateSequenceFromUpdatingOverflowedLines({
+		beforeLineId,
+	}: {
+		beforeLineId?: string
+	}): Promise<string> {
 		let updateSequence = ''
 
 		// Don't log overflowed lines if the UI hasn't rendered yet
 		if (localdevState.logsBoxHeight === null) return ''
 
 		// We recreate the wrapped log lines to display
-		const wrappedLogLinesToDisplay = new OrderedSet<{
+		const wrappedLogLinesToDisplaySet = new OrderedSet<{
 			wrappedLineIndex: number
+			id: string
 			timestamp: number
 			wrappedLine: string
 		}>([], (l1, l2) => {
@@ -373,7 +422,7 @@ export class TerminalUpdater {
 				const unwrappedServiceLogLinesData =
 					await service.process.getUnwrappedLogLinesData()
 
-				for (const { timestamp, text } of unwrappedServiceLogLinesData) {
+				for (const { timestamp, text, id } of unwrappedServiceLogLinesData) {
 					const prefix =
 						localdevState.logsBoxServiceId === null
 							? // Only add a prefix when there's multiple text
@@ -388,11 +437,13 @@ export class TerminalUpdater {
 							unwrappedLine: unwrappedLine.trimEnd(),
 							prefix,
 						})
+
 						for (const [
 							wrappedLineIndex,
 							wrappedLine,
 						] of wrappedLines.entries()) {
-							wrappedLogLinesToDisplay.insert({
+							wrappedLogLinesToDisplaySet.insert({
+								id,
 								timestamp,
 								wrappedLine,
 								wrappedLineIndex,
@@ -403,9 +454,20 @@ export class TerminalUpdater {
 			})
 		)
 
+		let wrappedLogLinesToDisplay = [...wrappedLogLinesToDisplaySet]
+		if (beforeLineId !== undefined) {
+			const beforeLineIndex = wrappedLogLinesToDisplay.findIndex(
+				(wrappedLine) => wrappedLine.id === beforeLineId
+			)
+			wrappedLogLinesToDisplay = wrappedLogLinesToDisplay.slice(
+				0,
+				beforeLineIndex + 1
+			)
+		}
+
 		// The terminal can only display the last `logsBoxHeight` log lines, so the
 		// lines until that are overflowed lines
-		const overflowedWrappedLogLines = [...wrappedLogLinesToDisplay]
+		const overflowedWrappedLogLines = wrappedLogLinesToDisplay
 			.slice(0, wrappedLogLinesToDisplay.length - localdevState.logsBoxHeight)
 			.map((l) => l.wrappedLine)
 
@@ -675,10 +737,10 @@ export function getLogsBoxVirtualTerminalOutput(): string {
 		return ''
 	}
 
-	const { virtualTerminal } = localdevState.terminalUpdater
+	const { virtualLogsTerminal } = localdevState.terminalUpdater
 	const { logsBoxHeight } = localdevState
 
-	const activeBuffer = virtualTerminal.buffer.active
+	const activeBuffer = virtualLogsTerminal.buffer.active
 	const outputLines: string[] = []
 	let curCell: IBufferCell = { ...defaultCell }
 	let nextCell = activeBuffer.getNullCell()
@@ -746,7 +808,7 @@ export function getLogsBoxVirtualTerminalOutput(): string {
 export const resizeVirtualTerminal = debounce(
 	(columns: number, rows: number) => {
 		if (localdevState.terminalUpdater === null) return
-		localdevState.terminalUpdater.virtualTerminal.resize(columns, rows)
+		localdevState.terminalUpdater.virtualLogsTerminal.resize(columns, rows)
 	},
 	50,
 	true

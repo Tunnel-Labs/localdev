@@ -1,4 +1,3 @@
-import ansiEscapes from 'ansi-escapes'
 import type { FastifyInstance } from 'fastify'
 import type { DOMElement, Instance } from 'ink'
 import { createProxy, isChanged } from 'proxy-compare'

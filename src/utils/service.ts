@@ -164,15 +164,16 @@ export class Service {
 			// We set up listeners for incremental addition to the log lines on new lines
 			for (const serviceId of localdevState.serviceIdsToLog) {
 				const service = Service.get(serviceId)
-				const logsAddedListener = async ({
-					text,
-					id,
-				}: UnwrappedLogLineData) => {
+				const logsAddedListener = async (
+					unwrappedLogLineData: UnwrappedLogLineData
+				) => {
 					if (localdevState.terminalUpdater === null) return
 
 					// We need to make sure that we don't re-add lines that have already been added by `refreshLogs`
 					if (
-						id === localdevState.terminalUpdater.lastUnwrappedLogLineIdRefreshed
+						unwrappedLogLineData.id ===
+						localdevState.terminalUpdater.virtualLogsTerminal
+							.lastLogLineIdWritten
 					) {
 						return
 					}
@@ -185,39 +186,10 @@ export class Service {
 							  )}: `
 							: undefined
 
-					const unwrappedLines = splitLines(text.trimEnd())
-					for (const unwrappedLine of unwrappedLines) {
-						const wrappedLines = wrapLine({
-							unwrappedLine: unwrappedLine.trimEnd(),
-							prefix,
-						})
-
-						// eslint-disable-next-line no-await-in-loop
-						await localdevState.terminalUpdater.virtualTerminal.writeln('')
-
-						for (const wrappedLine of wrappedLines.slice(0, -1)) {
-							// eslint-disable-next-line no-await-in-loop
-							await localdevState.terminalUpdater.virtualTerminal.writeln(
-								wrappedLine.trimEnd()
-							)
-						}
-
-						const lastLine = wrappedLines.at(-1)
-						if (lastLine !== undefined) {
-							// eslint-disable-next-line no-await-in-loop
-							await new Promise<void>((resolve, reject) => {
-								localdevState
-									.terminalUpdater!.virtualTerminal.write(
-										lastLine.trimEnd(),
-										resolve
-									)
-									.catch(reject)
-							})
-						}
-					}
-
-					localdevState.logsBoxVirtualTerminalOutput =
-						getLogsBoxVirtualTerminalOutput()
+					await localdevState.terminalUpdater.virtualLogsTerminal.writeUnwrappedLog(
+						unwrappedLogLineData,
+						{ prefix }
+					)
 				}
 
 				service.process.emitter.on('logsAdded', logsAddedListener)
