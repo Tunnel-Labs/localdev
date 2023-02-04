@@ -12,6 +12,7 @@ export default {
 			command: {
 				string: `
 					awk 'BEGIN {
+						system("sleep 1")
 						for (i=1; ; i++) {
 							print i; system("sleep 0.05")
 						}
@@ -24,6 +25,7 @@ export default {
 			command: {
 				string: `
 					awk 'BEGIN {
+						system("sleep 1")
 						for (i=1000; ; i++) {
 							print i; system("sleep 1")
 						}
@@ -36,6 +38,7 @@ export default {
 			command: {
 				string: `
 					awk 'BEGIN {
+						system("sleep 1")
 						for (i=1000000; ; i++) {
 							print i; system("sleep 5")
 						}

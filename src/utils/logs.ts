@@ -4,7 +4,6 @@ import path from 'node:path'
 import * as fastSort from '@leondreamed/fast-sort'
 import { centerAlign } from 'ansi-center-align'
 import ansiEscapes from 'ansi-escapes'
-import { Mutex } from 'async-mutex'
 import chalk from 'chalk'
 import mem from 'mem'
 import splitLines from 'split-lines'
@@ -16,8 +15,6 @@ import wrapAnsi from 'wrap-ansi'
 import type { WrappedLogLineData } from '~/types/logs.js'
 import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/state.js'
-
-export const logsMutex = new Mutex()
 
 const stderrLogColors = ['green', 'yellow', 'blue', 'magenta', 'cyan'] as const
 let stderrLogColorsIndex = 0
@@ -85,35 +82,41 @@ export async function getWrappedLogLinesDataToDisplay(): Promise<
 	return wrappedLogLinesData
 }
 
+/**
+	When we activate log scroll mode, we need to freeze the terminal logs
+*/
 export async function activateLogScrollMode() {
 	if (localdevState.terminalUpdater === null) {
 		return
 	}
 
-	await localdevState.terminalUpdater.updateOverflowedLines()
-	localdevState.terminalUpdater.updateTerminal()
+	try {
+		// We acquire the logs mutex to prevent any other code from updating logs
+		await localdevState.terminalUpdater.virtualTerminal.writeMutex.acquire()
 
-	// We pause further updates by setting `logScrollModeState.active` to true
-	localdevState.logScrollModeState = {
-		active: true,
-	}
+		await localdevState.terminalUpdater.updateOverflowedLines()
+		localdevState.terminalUpdater.updateTerminal()
+		localdevState.logScrollModeState = { active: true }
 
-	const { rows: terminalHeight, columns: terminalWidth } = terminalSize()
-	// We output a message to the user
-	process.stderr.write(
-		ansiEscapes.cursorTo(1, terminalHeight - 2) +
-			chalk.bgWhite.black(
-				centerAlign(
-					`${chalk.bold('Scroll Mode')} ${chalk.dim(
-						'(output paused)'
-					)} — ${chalk.italic('Press any key to resume...')}`,
-					terminalWidth - 2
+		const { rows: terminalHeight, columns: terminalWidth } = terminalSize()
+		// We output a message to the user
+		process.stderr.write(
+			ansiEscapes.cursorTo(1, terminalHeight - 2) +
+				chalk.bgWhite.black(
+					centerAlign(
+						`${chalk.bold('Scroll Mode')} ${chalk.dim(
+							'(output paused)'
+						)} — ${chalk.italic('Press any key to resume...')}`,
+						terminalWidth - 2
+					)
 				)
-			)
-	)
+		)
 
-	// We disable terminal mouse events so that the user can use the terminal's native handler for mouse and scroll events
-	localdevState.terminalUpdater.disableTerminalMouseSupport()
+		// We disable terminal mouse events so that the user can use the terminal's native handler for mouse and scroll events
+		localdevState.terminalUpdater.disableTerminalMouseSupport()
+	} finally {
+		localdevState.terminalUpdater.virtualTerminal.writeMutex.release()
+	}
 }
 
 export function deactivateLogScrollMode() {
@@ -134,7 +137,7 @@ export async function clearLogs() {
 	)
 
 	await fs.promises.rm(localdevLogsDir, { recursive: true, force: true })
-	localdevState.terminalUpdater?.logsBoxVirtualTerminal.clear()
+	await localdevState.terminalUpdater?.virtualTerminal.clear()
 }
 
 export function wrapLine({

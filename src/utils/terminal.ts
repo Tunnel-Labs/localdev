@@ -6,6 +6,7 @@ import { PassThrough } from 'node:stream'
 import { centerAlign } from 'ansi-center-align'
 import ansiEscapes from 'ansi-escapes'
 import ansiStyles from 'ansi-styles'
+import { Mutex } from 'async-mutex'
 import chalk from 'chalk'
 import consoleClear from 'console-clear'
 import exitHook from 'exit-hook'
@@ -28,7 +29,6 @@ import {
 	deactivateLogScrollMode,
 	getServicePrefixColor,
 	getWrappedLogLinesDataToDisplay,
-	logsMutex,
 	wrapLine,
 } from '~/utils/logs.js'
 import { Service } from '~/utils/service.js'
@@ -72,18 +72,43 @@ export function useTerminalSize() {
 const SYNC_START = '\u001B[?2026h'
 const SYNC_END = '\u001B[?2026l'
 
+export class VirtualTerminal extends Terminal {
+	public writeMutex = new Mutex()
+	constructor() {
+		super({
+			rows: terminalSize().rows,
+			cols: terminalSize().columns,
+			// Enable experimental options
+			allowProposedApi: true,
+		})
+	}
+
+	override async write(data: string | Buffer, resolve?: () => void) {
+		await this.writeMutex.runExclusive(() => {
+			super.write(data, resolve)
+		})
+	}
+
+	override async writeln(data: string | Buffer, resolve?: () => void) {
+		await this.writeMutex.runExclusive(() => {
+			super.writeln(data, resolve)
+		})
+	}
+
+	override async clear() {
+		await this.writeMutex.runExclusive(() => {
+			super.clear()
+		})
+	}
+}
+
 export class TerminalUpdater {
 	previousOutput = ''
 	hasPressAnyKeyToContinueNoticeBeenWritten = false
 	updateIntervalId: NodeJS.Timer | undefined
 	lastUnwrappedLogLineIdRefreshed: string | undefined
 	inkStdin = new MockStdin()
-	logsBoxVirtualTerminal = new Terminal({
-		rows: terminalSize().rows,
-		cols: terminalSize().columns,
-		// Enable experimental options
-		allowProposedApi: true,
-	})
+	virtualTerminal = new VirtualTerminal()
 
 	write(data: string | Buffer) {
 		process.stderr.write(data)
@@ -166,33 +191,34 @@ export class TerminalUpdater {
 	}
 
 	async refreshLogs() {
-		await logsMutex.runExclusive(async () => {
-			if (localdevState.terminalUpdater === null) return
-			const wrappedLogLinesToDisplay = await getWrappedLogLinesDataToDisplay()
-			localdevState.terminalUpdater.logsBoxVirtualTerminal.clear()
+		if (localdevState.terminalUpdater === null) return
+		const wrappedLogLinesToDisplay = await getWrappedLogLinesDataToDisplay()
+		await localdevState.terminalUpdater.virtualTerminal.clear()
 
-			localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln('')
-			for (const line of wrappedLogLinesToDisplay.slice(0, -1)) {
-				localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(
-					line.text.trimEnd()
-				)
-			}
+		await localdevState.terminalUpdater.virtualTerminal.writeln('')
+		for (const line of wrappedLogLinesToDisplay.slice(0, -1)) {
+			// eslint-disable-next-line no-await-in-loop
+			await localdevState.terminalUpdater.virtualTerminal.writeln(
+				line.text.trimEnd()
+			)
+		}
 
-			const lastLine = wrappedLogLinesToDisplay.at(-1)
-			if (lastLine !== undefined) {
-				await new Promise<void>((resolve) => {
-					localdevState.terminalUpdater!.logsBoxVirtualTerminal.write(
+		const lastLine = wrappedLogLinesToDisplay.at(-1)
+		if (lastLine !== undefined) {
+			await new Promise<void>((resolve, reject) => {
+				localdevState
+					.terminalUpdater!.virtualTerminal.write(
 						lastLine.text.trimEnd(),
 						resolve
 					)
-				})
+					.catch(reject)
+			})
 
-				this.lastUnwrappedLogLineIdRefreshed = lastLine.unwrappedLineId
-			}
+			this.lastUnwrappedLogLineIdRefreshed = lastLine.unwrappedLineId
+		}
 
-			localdevState.logsBoxVirtualTerminalOutput =
-				getLogsBoxVirtualTerminalOutput()
-		})
+		localdevState.logsBoxVirtualTerminalOutput =
+			getLogsBoxVirtualTerminalOutput()
 	}
 
 	updateTerminal(options?: {
@@ -274,7 +300,7 @@ export class TerminalUpdater {
 	}
 
 	#setTerminalResizeListeners() {
-		this.logsBoxVirtualTerminal.onResize(() => {
+		this.virtualTerminal.onResize(() => {
 			// TODO: figure out why I need to delay this by a non-zero amount
 			setTimeout(() => {
 				localdevState.logsBoxVirtualTerminalOutput =
@@ -528,6 +554,7 @@ function getBgColorAnsiSequenceFromCell(cell: IBufferCell) {
 	}
 }
 
+// eslint-disable-next-line complexity
 function getAnsiUpdateSequenceForCellUpdate(
 	curCell: IBufferCell,
 	nextCell: IBufferCell
@@ -648,10 +675,10 @@ export function getLogsBoxVirtualTerminalOutput(): string {
 		return ''
 	}
 
-	const { logsBoxVirtualTerminal } = localdevState.terminalUpdater
+	const { virtualTerminal } = localdevState.terminalUpdater
 	const { logsBoxHeight } = localdevState
 
-	const activeBuffer = logsBoxVirtualTerminal.buffer.active
+	const activeBuffer = virtualTerminal.buffer.active
 	const outputLines: string[] = []
 	let curCell: IBufferCell = { ...defaultCell }
 	let nextCell = activeBuffer.getNullCell()
@@ -719,7 +746,7 @@ export function getLogsBoxVirtualTerminalOutput(): string {
 export const resizeVirtualTerminal = debounce(
 	(columns: number, rows: number) => {
 		if (localdevState.terminalUpdater === null) return
-		localdevState.terminalUpdater.logsBoxVirtualTerminal.resize(columns, rows)
+		localdevState.terminalUpdater.virtualTerminal.resize(columns, rows)
 	},
 	50,
 	true

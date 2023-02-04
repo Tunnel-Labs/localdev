@@ -13,7 +13,7 @@ import waitPort from 'wait-port'
 import type { ServiceSpec } from '~/types/config.js'
 import { type UnwrappedLogLineData } from '~/types/logs.js'
 import { type ServiceStatus } from '~/types/service.js'
-import { getServicePrefixColor, logsMutex, wrapLine } from '~/utils/logs.js'
+import { getServicePrefixColor, wrapLine } from '~/utils/logs.js'
 import { Process } from '~/utils/process.js'
 import { localdevState } from '~/utils/state.js'
 import { getLogsBoxVirtualTerminalOutput } from '~/utils/terminal.js'
@@ -168,55 +168,56 @@ export class Service {
 					text,
 					id,
 				}: UnwrappedLogLineData) => {
-					await logsMutex.runExclusive(async () => {
-						if (localdevState.terminalUpdater === null) return
+					if (localdevState.terminalUpdater === null) return
 
-						// We need to make sure that we don't re-add lines that have already been added by `refreshLogs`
-						if (
-							id ===
-							localdevState.terminalUpdater.lastUnwrappedLogLineIdRefreshed
-						) {
-							return
+					// We need to make sure that we don't re-add lines that have already been added by `refreshLogs`
+					if (
+						id === localdevState.terminalUpdater.lastUnwrappedLogLineIdRefreshed
+					) {
+						return
+					}
+
+					// If we're logging multiple services, we need to add a prefix to every wrapped line
+					const prefix =
+						localdevState.logsBoxServiceId === null
+							? `${chalk[getServicePrefixColor(service.spec.id)](
+									service.name
+							  )}: `
+							: undefined
+
+					const unwrappedLines = splitLines(text.trimEnd())
+					for (const unwrappedLine of unwrappedLines) {
+						const wrappedLines = wrapLine({
+							unwrappedLine: unwrappedLine.trimEnd(),
+							prefix,
+						})
+
+						// eslint-disable-next-line no-await-in-loop
+						await localdevState.terminalUpdater.virtualTerminal.writeln('')
+
+						for (const wrappedLine of wrappedLines.slice(0, -1)) {
+							// eslint-disable-next-line no-await-in-loop
+							await localdevState.terminalUpdater.virtualTerminal.writeln(
+								wrappedLine.trimEnd()
+							)
 						}
 
-						// If we're logging multiple services, we need to add a prefix to every wrapped line
-						const prefix =
-							localdevState.logsBoxServiceId === null
-								? `${chalk[getServicePrefixColor(service.spec.id)](
-										service.name
-								  )}: `
-								: undefined
-
-						const unwrappedLines = splitLines(text.trimEnd())
-						for (const unwrappedLine of unwrappedLines) {
-							const wrappedLines = wrapLine({
-								unwrappedLine: unwrappedLine.trimEnd(),
-								prefix,
-							})
-
-							localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln('')
-
-							for (const wrappedLine of wrappedLines.slice(0, -1)) {
-								localdevState.terminalUpdater.logsBoxVirtualTerminal.writeln(
-									wrappedLine.trimEnd()
-								)
-							}
-
-							const lastLine = wrappedLines.at(-1)
-							if (lastLine !== undefined) {
-								// eslint-disable-next-line no-await-in-loop
-								await new Promise<void>((resolve) => {
-									localdevState.terminalUpdater!.logsBoxVirtualTerminal.write(
+						const lastLine = wrappedLines.at(-1)
+						if (lastLine !== undefined) {
+							// eslint-disable-next-line no-await-in-loop
+							await new Promise<void>((resolve, reject) => {
+								localdevState
+									.terminalUpdater!.virtualTerminal.write(
 										lastLine.trimEnd(),
 										resolve
 									)
-								})
-							}
+									.catch(reject)
+							})
 						}
+					}
 
-						localdevState.logsBoxVirtualTerminalOutput =
-							getLogsBoxVirtualTerminalOutput()
-					})
+					localdevState.logsBoxVirtualTerminalOutput =
+						getLogsBoxVirtualTerminalOutput()
 				}
 
 				service.process.emitter.on('logsAdded', logsAddedListener)
