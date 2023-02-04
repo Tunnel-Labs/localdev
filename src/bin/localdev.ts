@@ -47,10 +47,12 @@ await program
 
 			localdevState.localdevConfigPath = await getLocaldevConfigPath({
 				configPath: options.config,
+				projectPath: options.project
 			})
 			localdevState.projectPath =
 				options.project ?? path.dirname(localdevState.localdevConfigPath)
 			localdevState.localdevLocalConfigPath = await getLocaldevLocalConfigPath({
+				projectPath: options.project,
 				localConfigPath: options.localConfig,
 			})
 			localdevState.localdevConfig = await getLocaldevConfig({

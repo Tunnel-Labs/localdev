@@ -57,14 +57,16 @@ export const localdevConfigSchema = z.object({
 					.args(z.any())
 					.returns(z.string().optional())
 					.optional(),
-				httpsRedirect: z.union([
-					// `true` means redirect all requests to HTTPS
-					z.boolean(),
-					// An array of subdomains and subdomain patterns to redirect to HTTPS
-					z.string().array(),
-					// A function that takes a URL and returns whether to redirect it to HTTPS or not
-					z.function().args(z.string()).returns(z.boolean())
-				]).optional()
+				httpsRedirect: z
+					.union([
+						// `true` means redirect all requests to HTTPS
+						z.boolean(),
+						// An array of subdomains and subdomain patterns to redirect to HTTPS
+						z.string().array(),
+						// A function that takes a URL and returns whether to redirect it to HTTPS or not
+						z.function().args(z.string()).returns(z.boolean()),
+					])
+					.optional(),
 			}),
 		])
 		.default(false),
@@ -72,9 +74,15 @@ export const localdevConfigSchema = z.object({
 	commands: z.function().args(z.any()).returns(z.any().array()).optional(),
 })
 
-export async function getLocaldevConfigPath(options?: { configPath?: string }) {
+export async function getLocaldevConfigPath(options?: {
+	projectPath?: string
+	configPath?: string
+}) {
 	if (options?.configPath !== undefined) {
-		const fullConfigPath = path.resolve(process.cwd(), options.configPath)
+		const fullConfigPath = path.resolve(
+			options.projectPath ?? process.cwd(),
+			options.configPath
+		)
 		if (!fs.existsSync(fullConfigPath)) {
 			throw new Error(
 				`localdev config file not found at specified path \`${fullConfigPath}\``
@@ -85,9 +93,9 @@ export async function getLocaldevConfigPath(options?: { configPath?: string }) {
 	}
 
 	const configPath =
-		(await findUp('localdev.config.mjs')) ??
-		(await findUp('localdev.config.js')) ??
-		(await findUp('localdev.config.cjs'))
+		(await findUp('localdev.config.mjs', { cwd: options?.projectPath })) ??
+		(await findUp('localdev.config.js', { cwd: options?.projectPath })) ??
+		(await findUp('localdev.config.cjs', { cwd: options?.projectPath }))
 
 	if (configPath === undefined) {
 		throw new Error('localdev config file not found')
@@ -97,11 +105,12 @@ export async function getLocaldevConfigPath(options?: { configPath?: string }) {
 }
 
 export async function getLocaldevLocalConfigPath(options?: {
+	projectPath?: string
 	localConfigPath?: string
 }): Promise<string | undefined> {
 	if (options?.localConfigPath !== undefined) {
 		const fullLocalConfigPath = path.resolve(
-			process.cwd(),
+			options.projectPath ?? process.cwd(),
 			options.localConfigPath
 		)
 		if (!fs.existsSync(fullLocalConfigPath)) {
@@ -114,9 +123,9 @@ export async function getLocaldevLocalConfigPath(options?: {
 	}
 
 	const localLocaldevConfigPath =
-		(await findUp('localdev.local.mjs')) ??
-		(await findUp('localdev.local.js')) ??
-		(await findUp('localdev.local.cjs'))
+		(await findUp('localdev.local.mjs', { cwd: options?.projectPath })) ??
+		(await findUp('localdev.local.js', { cwd: options?.projectPath })) ??
+		(await findUp('localdev.local.cjs', { cwd: options?.projectPath }))
 
 	return localLocaldevConfigPath
 }
