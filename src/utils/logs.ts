@@ -132,10 +132,7 @@ export function deactivateLogScrollMode() {
 }
 
 export async function clearLogs() {
-	const localdevLogsDir = path.join(
-		localdevState.projectPath,
-		'node_modules/.localdev/logs'
-	)
+	const localdevLogsDir = path.join(localdevState.localdevFolder, 'logs')
 
 	await fs.promises.rm(localdevLogsDir, { recursive: true, force: true })
 	await localdevState.terminalUpdater?.virtualLogsTerminal.clear()

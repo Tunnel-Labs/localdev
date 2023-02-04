@@ -28,6 +28,7 @@ function createLocaldevState() {
 			localdevConfigPath: null! as string,
 			localdevLocalConfigPath: undefined as string | undefined,
 			localdevConfig: null! as LocaldevConfig,
+			localdevFolder: null! as string,
 			activeHelpCommand: null as string | null,
 			servicesEnabled: true,
 			activeCommandBoxPaneComponent: null as Ref<React.FC> | null,

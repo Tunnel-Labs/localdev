@@ -47,7 +47,7 @@ await program
 
 			localdevState.localdevConfigPath = await getLocaldevConfigPath({
 				configPath: options.config,
-				projectPath: options.project
+				projectPath: options.project,
 			})
 			localdevState.projectPath =
 				options.project ?? path.dirname(localdevState.localdevConfigPath)
@@ -59,13 +59,19 @@ await program
 				configPath: localdevState.localdevConfigPath,
 				localConfigPath: localdevState.localdevLocalConfigPath,
 			})
-
-			const localdevLogsPath = path.join(
-				localdevState.projectPath,
-				'node_modules/.localdev/logs'
+			localdevState.localdevFolder = fs.existsSync(
+				path.join(localdevState.projectPath, 'node_modules')
 			)
-			await fs.promises.rm(localdevLogsPath, { recursive: true, force: true })
-			await fs.promises.mkdir(localdevLogsPath, { recursive: true })
+				? path.join(localdevState.projectPath, 'node_modules/.localdev')
+				: path.join(localdevState.projectPath, '.localdev')
+
+			await fs.promises.rm(path.join(localdevState.localdevFolder, 'logs'), {
+				recursive: true,
+				force: true,
+			})
+			await fs.promises.mkdir(path.join(localdevState.localdevFolder, 'logs'), {
+				recursive: true,
+			})
 
 			await setupLocaldevServer()
 			const localdevService = new Service('$localdev')

@@ -7,10 +7,7 @@ import { cli } from '~/utils/cli.js'
 import { localdevState } from '~/utils/state.js'
 
 export const getMkcertCertsDir = onetime(async () => {
-	const mkcertCertsDir = path.join(
-		localdevState.projectPath,
-		'node_modules/.localdev/mkcert'
-	)
+	const mkcertCertsDir = path.join(localdevState.localdevFolder, 'mkcert')
 
 	await fs.promises.mkdir(mkcertCertsDir, { recursive: true })
 

@@ -120,6 +120,7 @@ export class VirtualLogsTerminal extends Omit(Terminal, ['write', 'writeln']) {
 					this.write(lastLine.trimEnd(), resolve).catch(reject)
 				})
 			}
+
 		}
 
 		localdevState.logsBoxVirtualTerminalOutput =

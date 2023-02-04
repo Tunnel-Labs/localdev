@@ -45,6 +45,9 @@ export class Process {
 		Process.emitters.push(emitter)
 	}
 
+	/**
+		Saves the logs to a file
+	*/
 	async addLogs(text: string, options?: { timestamp?: number }) {
 		const timestamp = options?.timestamp ?? Date.now()
 
@@ -112,10 +115,7 @@ export class Process {
 	}
 
 	async #getLogsFilePath() {
-		const localdevLogsDir = path.join(
-			localdevState.projectPath,
-			'node_modules/.localdev/logs'
-		)
+		const localdevLogsDir = path.join(localdevState.localdevFolder, 'logs')
 		const logsFilePath = path.join(localdevLogsDir, `${this.id}.jsonl`)
 		await fs.promises.mkdir(localdevLogsDir, { recursive: true })
 		return logsFilePath
