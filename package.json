@@ -1,7 +1,7 @@
 {
 	"name": "localdev-tui",
 	"type": "module",
-	"version": "0.1.10",
+	"version": "0.1.11",
 	"description": "A TUI for local development.",
 	"license": "MIT",
 	"bin": {
