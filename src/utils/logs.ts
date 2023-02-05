@@ -5,6 +5,7 @@ import * as fastSort from '@leondreamed/fast-sort'
 import { centerAlign } from 'ansi-center-align'
 import ansiEscapes from 'ansi-escapes'
 import chalk from 'chalk'
+import delay from 'delay'
 import mem from 'mem'
 import splitLines from 'split-lines'
 import stringLength from 'string-length'
@@ -87,17 +88,20 @@ export async function activateLogScrollMode() {
 		return
 	}
 
+	// We disable terminal mouse events so that the user can use the terminal's native handler for mouse and scroll events
+	localdevState.terminalUpdater.disableTerminalMouseSupport()
+	localdevState.logScrollModeState = { active: true }
+
 	try {
-		// We acquire the logs mutex to prevent other code from updating logs
+		// We acquire the logs mutex to prevent other code from updating the logs while we update the overflowed lines
 		await localdevState.terminalUpdater.virtualLogsTerminal.writeMutex.acquire()
 
-		localdevState.terminalUpdater.updateTerminal()
 		await localdevState.terminalUpdater.updateOverflowedLines({
 			beforeLineId:
 				localdevState.terminalUpdater.virtualLogsTerminal
 					.lastLogLineIdWritten ?? undefined,
 		})
-		localdevState.logScrollModeState = { active: true }
+		localdevState.terminalUpdater.updateTerminal({ force: true })
 
 		const { rows: terminalHeight, columns: terminalWidth } = terminalSize()
 		// We output a message to the user
@@ -112,9 +116,6 @@ export async function activateLogScrollMode() {
 					)
 				)
 		)
-
-		// We disable terminal mouse events so that the user can use the terminal's native handler for mouse and scroll events
-		localdevState.terminalUpdater.disableTerminalMouseSupport()
 	} finally {
 		localdevState.terminalUpdater.virtualLogsTerminal.writeMutex.release()
 	}

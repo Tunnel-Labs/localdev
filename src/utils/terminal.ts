@@ -9,12 +9,14 @@ import ansiStyles from 'ansi-styles'
 import { Mutex } from 'async-mutex'
 import chalk from 'chalk'
 import consoleClear from 'console-clear'
+import delay from 'delay'
 import exitHook from 'exit-hook'
 import { render } from 'ink'
 import renderer from 'ink/build/renderer.js'
 import { OrderedSet } from 'js-sdsl'
 import debounce from 'just-debounce-it'
 import throttle from 'just-throttle'
+import PQueue from 'p-queue'
 import patchConsole from 'patch-console'
 import React, { useCallback, useEffect, useState } from 'react'
 import splitLines from 'split-lines'
@@ -84,6 +86,7 @@ const Omit = <T, K extends keyof T, A extends any[]>(
 export class VirtualLogsTerminal extends Omit(Terminal, ['write', 'writeln']) {
 	public writeMutex = new Mutex()
 	public lastLogLineIdWritten: string | null = null
+	#writeQueue = new PQueue({ concurrency: 1 })
 
 	constructor() {
 		super({
@@ -121,7 +124,6 @@ export class VirtualLogsTerminal extends Omit(Terminal, ['write', 'writeln']) {
 					this.write(lastLine.trimEnd(), resolve).catch(reject)
 				})
 			}
-
 		}
 
 		localdevState.logsBoxVirtualTerminalOutput =
@@ -150,23 +152,29 @@ export class VirtualLogsTerminal extends Omit(Terminal, ['write', 'writeln']) {
 	}
 
 	override clear = async () => {
-		await this.writeMutex.runExclusive(() => {
-			super.clear()
-		})
+		await this.#writeQueue.add(async () =>
+			this.writeMutex.runExclusive(() => {
+				super.clear()
+			})
+		)
 	}
 
 	private async write(data: string | Buffer, resolve?: () => void) {
-		await this.writeMutex.runExclusive(() => {
-			// @ts-expect-error: override
-			super.write(data, resolve)
-		})
+		await this.#writeQueue.add(async () =>
+			this.writeMutex.runExclusive(() => {
+				// @ts-expect-error: override
+				super.write(data, resolve)
+			})
+		)
 	}
 
 	private async writeln(data: string | Buffer, resolve?: () => void) {
-		await this.writeMutex.runExclusive(() => {
-			// @ts-expect-error: override
-			super.writeln(data, resolve)
-		})
+		await this.#writeQueue.add(async () =>
+			this.writeMutex.runExclusive(() => {
+				// @ts-expect-error: override
+				super.writeln(data, resolve)
+			})
+		)
 	}
 }
 
@@ -257,6 +265,7 @@ export class TerminalUpdater {
 			await this.#getUpdateSequenceFromUpdatingOverflowedLines({
 				beforeLineId: options?.beforeLineId,
 			})
+
 		this.write(SYNC_START + updateSequence + SYNC_END)
 	}
 
@@ -269,10 +278,7 @@ export class TerminalUpdater {
 		)
 	}
 
-	updateTerminal(options?: {
-		updateOverflowedLines?: boolean
-		force?: boolean
-	}) {
+	updateTerminal(options?: { force?: boolean }) {
 		const force = options?.force ?? false
 
 		if (localdevState.inkInstance === null) {
@@ -294,11 +300,7 @@ export class TerminalUpdater {
 		}
 
 		// If we want to force an update, we pretend that the previous output was empty
-		if (
-			force ||
-			// Updating overflowed lines implicitly implies a forced update
-			options?.updateOverflowedLines
-		) {
+		if (force) {
 			this.previousOutput = ''
 		}
 
@@ -350,9 +352,13 @@ export class TerminalUpdater {
 	#setTerminalResizeListeners() {
 		this.virtualLogsTerminal.onResize(() => {
 			// TODO: figure out why I need to delay this by a non-zero amount
-			setTimeout(() => {
-				localdevState.logsBoxVirtualTerminalOutput =
-					getLogsBoxVirtualTerminalOutput()
+			setTimeout(async () => {
+				await localdevState.terminalUpdater?.virtualLogsTerminal.writeMutex.runExclusive(
+					() => {
+						localdevState.logsBoxVirtualTerminalOutput =
+							getLogsBoxVirtualTerminalOutput()
+					}
+				)
 			}, 50)
 		})
 
@@ -430,9 +436,9 @@ export class TerminalUpdater {
 					const prefix =
 						localdevState.logsBoxServiceId === null
 							? // Only add a prefix when there's multiple text
-							  `${chalk[getServicePrefixColor(serviceId)](
-									Service.get(serviceId).name
-							  )}: `
+							`${chalk[getServicePrefixColor(serviceId)](
+								Service.get(serviceId).name
+							)}: `
 							: undefined
 
 					const unwrappedLines = splitLines(text.trimEnd())
@@ -463,6 +469,7 @@ export class TerminalUpdater {
 			const beforeLineIndex = wrappedLogLinesToDisplay.findIndex(
 				(wrappedLine) => wrappedLine.id === beforeLineId
 			)
+			invariant(beforeLineIndex !== -1, 'beforeLine not found')
 			wrappedLogLinesToDisplay = wrappedLogLinesToDisplay.slice(
 				0,
 				beforeLineIndex + 1
@@ -498,7 +505,7 @@ export class TerminalUpdater {
 			overflowedWrappedLogLineIndex <
 			Math.min(
 				localdevState.nextOverflowedWrappedLogLineIndexToOutput +
-					numTerminalRows,
+				numTerminalRows,
 				overflowedWrappedLogLines.length
 			);
 			overflowedWrappedLogLineIndex += 1
@@ -528,7 +535,7 @@ export class TerminalUpdater {
 					.slice(overflowedWrappedLogLineIndex)
 					.join('\n')
 
-			numEmptyLinesToOutput = numTerminalRows - 1
+			numEmptyLinesToOutput = numTerminalRows
 		}
 		// Otherwise, replace the rest of the lines with empty lines
 		else {
@@ -564,6 +571,9 @@ export class TerminalUpdater {
 		// TODO: this doesn't take into account "smooth scrolling", causing it to appear buggy when using this with a macOS trackpad
 		process.stdin.on('data', async (inputBuffer) => {
 			const { logScrollModeState } = localdevState
+			const input = String(inputBuffer)
+			// ANSI escape sequences for scroll events (based on experimentation)
+			const isScrollEvent = input.startsWith('\u001B\u005B\u003C\u0036')
 
 			if (logScrollModeState.active) {
 				// Re-rendering the previous output onto the terminal
@@ -579,9 +589,6 @@ export class TerminalUpdater {
 
 				deactivateLogScrollMode()
 			} else {
-				const input = String(inputBuffer)
-				// ANSI escape sequences for scroll events (based on experimentation)
-				const isScrollEvent = input.startsWith('\u001B\u005B\u003C\u0036')
 				if (isScrollEvent) {
 					await activateLogScrollMode()
 				}

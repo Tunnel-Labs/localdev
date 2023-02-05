@@ -29,6 +29,7 @@ specifiers:
   compose-regexp: ^0.6.24
   console-clear: ^1.1.1
   deepmerge-ts: ^4.2.2
+  delay: ^5.0.0
   execa: ^6.1.0
   exit-hook: ^3.2.0
   fastify: ^4.11.0
@@ -103,6 +104,7 @@ dependencies:
   compose-regexp: 0.6.24
   console-clear: 1.1.1
   deepmerge-ts: 4.2.2
+  delay: 5.0.0
   execa: 6.1.0
   exit-hook: 3.2.0
   fastify: 4.11.0
@@ -4035,6 +4037,11 @@ packages:
       rimraf: 3.0.2
       slash: 4.0.0
     dev: true
+
+  /delay/5.0.0:
+    resolution: {integrity: sha512-ReEBKkIfe4ya47wlPYf/gu5ib6yUG0/Aez0JQZQz94kiWtRQvZIQbTiehsnwHvLSWJnQdhVeqYue7Id1dKr0qw==}
+    engines: {node: '>=10'}
+    dev: false
 
   /delegates/1.0.0:
     resolution: {integrity: sha512-bd2L678uiWATM6m5Z1VzNCErI3jiGzt6HGY8OVICs40JQq/HALfbyNJmp0UDakEY4pMMaN0Ly5om/B1VI/+xfQ==}

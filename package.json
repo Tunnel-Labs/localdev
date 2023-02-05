@@ -43,6 +43,7 @@
 		"compose-regexp": "^0.6.24",
 		"console-clear": "^1.1.1",
 		"deepmerge-ts": "^4.2.2",
+		"delay": "^5.0.0",
 		"execa": "^6.1.0",
 		"exit-hook": "^3.2.0",
 		"fastify": "^4.11.0",

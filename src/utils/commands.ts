@@ -41,8 +41,7 @@ const defaultCommandSpecs = [
 
 				const start = process.hrtime.bigint()
 				localdevState.terminalUpdater.updateTerminal({
-					force: true,
-					updateOverflowedLines: true,
+					force: true
 				})
 				const end = process.hrtime.bigint()
 				console.info(
