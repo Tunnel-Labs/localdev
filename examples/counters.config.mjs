@@ -11,12 +11,13 @@ export default {
 			startAutomatically: true,
 			command: {
 				string: `
-					awk 'BEGIN {
-						system("sleep 1")
-						for (i=1; ; i++) {
-							print i; system("sleep 0.05")
-						}
-					}'
+					node -e '
+						const delay=n=>new Promise(r=>setTimeout(r,n))
+						;(async () => {
+							await delay(1000)
+							for(let i=0;;i++){process.stderr.write(i+"\\n");await delay(50)}
+						})()
+					'
 				`,
 			},
 		},
@@ -24,12 +25,13 @@ export default {
 			startAutomatically: true,
 			command: {
 				string: `
-					awk 'BEGIN {
-						system("sleep 1")
-						for (i=1000; ; i++) {
-							print i; system("sleep 1")
-						}
-					}'
+					node -e '
+						const delay=n=>new Promise(r=>setTimeout(r,n))
+						;(async () => {
+							await delay(1000)
+							for(let i=0;;i++){process.stderr.write(i+"\\n");await delay(1000)}
+						})()
+					'
 				`,
 			},
 		},
@@ -37,12 +39,13 @@ export default {
 			startAutomatically: true,
 			command: {
 				string: `
-					awk 'BEGIN {
-						system("sleep 1")
-						for (i=1000000; ; i++) {
-							print i; system("sleep 5")
-						}
-					}'
+					node -e '
+						const delay=n=>new Promise(r=>setTimeout(r,n))
+						;(async () => {
+							await delay(1000)
+							for(let i=0;;i++){process.stderr.write(i+"\\n");await delay(5000)}
+						})()
+					'
 				`,
 			},
 		},

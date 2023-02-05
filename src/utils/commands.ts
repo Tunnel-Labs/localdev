@@ -33,7 +33,7 @@ const defaultCommandSpecs = [
 	defineCommandSpec(
 		createCommand('r')
 			.description('refresh the terminal output')
-			.action(() => {
+			.action(async () => {
 				if (localdevState.terminalUpdater === null) {
 					console.error('TerminalUpdater has not been initialized yet')
 					return
@@ -41,7 +41,7 @@ const defaultCommandSpecs = [
 
 				const start = process.hrtime.bigint()
 				localdevState.terminalUpdater.updateTerminal({
-					force: true
+					force: true,
 				})
 				const end = process.hrtime.bigint()
 				console.info(

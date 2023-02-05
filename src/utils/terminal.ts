@@ -9,7 +9,6 @@ import ansiStyles from 'ansi-styles'
 import { Mutex } from 'async-mutex'
 import chalk from 'chalk'
 import consoleClear from 'console-clear'
-import delay from 'delay'
 import exitHook from 'exit-hook'
 import { render } from 'ink'
 import renderer from 'ink/build/renderer.js'
@@ -101,80 +100,76 @@ export class VirtualLogsTerminal extends Omit(Terminal, ['write', 'writeln']) {
 		data: UnwrappedLogLineData,
 		{ prefix }: { prefix?: string }
 	) {
-		const { id, text } = data
-		const unwrappedLines = splitLines(text.trimEnd())
-		for (const unwrappedLine of unwrappedLines) {
-			const wrappedLines = wrapLine({
-				unwrappedLine: unwrappedLine.trimEnd(),
-				prefix,
-			})
+		await localdevState.terminalUpdater?.virtualLogsTerminal.writeMutex.runExclusive(
+			async () => {
+				const { id, text } = data
+				const unwrappedLines = splitLines(text.trimEnd())
+				for (const unwrappedLine of unwrappedLines) {
+					const wrappedLines = wrapLine({
+						unwrappedLine: unwrappedLine.trimEnd(),
+						prefix,
+					})
 
-			// eslint-disable-next-line no-await-in-loop
-			await this.writeln('')
+					// eslint-disable-next-line no-await-in-loop
+					await this.writeln('')
 
-			for (const wrappedLine of wrappedLines.slice(0, -1)) {
-				// eslint-disable-next-line no-await-in-loop
-				await this.writeln(wrappedLine.trimEnd())
+					for (const wrappedLine of wrappedLines.slice(0, -1)) {
+						// eslint-disable-next-line no-await-in-loop
+						await this.writeln(wrappedLine.trimEnd())
+					}
+
+					const lastLine = wrappedLines.at(-1)
+					if (lastLine !== undefined) {
+						// eslint-disable-next-line no-await-in-loop
+						await new Promise<void>((resolve, reject) => {
+							this.write(lastLine.trimEnd(), resolve).catch(reject)
+						})
+					}
+				}
+
+				localdevState.logsBoxVirtualTerminalOutput =
+					getLogsBoxVirtualTerminalOutput()
+				this.lastLogLineIdWritten = id
 			}
-
-			const lastLine = wrappedLines.at(-1)
-			if (lastLine !== undefined) {
-				// eslint-disable-next-line no-await-in-loop
-				await new Promise<void>((resolve, reject) => {
-					this.write(lastLine.trimEnd(), resolve).catch(reject)
-				})
-			}
-		}
-
-		localdevState.logsBoxVirtualTerminalOutput =
-			getLogsBoxVirtualTerminalOutput()
-		this.lastLogLineIdWritten = id
+		)
 	}
 
 	async writeWrappedLogs(wrappedLines: WrappedLogLineData[]) {
-		await this.writeln('')
-		for (const line of wrappedLines.slice(0, -1)) {
-			// eslint-disable-next-line no-await-in-loop
-			await this.writeln(line.text.trimEnd())
-		}
+		await localdevState.terminalUpdater?.virtualLogsTerminal.writeMutex.runExclusive(
+			async () => {
+				await this.writeln('')
+				for (const line of wrappedLines.slice(0, -1)) {
+					// eslint-disable-next-line no-await-in-loop
+					await this.writeln(line.text.trimEnd())
+				}
 
-		const lastLine = wrappedLines.at(-1)
-		if (lastLine !== undefined) {
-			await new Promise<void>((resolve, reject) => {
-				this.write(lastLine.text.trimEnd(), resolve).catch(reject)
-			})
+				const lastLine = wrappedLines.at(-1)
+				if (lastLine !== undefined) {
+					await new Promise<void>((resolve, reject) => {
+						this.write(lastLine.text.trimEnd(), resolve).catch(reject)
+					})
 
-			this.lastLogLineIdWritten = lastLine.unwrappedLineId
-		}
+					this.lastLogLineIdWritten = lastLine.unwrappedLineId
+				}
 
-		localdevState.logsBoxVirtualTerminalOutput =
-			getLogsBoxVirtualTerminalOutput()
+				localdevState.logsBoxVirtualTerminalOutput =
+					getLogsBoxVirtualTerminalOutput()
+			}
+		)
 	}
 
 	override clear = async () => {
-		await this.#writeQueue.add(async () =>
-			this.writeMutex.runExclusive(() => {
-				super.clear()
-			})
-		)
+		super.clear()
 	}
 
 	private async write(data: string | Buffer, resolve?: () => void) {
-		await this.#writeQueue.add(async () =>
-			this.writeMutex.runExclusive(() => {
-				// @ts-expect-error: override
-				super.write(data, resolve)
-			})
-		)
+		// @ts-expect-error: override
+		super.write(data, resolve)
 	}
 
 	private async writeln(data: string | Buffer, resolve?: () => void) {
-		await this.#writeQueue.add(async () =>
-			this.writeMutex.runExclusive(() => {
-				// @ts-expect-error: override
-				super.writeln(data, resolve)
-			})
-		)
+		// @ts-expect-error: override
+		super.writeln(data, resolve)
 	}
 }
 
@@ -436,9 +431,9 @@ export class TerminalUpdater {
 					const prefix =
 						localdevState.logsBoxServiceId === null
 							? // Only add a prefix when there's multiple text
-							`${chalk[getServicePrefixColor(serviceId)](
-								Service.get(serviceId).name
-							)}: `
+							  `${chalk[getServicePrefixColor(serviceId)](
+									Service.get(serviceId).name
+							  )}: `
 							: undefined
 
 					const unwrappedLines = splitLines(text.trimEnd())
@@ -505,7 +500,7 @@ export class TerminalUpdater {
 			overflowedWrappedLogLineIndex <
 			Math.min(
 				localdevState.nextOverflowedWrappedLogLineIndexToOutput +
-				numTerminalRows,
+					numTerminalRows,
 				overflowedWrappedLogLines.length
 			);
 			overflowedWrappedLogLineIndex += 1
@@ -560,8 +555,7 @@ export class TerminalUpdater {
 		// Set the previous output was an empty screen so that the viewport is completely re-rendered
 		this.previousOutput = '\n'.repeat(numTerminalRows - 1)
 
-		localdevState.nextOverflowedWrappedLogLineIndexToOutput =
-			overflowedWrappedLogLines.length
+		localdevState.nextOverflowedWrappedLogLineIndexToOutput = 0
 
 		return updateSequence
 	}
