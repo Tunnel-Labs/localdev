@@ -56,9 +56,7 @@ function createLocaldevState() {
 				The current command history index (changed by pressing the up/down arrow inside the command box). A value equal to the length of `commandHistory` indicate that no past command is selected.
 			*/
 			currentCommandHistoryIndex: 0,
-			logScrollModeState: {
-				active: false,
-			} as { active: boolean },
+			logScrollModeState: 'inactive' as 'active' | 'activating' | 'inactive',
 			inkInstance: null as Ref<
 				Instance & {
 					isUnmounted: boolean
@@ -104,7 +102,7 @@ function createLocaldevState() {
 	subscribeKey(state, 'activeCommandBoxPaneComponent', async () => {
 		if (state.terminalUpdater !== null) {
 			state.nextOverflowedWrappedLogLineIndexToOutput = 0
-			if (state.logScrollModeState.active) {
+			if (state.logScrollModeState === 'active') {
 				await state.terminalUpdater.updateOverflowedLines()
 			}
 

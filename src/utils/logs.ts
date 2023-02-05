@@ -85,14 +85,14 @@ export async function getWrappedLogLinesDataToDisplay(): Promise<
 export async function activateLogScrollMode() {
 	if (
 		localdevState.terminalUpdater === null ||
-		localdevState.logScrollModeState.active
+		localdevState.logScrollModeState !== 'inactive'
 	) {
 		return
 	}
 
-	localdevState.logScrollModeState = { active: true }
-
 	try {
+		localdevState.logScrollModeState = 'activating'
+
 		// We acquire the logs mutex to prevent other code from updating the logs while we update the overflowed lines
 		await localdevState.terminalUpdater.virtualLogsTerminal.writeMutex.acquire()
 
@@ -121,6 +121,8 @@ export async function activateLogScrollMode() {
 		)
 	} finally {
 		localdevState.terminalUpdater.virtualLogsTerminal.writeMutex.release()
+
+		localdevState.logScrollModeState = 'active'
 	}
 }
 
@@ -129,7 +131,7 @@ export function deactivateLogScrollMode() {
 		return
 	}
 
-	localdevState.logScrollModeState = { active: false }
+	localdevState.logScrollModeState = 'inactive'
 
 	// We re-enable terminal mouse events so that we can detect when the user scrolls (so we know to update the overflowed logs)
 	localdevState.terminalUpdater.enableTerminalMouseSupport()

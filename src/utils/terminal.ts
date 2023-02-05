@@ -280,12 +280,12 @@ export class TerminalUpdater {
 			return
 		}
 
-		if (!localdevState.logScrollModeState.active) {
+		if (localdevState.logScrollModeState === 'inactive') {
 			this.enableTerminalMouseSupport()
 		}
 
 		// We still want to re-render the terminal if it gets resized while `logScrollModeState` is active
-		if (!force && localdevState.logScrollModeState.active) {
+		if (!force && localdevState.logScrollModeState === 'active') {
 			return
 		}
 
@@ -583,7 +583,7 @@ export class TerminalUpdater {
 			// ANSI escape sequences for scroll events (based on experimentation)
 			const isScrollEvent = input.startsWith('\u001B\u005B\u003C\u0036')
 
-			if (logScrollModeState.active) {
+			if (logScrollModeState === 'active') {
 				// Re-rendering the previous output onto the terminal
 				const previousLines = this.previousOutput.split('\n')
 				let updateSequence =
@@ -597,7 +597,7 @@ export class TerminalUpdater {
 
 				deactivateLogScrollMode()
 			} else {
-				if (isScrollEvent) {
+				if (isScrollEvent && logScrollModeState === 'inactive') {
 					await activateLogScrollMode()
 				}
 
