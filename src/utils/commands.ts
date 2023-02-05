@@ -210,6 +210,7 @@ const defaultCommandSpecs = [
 			.summary('clear logs')
 			.action(async () => {
 				await clearLogs()
+				localdevState.terminalUpdater?.updateTerminal()
 			})
 	),
 	defineCommandSpec(

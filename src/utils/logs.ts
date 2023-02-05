@@ -141,7 +141,10 @@ export async function clearLogs() {
 	const localdevLogsDir = path.join(localdevState.localdevFolder, 'logs')
 
 	await fs.promises.rm(localdevLogsDir, { recursive: true, force: true })
-	await localdevState.terminalUpdater?.virtualLogsTerminal.clear()
+	if (localdevState.terminalUpdater === null) return
+	await localdevState.terminalUpdater.virtualLogsTerminal.clear()
+	localdevState.terminalUpdater.lastUnwrappedLogLineIdRefreshed = undefined
+	localdevState.nextOverflowedWrappedLogLineIndexToOutput = 0
 }
 
 export function wrapLine({
