@@ -83,12 +83,13 @@ export async function getWrappedLogLinesDataToDisplay(): Promise<
 }
 
 export async function activateLogScrollMode() {
-	if (localdevState.terminalUpdater === null) {
+	if (
+		localdevState.terminalUpdater === null ||
+		localdevState.logScrollModeState.active
+	) {
 		return
 	}
 
-	// We disable terminal mouse events so that the user can use the terminal's native handler for mouse and scroll events
-	localdevState.terminalUpdater.disableTerminalMouseSupport()
 	localdevState.logScrollModeState = { active: true }
 
 	try {
@@ -101,6 +102,9 @@ export async function activateLogScrollMode() {
 					.lastLogLineIdWritten ?? undefined,
 		})
 		localdevState.terminalUpdater.updateTerminal({ force: true })
+
+		// We disable terminal mouse events so that the user can use the terminal's native handler for mouse and scroll events
+		localdevState.terminalUpdater.disableTerminalMouseSupport()
 
 		const { rows: terminalHeight, columns: terminalWidth } = terminalSize()
 		// We output a message to the user
