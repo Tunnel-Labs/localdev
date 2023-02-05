@@ -410,12 +410,21 @@ export class TerminalUpdater {
 		// We recreate the wrapped log lines to display
 		const wrappedLogLinesToDisplaySet = new OrderedSet<{
 			wrappedLineIndex: number
+			unwrappedLineIndex: number
 			id: string
 			timestamp: number
 			wrappedLine: string
 		}>([], (l1, l2) => {
+			if (l1.id === l2.id) {
+				if (l1.unwrappedLineIndex === l2.unwrappedLineIndex) {
+					return l1.wrappedLineIndex - l2.wrappedLineIndex
+				} else {
+					return l1.unwrappedLineIndex - l2.unwrappedLineIndex
+				}
+			}
+
 			if (l1.timestamp === l2.timestamp) {
-				return l1.wrappedLineIndex - l2.wrappedLineIndex
+				return l1.id < l2.id ? -1 : 1
 			} else {
 				return l1.timestamp - l2.timestamp
 			}
@@ -437,7 +446,10 @@ export class TerminalUpdater {
 							: undefined
 
 					const unwrappedLines = splitLines(text.trimEnd())
-					for (const unwrappedLine of unwrappedLines) {
+					for (const [
+						unwrappedLineIndex,
+						unwrappedLine,
+					] of unwrappedLines.entries()) {
 						const wrappedLines = wrapLine({
 							unwrappedLine: unwrappedLine.trimEnd(),
 							prefix,
@@ -452,6 +464,7 @@ export class TerminalUpdater {
 								timestamp,
 								wrappedLine,
 								wrappedLineIndex,
+								unwrappedLineIndex,
 							})
 						}
 					}
@@ -555,7 +568,8 @@ export class TerminalUpdater {
 		// Set the previous output was an empty screen so that the viewport is completely re-rendered
 		this.previousOutput = '\n'.repeat(numTerminalRows - 1)
 
-		localdevState.nextOverflowedWrappedLogLineIndexToOutput = 0
+		localdevState.nextOverflowedWrappedLogLineIndexToOutput =
+			numOverflowedWrappedLogLinesToOutput
 
 		return updateSequence
 	}

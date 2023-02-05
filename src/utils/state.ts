@@ -102,12 +102,14 @@ function createLocaldevState() {
 
 	// Whenever the logs box height changes, we want to update the overflowed lines since their positions will have changed
 	subscribeKey(state, 'activeCommandBoxPaneComponent', async () => {
-		// if (state.terminalUpdater !== null) {
-		// 	state.nextOverflowedWrappedLogLineIndexToOutput = 0
-		// 	state.terminalUpdater.updateTerminal({
-		// 		force: true,
-		// 	})
-		// }
+		if (state.terminalUpdater !== null) {
+			state.nextOverflowedWrappedLogLineIndexToOutput = 0
+			if (state.logScrollModeState.active) {
+				await state.terminalUpdater.updateOverflowedLines()
+			}
+
+			state.terminalUpdater.updateTerminal({ force: true })
+		}
 	})
 
 	subscribeKey(state, 'logsBoxHeight', async (newHeight) => {

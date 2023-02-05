@@ -29,7 +29,14 @@ export default {
 						const delay=n=>new Promise(r=>setTimeout(r,n))
 						;(async () => {
 							await delay(1000)
-							for(let i=0;;i++){process.stderr.write(i+"\\n");await delay(1000)}
+							for(let i=0;;i+=100){
+								let str = ""
+								for (let j=0;j<100;j+=1){
+									str += (i + j) + "\\n"
+								}
+								process.stderr.write(str+"\\n");
+								await delay(1000)
+							}
 						})()
 					'
 				`,
