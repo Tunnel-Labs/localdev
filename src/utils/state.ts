@@ -6,8 +6,8 @@ import type React from 'react'
 import { useEffect, useMemo, useRef } from 'react'
 import terminalSize from 'term-size'
 import useForceUpdate from 'use-force-update'
-import type { ref } from 'valtio'
-import { proxyWithComputed, subscribeKey } from 'valtio/utils'
+import { type ref, proxy } from 'valtio'
+import { subscribeKey } from 'valtio/utils'
 import { type INTERNAL_Snapshot, snapshot, subscribe } from 'valtio/vanilla'
 
 import { type LocaldevConfig } from '~/index.js'
@@ -21,82 +21,84 @@ import {
 type Ref<T extends object> = ReturnType<typeof ref<T>>
 
 function createLocaldevState() {
-	const state = proxyWithComputed(
-		{
-			app: null as Ref<FastifyInstance> | null,
-			projectPath: null! as string,
-			localdevConfigPath: null! as string,
-			localdevLocalConfigPath: undefined as string | undefined,
-			localdevConfig: null! as LocaldevConfig,
-			localdevFolder: null! as string,
-			activeHelpCommand: null as string | null,
-			servicesEnabled: true,
-			activeCommandBoxPaneComponent: null as Ref<React.FC> | null,
-			nextOverflowedWrappedLogLineIndexToOutput: 0,
-			logsBoxHeight: null as number | null,
-			/**
-				The ID of the service whose logs are displayed in the logs box. `null` represents the default services specified in `localdev.config.cjs`.
-			*/
-			logsBoxServiceId: null as string | null,
-			/**
-				The ID of the service that's currently hijacked (`null` means no service is currently being hijacked)
-			*/
-			hijackedServiceId: null as string | null,
-			/**
-				The current input inside the command box
-			*/
-			commandBoxInput: '',
+	const memoizedServiceIdsToLog = memoize(
+		(snap: INTERNAL_Snapshot<typeof localdevState>) => {
+			if (!snap.servicesEnabled) {
+				return []
+			}
 
-			/**
-				A history of the commands that were run
-			*/
-			commandHistory: [] as string[],
+			const serviceIds: string[] = []
+			if (snap.logsBoxServiceId === null) {
+				serviceIds.push(...Object.keys(snap.localdevConfig.servicesToLog ?? {}))
+			} else {
+				serviceIds.push(snap.logsBoxServiceId)
+			}
 
-			/**
-				The current command history index (changed by pressing the up/down arrow inside the command box). A value equal to the length of `commandHistory` indicate that no past command is selected.
-			*/
-			currentCommandHistoryIndex: 0,
-			logScrollModeState: 'inactive' as 'active' | 'activating' | 'inactive',
-			inkInstance: null as Ref<
-				Instance & {
-					isUnmounted: boolean
-					rootNode: DOMElement
-				}
-			> | null,
-			terminalUpdater: null as Ref<TerminalUpdater> | null,
+			if (
+				snap.localdevConfig.logServerEvents &&
+				// Don't log $localdev events when streaming the logs of a specific service
+				snap.logsBoxServiceId === null
+			) {
+				serviceIds.push('$localdev')
+			}
 
-			serviceStatuses: {} as Record<string, ServiceStatus>,
-
-			// We make the output of the logs box virtual terminal part of the state so that we can control rendering order: we always want Ink to display whatever is in this variable at all times on the screen
-			logsBoxVirtualTerminalOutput: '',
-		},
-		{
-			serviceIdsToLog: memoize((snap) => {
-				if (!snap.servicesEnabled) {
-					return []
-				}
-
-				const serviceIds: string[] = []
-				if (snap.logsBoxServiceId === null) {
-					serviceIds.push(
-						...Object.keys(snap.localdevConfig.servicesToLog ?? {})
-					)
-				} else {
-					serviceIds.push(snap.logsBoxServiceId)
-				}
-
-				if (
-					snap.localdevConfig.logServerEvents &&
-					// Don't log $localdev events when streaming the logs of a specific service
-					snap.logsBoxServiceId === null
-				) {
-					serviceIds.push('$localdev')
-				}
-
-				return serviceIds
-			}),
+			return serviceIds
 		}
 	)
+
+	const state = proxy({
+		app: null as Ref<FastifyInstance> | null,
+		projectPath: null! as string,
+		localdevConfigPath: null! as string,
+		localdevLocalConfigPath: undefined as string | undefined,
+		localdevConfig: null! as LocaldevConfig,
+		localdevFolder: null! as string,
+		activeHelpCommand: null as string | null,
+		servicesEnabled: true,
+		activeCommandBoxPaneComponent: null as Ref<React.FC> | null,
+		nextOverflowedWrappedLogLineIndexToOutput: 0,
+		logsBoxHeight: null as number | null,
+		/**
+				The ID of the service whose logs are displayed in the logs box. `null` represents the default services specified in `localdev.config.cjs`.
+			*/
+		logsBoxServiceId: null as string | null,
+		/**
+				The ID of the service that's currently hijacked (`null` means no service is currently being hijacked)
+			*/
+		hijackedServiceId: null as string | null,
+		/**
+				The current input inside the command box
+			*/
+		commandBoxInput: '',
+
+		/**
+				A history of the commands that were run
+			*/
+		commandHistory: [] as string[],
+
+		/**
+				The current command history index (changed by pressing the up/down arrow inside the command box). A value equal to the length of `commandHistory` indicate that no past command is selected.
+			*/
+		currentCommandHistoryIndex: 0,
+		logScrollModeState: {
+			active: false,
+		} as { active: boolean },
+		inkInstance: null as Ref<
+			Instance & {
+				isUnmounted: boolean
+				rootNode: DOMElement
+			}
+		> | null,
+		terminalUpdater: null as Ref<TerminalUpdater> | null,
+
+		serviceStatuses: {} as Record<string, ServiceStatus>,
+
+		// We make the output of the logs box virtual terminal part of the state so that we can control rendering order: we always want Ink to display whatever is in this variable at all times on the screen
+		logsBoxVirtualTerminalOutput: '',
+		get serviceIdsToLog(): string[] {
+			return memoizedServiceIdsToLog(snapshot(localdevState))
+		},
+	})
 
 	// Whenever the logs box height changes, we want to update the overflowed lines since their positions will have changed
 	subscribeKey(state, 'activeCommandBoxPaneComponent', async () => {

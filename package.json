@@ -91,7 +91,7 @@
 		"typesafe-emitter": "^2.1.0",
 		"unique-concat": "^0.2.2",
 		"use-force-update": "^1.0.11",
-		"valtio": "^1.8.2",
+		"valtio": "^1.10.0",
 		"wait-port": "^1.0.4",
 		"wrap-ansi": "^8.1.0",
 		"xterm-headless": "^5.1.0",

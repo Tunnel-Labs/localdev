@@ -79,7 +79,7 @@ specifiers:
   typescript: ^4.9.4
   unique-concat: ^0.2.2
   use-force-update: ^1.0.11
-  valtio: ^1.8.2
+  valtio: ^1.10.0
   vitest: ^0.26.3
   wait-port: ^1.0.4
   wrap-ansi: ^8.1.0
@@ -152,7 +152,7 @@ dependencies:
   typesafe-emitter: 2.1.0
   unique-concat: 0.2.2
   use-force-update: 1.0.11_react@17.0.2
-  valtio: 1.8.2_react@17.0.2
+  valtio: 1.10.0_react@17.0.2
   wait-port: 1.0.4
   wrap-ansi: 8.1.0
   xterm-headless: 5.1.0
@@ -10243,9 +10243,9 @@ packages:
       builtins: 5.0.1
     dev: true
 
-  /valtio/1.8.2_react@17.0.2:
-    resolution: {integrity: sha512-ypFWPi3aY04tojWAFPbTYBDw5iFaCDbKAJ2XqhmY2XOSorNtaCZJNg++FSssv8gMJwmPXfrU/RjncQtsoOHbUg==}
-    engines: {node: '>=12.7.0'}
+  /valtio/1.10.0_react@17.0.2:
+    resolution: {integrity: sha512-weL/kg2394gghZWo1iKasGg4otnEl42Hqp0/wJ09cV1HieZelPh3du4qyctFzaAwOMoeyZgmSGXxD3aFKQ9J3w==}
+    engines: {node: '>=12.20.0'}
     peerDependencies:
       react: '>=16.8'
     peerDependenciesMeta:
