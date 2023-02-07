@@ -231,7 +231,6 @@ export class TerminalUpdater {
 		)
 
 		patchConsole((_stream, data) => {
-			if (data.includes('xterm.js: Parsing error))
 			const localdevLogs = Service.get('$localdev')
 			void localdevLogs.process.addLogs(data)
 		})
