@@ -3,11 +3,17 @@
 	"type": "module",
 	"version": "0.1.12",
 	"description": "A TUI for local development.",
+	"keywords": [
+		"kubernetes",
+		"localhost",
+		"local",
+		"development",
+		"tui",
+		"develop",
+		"concurrently",
+		"log"
+	],
 	"license": "MIT",
-	"bin": {
-		"localdev": "./src/bin/localdev.ts"
-	},
-	"homepage": "https://github.com/leondreamed/localdev#readme",
 	"author": {
 		"name": "Leon Si",
 		"email": "leon@leondreamed.com",
@@ -18,6 +24,10 @@
 		"url": "https://github.com/leondreamed/localdev.git"
 	},
 	"exports": "./src/index.ts",
+	"bin": {
+		"localdev": "./src/bin/localdev.ts"
+	},
+	"homepage": "https://github.com/leondreamed/localdev#readme",
 	"scripts": {
 		"dev": "ts-node ./src/bin/localdev.ts",
 		"dev:config": "ts-node ./src/bin/localdev.ts --config examples/localdev.config.mjs",
@@ -115,15 +125,5 @@
 	},
 	"publishConfig": {
 		"directory": "dist"
-	},
-	"keywords": [
-		"kubernetes",
-		"localhost",
-		"local",
-		"development",
-		"tui",
-		"develop",
-		"concurrently",
-		"log"
-	]
+	}
 }

@@ -12,7 +12,6 @@ import {
 import { localdevState, useLocaldevSnapshot } from '~/utils/state.js'
 import { useTerminalSize } from '~/utils/terminal.js'
 
-
 function LocaldevLogsBox() {
 	const { logsBoxVirtualTerminalOutput } = useLocaldevSnapshot()
 
