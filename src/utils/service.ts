@@ -126,7 +126,9 @@ export class Service {
 					this.status = 'failed'
 
 					await Service.get('$localdev').process.addLogs(
-						`Service "${this.name}" failed with exit code ${exitCode} (run \`logs ${this.name}\` to view error logs)`
+						chalk.redBright(
+							`Service "${this.name}" failed with exit code ${exitCode} (run \`logs ${this.name}\` to view error logs)`
+						)
 					)
 				}
 			})
