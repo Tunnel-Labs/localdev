@@ -69,7 +69,7 @@ export function LocaldevUi() {
 				const { height } = measureElement(logsBoxRef.current)
 				localdevState.logsBoxHeight = height
 			}
-		}, 0)
+		}, 50)
 	}, [
 		logsBoxRef.current,
 		// The logs box should resize whenever the active command box pane is changed

@@ -85,12 +85,12 @@ const Omit = <T, K extends keyof T, A extends any[]>(
 export class VirtualLogsTerminal extends Omit(Terminal, ['write', 'writeln']) {
 	public writeMutex = new Mutex()
 	public lastLogLineIdWritten: string | null = null
-	#writeQueue = new PQueue({ concurrency: 1 })
 
 	constructor() {
 		super({
 			rows: terminalSize().rows,
 			cols: terminalSize().columns,
+			logLevel: 'off',
 			// Enable experimental options
 			allowProposedApi: true,
 		})
@@ -231,6 +231,7 @@ export class TerminalUpdater {
 		)
 
 		patchConsole((_stream, data) => {
+			if (data.includes('xterm.js: Parsing error))
 			const localdevLogs = Service.get('$localdev')
 			void localdevLogs.process.addLogs(data)
 		})
