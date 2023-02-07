@@ -119,6 +119,17 @@ export class Service {
 				command,
 				commandOptions,
 			})
+			this.#process.emitter.on('exited', async (exitCode) => {
+				if (exitCode === 0) {
+					this.status = 'stopped'
+				} else {
+					this.status = 'failed'
+
+					await Service.get('$localdev').process.addLogs(
+						`Service "${this.name}" failed with exit code ${exitCode} (run \`logs ${this.name}\` to view error logs)`
+					)
+				}
+			})
 		}
 	}
 
