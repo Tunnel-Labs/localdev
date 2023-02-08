@@ -29,17 +29,17 @@ await program
 		'--local-config <path>',
 		'a path to the localdev local configuration file'
 	)
-	.option('--no-services', "don't start dev services")
 	.option('--force', 'kill process on port if exists')
+	.option('--proxy-only', 'only run the proxy and no services', false)
 	.action(
 		async (options: {
 			test?: boolean
-			services?: boolean
 			port?: string
 			config?: string
 			localConfig?: string
 			project?: string
 			force: boolean
+			proxyOnly: boolean
 		}) => {
 			if (options.force) {
 				await killPort(options.port === undefined ? 7357 : Number(options.port))
@@ -76,7 +76,7 @@ await program
 			await setupLocaldevServer()
 			const localdevService = new Service('$localdev')
 
-			if (options.services) {
+			if (!options.proxyOnly) {
 				const services = []
 				for (const [serviceId, serviceSpec] of Object.entries(
 					localdevState.localdevConfig.services ?? {}
