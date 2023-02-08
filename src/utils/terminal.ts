@@ -231,6 +231,7 @@ export class TerminalUpdater {
 		)
 
 		patchConsole((_stream, data) => {
+			if (data.includes('xterm.js: Parsing error:')) return
 			const localdevLogs = Service.get('$localdev')
 			void localdevLogs.process.addLogs(data)
 		})
@@ -440,9 +441,9 @@ export class TerminalUpdater {
 					const prefix =
 						localdevState.logsBoxServiceId === null
 							? // Only add a prefix when there's multiple text
-							  `${chalk[getServicePrefixColor(serviceId)](
-									Service.get(serviceId).name
-							  )}: `
+							`${chalk[getServicePrefixColor(serviceId)](
+								Service.get(serviceId).name
+							)}: `
 							: undefined
 
 					const unwrappedLines = splitLines(text.trimEnd())
@@ -513,7 +514,7 @@ export class TerminalUpdater {
 			overflowedWrappedLogLineIndex <
 			Math.min(
 				localdevState.nextOverflowedWrappedLogLineIndexToOutput +
-					numTerminalRows,
+				numTerminalRows,
 				overflowedWrappedLogLines.length
 			);
 			overflowedWrappedLogLineIndex += 1
