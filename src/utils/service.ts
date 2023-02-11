@@ -263,12 +263,13 @@ export class Service {
 			await Promise.all(
 				dependsOnSpecs.map(async (dependsOnSpec) => {
 					const localdevLogs = Service.get('$localdev')
-					await localdevLogs.process.addLogs(
-						`${this.name} is waiting for ${
-							Service.get(dependsOnSpec.id).name
-						} to become healthy...\n`
-					)
-					await Service.get(dependsOnSpec.id).waitForHealthy()
+					const dependencyService = Service.get(dependsOnSpec.id)
+					if (dependencyService.status !== 'ready') {
+						await localdevLogs.process.addLogs(
+							`${this.name} is waiting for ${dependencyService.name} to become healthy...\n`
+						)
+						await dependencyService.waitForHealthy()
+					}
 				})
 			)
 		}
