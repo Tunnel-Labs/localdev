@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { defineCliTool, homebrew, installHomebrewPackage } from 'cli-specs'
+import commandExists from 'command-exists'
 import type { Options as ExecaOptions } from 'execa'
 import { execa } from 'execa'
 import { outdent } from 'outdent'
@@ -46,6 +47,11 @@ export const dnsmasq = defineCliTool({
 	`,
 	install: async () => installHomebrewPackage('dnsmasq'),
 	async exists() {
+		try {
+			await commandExists('dnsmasq')
+			return true
+		} catch {}
+
 		const { stdout: homebrewPrefix } = await homebrew(['--prefix'])
 		const possibleDnsmasqPaths = [
 			'/usr/local/sbin/dnsmasq',
