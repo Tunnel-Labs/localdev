@@ -24,10 +24,7 @@ export async function setupLocalProxy(
 	// eslint-disable-next-line @typescript-eslint/ban-types -- Need to exclude the "boolean" type
 	localProxyOptions: LocaldevConfig['localProxy'] & object
 ) {
-	// If the user is running Linux, we need to make sure that we can listen on port 80
-	const nodePath = await fs.promises.realpath(await which('node'))
-
-	// Try listening on port 80
+	// We need to make sure that we can listen on port 80
 	let server: http.Server | undefined
 	try {
 		server = http.createServer().listen(80)
@@ -40,6 +37,7 @@ export async function setupLocalProxy(
 				{ margin: 1, padding: 1, borderStyle: 'round' }
 			)
 		)
+		const nodePath = await fs.promises.realpath(await which('node'))
 		await cli.sudo(['setcap', 'CAP_NET_BIND_SERVICE=+eip', nodePath], {
 			stdio: 'inherit',
 		})
@@ -239,9 +237,14 @@ export async function setupLocalProxy(
 		await cli.dnsmasq.install()
 	}
 
-	const { stdout: brewPrefix } = await cli.homebrew('--prefix')
-	await fs.promises.mkdir(path.join(brewPrefix, 'etc'), { recursive: true })
-	const dnsmasqConfPath = path.join(brewPrefix, 'etc/dnsmasq.conf')
+	let dnsmasqConfPath: string
+	if (process.platform === 'darwin'){
+		const { stdout: brewPrefix } = await cli.homebrew('--prefix')
+		await fs.promises.mkdir(path.join(brewPrefix, 'etc'), { recursive: true })
+		dnsmasqConfPath = path.join(brewPrefix, 'etc/dnsmasq.conf')
+	} else {
+		dnsmasqConfPath = '/etc/dnsmasq.conf'
+	}
 
 	const addressTestLine = 'address=/.test/127.0.0.1'
 	if (fs.existsSync(dnsmasqConfPath)) {
@@ -285,11 +288,14 @@ export async function setupLocalProxy(
 		})
 	} catch {
 		// `https://test.test` could not be resolved; `dnsmasq` is likely not started
-		console.info('Starting dnsmasq...')
-		if (process.platform === 'linux') {
+		if (process.platform === 'darwin') {
+			console.info('Starting dnsmasq...')
 			await cli.homebrew(['services', 'start', 'dnsmasq'])
 		} else {
-			await cli.sudo(['brew', 'services', 'start', 'dnsmasq'])
+			process.stderr.write(outdent`
+				\`dnsmasq\` doesn't seem to be running. Make sure you've installed it on your system.
+			`)
+			process.exit(1)
 		}
 	}
 }
