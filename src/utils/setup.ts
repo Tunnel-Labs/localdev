@@ -30,7 +30,7 @@ export async function setupLocalProxy(
 	// Try listening on port 80
 	let server: http.Server | undefined
 	try {
-		http.createServer().listen(80)
+		server = http.createServer().listen(80)
 	} catch {
 		process.stderr.write(
 			boxen(
