@@ -47,7 +47,7 @@ specifiers:
   just-debounce-it: ^3.2.0
   just-throttle: ^4.2.0
   kill-port: ^2.0.1
-  lionconfig: ^2.3.1
+  lionconfig: ^2.3.2
   mem: ^9.0.2
   minimatch: ^6.1.6
   minimist: ^1.2.7
@@ -174,7 +174,7 @@ devDependencies:
   '@types/shell-quote': 1.7.1
   '@types/tcp-port-used': 1.0.1
   '@types/which': 2.0.2
-  lionconfig: 2.3.1_typescript@4.9.4
+  lionconfig: 2.3.2_typescript@4.9.4
   typescript: 4.9.4
   vitest: 0.26.3
 
@@ -1177,7 +1177,7 @@ packages:
       '@pnpm/read-projects-context': 7.0.8_@pnpm+logger@5.0.0
       '@pnpm/types': 8.10.0
       '@zkochan/rimraf': 2.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       path-absolute: 1.0.1
       ramda: /@pnpm/ramda/0.28.1
     dev: true
@@ -2547,7 +2547,7 @@ packages:
       '@yarnpkg/shell': 4.0.0-rc.35
       camelcase: 5.3.1
       chalk: 3.0.0
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       clipanion: 3.2.0-rc.14
       cross-spawn: 7.0.3
       diff: 5.1.0
@@ -2565,20 +2565,20 @@ packages:
       tunnel: 0.0.6
     dev: true
 
-  /@yarnpkg/core/4.0.0-rc.35:
-    resolution: {integrity: sha512-Z2bY4rSECV9IkDyHbJjDpKug6sO3uZmFbqDcIEpxS+wpg9DYn//5B1pVTZwyWg4EG5I6IZaUp0eoexNXb7gyJQ==}
+  /@yarnpkg/core/4.0.0-rc.39:
+    resolution: {integrity: sha512-OgPR4btSH1nsCA+cXUVIwCGMbqjcSDEb25iOlcMnqTFn0is1ydX46gp3MktLGkyN3udjEsBK7MLi/oYd/SFLPw==}
     engines: {node: '>=14.15.0'}
     dependencies:
       '@arcanis/slice-ansi': 1.1.1
       '@types/semver': 7.3.13
       '@types/treeify': 1.0.0
-      '@yarnpkg/fslib': 3.0.0-rc.35
-      '@yarnpkg/libzip': 3.0.0-rc.35
-      '@yarnpkg/parsers': 3.0.0-rc.35
-      '@yarnpkg/shell': 4.0.0-rc.35
+      '@yarnpkg/fslib': 3.0.0-rc.39
+      '@yarnpkg/libzip': 3.0.0-rc.39_@yarnpkg+fslib@3.0.0-rc.39
+      '@yarnpkg/parsers': 3.0.0-rc.39
+      '@yarnpkg/shell': 4.0.0-rc.39
       camelcase: 5.3.1
       chalk: 3.0.0
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       clipanion: 3.2.0-rc.14
       cross-spawn: 7.0.3
       diff: 5.1.0
@@ -2620,6 +2620,13 @@ packages:
       tslib: 2.4.1
     dev: true
 
+  /@yarnpkg/fslib/3.0.0-rc.39:
+    resolution: {integrity: sha512-y5rTaRXKsP8YNz1ZxvElnBj6mK2cMIsrNgmjJBN17V6nYZPfiGaVDI+WhWw5MG8imw6jsHPgXb7m710xzxHckA==}
+    engines: {node: '>=14.15.0'}
+    dependencies:
+      tslib: 2.4.1
+    dev: true
+
   /@yarnpkg/libzip/2.2.4:
     resolution: {integrity: sha512-QP0vUP+w0d7Jlo7jqTnlRChSnIB/dOF7nJFLD/gsPvFIHsVWLQQuAiolOcXQUD2hezLD1mQd2qb0yOKqPYRcfQ==}
     engines: {node: '>=12 <14 || 14.2 - 14.9 || >14.10.0'}
@@ -2637,6 +2644,17 @@ packages:
       tslib: 2.4.1
     dev: true
 
+  /@yarnpkg/libzip/3.0.0-rc.39_@yarnpkg+fslib@3.0.0-rc.39:
+    resolution: {integrity: sha512-A4dbLpHTVhKnuowjhJaVezvN6eADh99TelpxaGEtFD3ygmOgbGh/pmN+L01PcOvxVkoSd7BBH2HyzW33ktj7Ug==}
+    engines: {node: '>=14.15.0'}
+    peerDependencies:
+      '@yarnpkg/fslib': ^3.0.0-rc.39
+    dependencies:
+      '@types/emscripten': 1.39.6
+      '@yarnpkg/fslib': 3.0.0-rc.39
+      tslib: 2.4.1
+    dev: true
+
   /@yarnpkg/lockfile/1.1.0:
     resolution: {integrity: sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==}
     dev: true
@@ -2645,7 +2663,7 @@ packages:
     resolution: {integrity: sha512-KfoYI38XY0PjpPu+LGvRHxg3OFO+5nwbQy/c5FuLR0ipQkXcinS3JbG+de17Mf6QdKnBTcghA7mdrUKs5JbxyA==}
     engines: {node: '>=14.15.0'}
     dependencies:
-      '@yarnpkg/core': 4.0.0-rc.35
+      '@yarnpkg/core': 4.0.0-rc.39
       '@yarnpkg/fslib': 3.0.0-rc.35
       '@yarnpkg/pnp': 4.0.0-rc.35
     dev: true
@@ -2660,6 +2678,14 @@ packages:
 
   /@yarnpkg/parsers/3.0.0-rc.35:
     resolution: {integrity: sha512-J6ySgEdQUqAmlttvZOoXOEsrDTAnHyR/MtEvuAG5a+gwKY/2Cc7xn4CWcpgfuwkp+0a4vXmt2BDwzacDoGDN1g==}
+    engines: {node: '>=14.15.0'}
+    dependencies:
+      js-yaml: 3.14.1
+      tslib: 2.4.1
+    dev: true
+
+  /@yarnpkg/parsers/3.0.0-rc.39:
+    resolution: {integrity: sha512-BsD4zq3EVmaHqlynXTceNuEFAtrfToV4fI9GA54moKlWZL4Eb2eXrhgf1jV2nMYx18SZxYO4Jc5Kf1sCDNRjOg==}
     engines: {node: '>=14.15.0'}
     dependencies:
       js-yaml: 3.14.1
@@ -2706,6 +2732,21 @@ packages:
     dependencies:
       '@yarnpkg/fslib': 3.0.0-rc.35
       '@yarnpkg/parsers': 3.0.0-rc.35
+      chalk: 3.0.0
+      clipanion: 3.2.0-rc.14
+      cross-spawn: 7.0.3
+      fast-glob: 3.2.12
+      micromatch: 4.0.5
+      tslib: 2.4.1
+    dev: true
+
+  /@yarnpkg/shell/4.0.0-rc.39:
+    resolution: {integrity: sha512-ZKBgTE6pxsAbZo1YcKv3gJltulsjlYo9U04qkOHTIOY7lp4tDEGNtrCve4WYlhspLj0pP4tTHsrFbZ+W/juYDg==}
+    engines: {node: '>=14.15.0'}
+    hasBin: true
+    dependencies:
+      '@yarnpkg/fslib': 3.0.0-rc.39
+      '@yarnpkg/parsers': 3.0.0-rc.39
       chalk: 3.0.0
       clipanion: 3.2.0-rc.14
       cross-spawn: 7.0.3
@@ -3488,6 +3529,11 @@ packages:
 
   /ci-info/3.7.1:
     resolution: {integrity: sha512-4jYS4MOAaCIStSRwiuxc4B8MYhIe676yO1sYGzARnjXkWpmzZMMYxY6zu8WYWDhSuth5zhrQ1rhNSibyyvv4/w==}
+    engines: {node: '>=8'}
+    dev: true
+
+  /ci-info/3.8.0:
+    resolution: {integrity: sha512-eXTggHWSooYhq49F2opQhuHWgzucfF2YgODK4e1566GQs5BIfP30B0oenwBJHfWxAs2fyPB1s7Mg949zLf61Yw==}
     engines: {node: '>=8'}
     dev: true
 
@@ -4780,7 +4826,7 @@ packages:
       eslint: '>=8.23.1'
     dependencies:
       '@babel/helper-validator-identifier': 7.19.1
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       clean-regexp: 1.0.0
       eslint: 8.31.0
       eslint-utils: 3.0.0_eslint@8.31.0
@@ -6786,8 +6832,8 @@ packages:
       pkg-up: 4.0.0
     dev: true
 
-  /lionconfig/2.3.1_typescript@4.9.4:
-    resolution: {integrity: sha512-EZU5Ff+jTwOcOLjwqqfIWKqvCdAYp01zhFSeRbyP6O5+KxXp2wYbyBo8C3zCTR4UPOpa+buaeERUL5DW7v1nxg==}
+  /lionconfig/2.3.2_typescript@4.9.4:
+    resolution: {integrity: sha512-5LPBZ51Be8vaKm3jvei0UlRka0fKxVAUEFoAH/go3cdTnnJ4ODTyjuKfM3sKgMveKo5lpiYEqo86oYwrI7aZGw==}
     hasBin: true
     dependencies:
       '@commitlint/cli': 17.4.1_@swc+core@1.3.25
@@ -6855,6 +6901,7 @@ packages:
       rollup: 3.9.1
       rollup-plugin-bundle-esm: 0.1.1
       rollup-plugin-deps-external: 0.2.1
+      rollup-plugin-dts: 5.2.0_esmavzhadgk2idmxtiodxm33ma
       rollup-plugin-esbuild: 5.0.0_vtr6ov4swuchtnh3sw3f2h5tbe
       rollup-plugin-workspace-imports: 0.1.6
       tsc-alias: 1.8.2
@@ -7120,6 +7167,13 @@ packages:
 
   /magic-string/0.27.0:
     resolution: {integrity: sha512-8UnnX2PeRAPZuN12svgR9j7M1uWMovg/CEnIwIG0LFkXSJJe4PdfUGiTGl8V9bsBHFUtfVINcSyYxd7q+kx9fA==}
+    engines: {node: '>=12'}
+    dependencies:
+      '@jridgewell/sourcemap-codec': 1.4.14
+    dev: true
+
+  /magic-string/0.29.0:
+    resolution: {integrity: sha512-WcfidHrDjMY+eLjlU+8OvwREqHwpgCeKVBUpQ3OhYYuvfaYCUgcbuBzappNzZvg/v8onU3oQj+BYpkOJe9Iw4Q==}
     engines: {node: '>=12'}
     dependencies:
       '@jridgewell/sourcemap-codec': 1.4.14
@@ -8965,6 +9019,20 @@ packages:
     dependencies:
       read-pkg: 7.1.0
       resolve: 1.22.1
+    dev: true
+
+  /rollup-plugin-dts/5.2.0_esmavzhadgk2idmxtiodxm33ma:
+    resolution: {integrity: sha512-B68T/haEu2MKcz4kNUhXB8/h5sq4gpplHAJIYNHbh8cp4ZkvzDvNca/11KQdFrB9ZeKucegQIotzo5T0JUtM8w==}
+    engines: {node: '>=v14'}
+    peerDependencies:
+      rollup: ^3.0.0
+      typescript: ^4.1
+    dependencies:
+      magic-string: 0.29.0
+      rollup: 3.9.1
+      typescript: 4.9.4
+    optionalDependencies:
+      '@babel/code-frame': 7.18.6
     dev: true
 
   /rollup-plugin-esbuild/5.0.0_vtr6ov4swuchtnh3sw3f2h5tbe:
