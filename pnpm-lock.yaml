@@ -16,6 +16,7 @@ specifiers:
   '@types/react': ^17.0.52
   '@types/shell-quote': ^1.7.1
   '@types/tcp-port-used': ^1.0.1
+  '@types/which': ^2.0.2
   ansi-align: ^3.0.1
   ansi-center-align: ^1.0.3
   ansi-escapes: ^6.0.0
@@ -82,6 +83,7 @@ specifiers:
   valtio: ^1.10.0
   vitest: ^0.26.3
   wait-port: ^1.0.4
+  which: ^3.0.0
   wrap-ansi: ^8.1.0
   xterm-headless: ^5.1.0
   zod: ^3.20.2
@@ -154,6 +156,7 @@ dependencies:
   use-force-update: 1.0.11_react@17.0.2
   valtio: 1.10.0_react@17.0.2
   wait-port: 1.0.4
+  which: 3.0.0
   wrap-ansi: 8.1.0
   xterm-headless: 5.1.0
   zod: 3.20.2
@@ -170,6 +173,7 @@ devDependencies:
   '@types/react': 17.0.52
   '@types/shell-quote': 1.7.1
   '@types/tcp-port-used': 1.0.1
+  '@types/which': 2.0.2
   lionconfig: 2.3.1_typescript@4.9.4
   typescript: 4.9.4
   vitest: 0.26.3
@@ -2383,6 +2387,10 @@ packages:
 
   /@types/unist/2.0.6:
     resolution: {integrity: sha512-PBjIUxZHOuj0R15/xuwJYjFi+KZdNFrehocChv4g5hu6aFroHue8m0lBP0POdK2nKzbw0cgV1mws8+V/JAcEkQ==}
+    dev: true
+
+  /@types/which/2.0.2:
+    resolution: {integrity: sha512-113D3mDkZDjo+EeUEHCFy0qniNc1ZpecGiAU7WSo7YDoSzolZIQKpYFHrPpjkB2nuyahcKfrmLXeQlh7gqJYdw==}
     dev: true
 
   /@types/yauzl/2.10.0:
@@ -10447,7 +10455,6 @@ packages:
     hasBin: true
     dependencies:
       isexe: 2.0.0
-    dev: true
 
   /wide-align/1.1.5:
     resolution: {integrity: sha512-eDMORYaPNZ4sQIuuYPDHdQvf4gyCF9rEEV/yPxGfwPkRodwEgiMUUXTx/dex+Me0wxx53S+NgUHaP7y3MGlDmg==}

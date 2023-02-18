@@ -12,6 +12,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware'
 import { minimatch } from 'minimatch'
 import { outdent } from 'outdent'
 import invariant from 'tiny-invariant'
+import which from 'which'
 
 import { type LocaldevConfig } from '~/index.js'
 import { cli } from '~/utils/cli.js'
@@ -23,6 +24,33 @@ export async function setupLocalProxy(
 	// eslint-disable-next-line @typescript-eslint/ban-types -- Need to exclude the "boolean" type
 	localProxyOptions: LocaldevConfig['localProxy'] & object
 ) {
+	// If the user is running Linux, we need to make sure that we can listen on port 80
+	const nodePath = await fs.promises.realpath(await which('node'))
+
+	// Try listening on port 80
+	let server: http.Server | undefined
+	try {
+		http.createServer().listen(80)
+	} catch {
+		process.stderr.write(
+			boxen(
+				outdent`
+					Running \`setcap\` to allow Node to listen on lower ports (necessary for the localdev proxy to work). You may be prompted for your administrator password.
+				`,
+				{ margin: 1, padding: 1, borderStyle: 'round' }
+			)
+		)
+		await cli.sudo(['setcap', 'CAP_NET_BIND_SERVICE=+eip', nodePath], {
+			stdio: 'inherit',
+		})
+	} finally {
+		if (server !== undefined) {
+			await new Promise((resolve) => {
+				server!.close(resolve)
+			})
+		}
+	}
+
 	const localDomains = [
 		'localdev.test',
 		...(localProxyOptions.localDomains ?? []),
@@ -258,7 +286,11 @@ export async function setupLocalProxy(
 	} catch {
 		// `https://test.test` could not be resolved; `dnsmasq` is likely not started
 		console.info('Starting dnsmasq...')
-		await cli.sudo(['brew', 'services', 'start', 'dnsmasq'])
+		if (process.platform === 'linux') {
+			await cli.homebrew(['services', 'start', 'dnsmasq'])
+		} else {
+			await cli.sudo(['brew', 'services', 'start', 'dnsmasq'])
+		}
 	}
 }
 
