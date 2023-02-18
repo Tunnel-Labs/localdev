@@ -1,7 +1,7 @@
 {
 	"name": "localdev-tui",
 	"type": "module",
-	"version": "0.1.14",
+	"version": "0.1.15",
 	"description": "A TUI for local development.",
 	"keywords": [
 		"kubernetes",
