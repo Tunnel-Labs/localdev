@@ -41,6 +41,10 @@ export async function createMkcertCerts({
 	const certFileName = 'test-cert.pem'
 	const mkcertCertsDir = await getMkcertCertsDir()
 
+	if (process.platform === 'linux' && !(await cli.mkcert.exists())) {
+		await cli.mkcert.install()
+	}
+
 	await cli.mkcert('-install')
 	await cli.mkcert(
 		['-key-file', keyFileName, '-cert-file', certFileName, ...localDomains],

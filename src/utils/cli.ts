@@ -67,7 +67,27 @@ export const dnsmasq = defineCliTool({
 	},
 })
 
+export const certutil = defineCliTool({
+	commandName: 'certutil',
+	description: outdent`
+		\`certutil\` is needed for installing mkcert's certificates on Linux.
+	`,
+	install: async () => installHomebrewPackage('nss'),
+	async exists() {
+		try {
+			await commandExists('certutil')
+			return true
+		} catch {
+			return false
+		}
+	},
+	defaultExecaOptions: {
+		stdio: 'inherit',
+	},
+})
+
 export const cli = {
+	certutil,
 	mkcert,
 	dnsmasq,
 	sudo,
