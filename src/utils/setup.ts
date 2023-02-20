@@ -237,26 +237,38 @@ export async function setupLocalProxy(
 		await cli.dnsmasq.install()
 	}
 
-	let dnsmasqConfPath: string
-	if (process.platform === 'darwin'){
+	const addressTestLine = 'address=/.test/127.0.0.1'
+	if (process.platform === 'darwin') {
 		const { stdout: brewPrefix } = await cli.homebrew('--prefix')
 		await fs.promises.mkdir(path.join(brewPrefix, 'etc'), { recursive: true })
-		dnsmasqConfPath = path.join(brewPrefix, 'etc/dnsmasq.conf')
-	} else {
-		dnsmasqConfPath = '/etc/dnsmasq.conf'
-	}
+		const dnsmasqConfPath = path.join(brewPrefix, 'etc/dnsmasq.conf')
 
-	const addressTestLine = 'address=/.test/127.0.0.1'
-	if (fs.existsSync(dnsmasqConfPath)) {
-		const dnsmasqConf = await fs.promises.readFile(dnsmasqConfPath, 'utf8')
-		if (!new RegExp(`^${addressTestLine}$`, 'm').test(dnsmasqConf)) {
-			await fs.promises.appendFile(
-				dnsmasqConfPath,
-				'\n' + addressTestLine + '\n'
-			)
+		if (fs.existsSync(dnsmasqConfPath)) {
+			const dnsmasqConf = await fs.promises.readFile(dnsmasqConfPath, 'utf8')
+			if (!new RegExp(`^${addressTestLine}$`, 'm').test(dnsmasqConf)) {
+				await fs.promises.appendFile(
+					dnsmasqConfPath,
+					'\n' + addressTestLine + '\n'
+				)
+			}
+		} else {
+			await fs.promises.writeFile(dnsmasqConfPath, addressTestLine)
 		}
 	} else {
-		await fs.promises.writeFile(dnsmasqConfPath, addressTestLine)
+		const dnsmasqConfPath = '/etc/dnsmasq.conf'
+
+		if (fs.existsSync(dnsmasqConfPath)) {
+			const { stdout: dnsmasqConf } = await cli.sudo(['cat', dnsmasqConfPath])
+			if (!new RegExp(`^${addressTestLine}$`, 'm').test(dnsmasqConf)) {
+				await cli.sudo(['tee', '-a', dnsmasqConfPath], {
+					input: '\n' + addressTestLine + '\n',
+				})
+			}
+		} else {
+			await cli.sudo(['tee', '-a', dnsmasqConfPath], {
+				input: addressTestLine + '\n',
+			})
+		}
 	}
 
 	if (!fs.existsSync('/etc/resolver')) {
