@@ -258,15 +258,23 @@ export async function setupLocalProxy(
 		const dnsmasqConfPath = '/etc/dnsmasq.conf'
 
 		if (fs.existsSync(dnsmasqConfPath)) {
-			const { stdout: dnsmasqConf } = await cli.sudo(['cat', dnsmasqConfPath])
+			const { stdout: dnsmasqConf } = await cli.sudo(['cat', dnsmasqConfPath], {
+				stderr: 'inherit',
+				stdin: 'inherit',
+				stdout: 'pipe',
+			})
 			if (!new RegExp(`^${addressTestLine}$`, 'm').test(dnsmasqConf)) {
 				await cli.sudo(['tee', '-a', dnsmasqConfPath], {
 					input: '\n' + addressTestLine + '\n',
+					stdout: 'ignore',
+					stderr: 'ignore',
 				})
 			}
 		} else {
 			await cli.sudo(['tee', '-a', dnsmasqConfPath], {
 				input: addressTestLine + '\n',
+				stdout: 'ignore',
+				stderr: 'ignore',
 			})
 		}
 	}
