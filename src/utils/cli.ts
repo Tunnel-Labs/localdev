@@ -17,10 +17,7 @@ function sudo(commands: string[], options?: ExecaOptions) {
 		return execa('sudo', commands, options)
 	} else {
 		hasSudoBeenCalled = true
-		return execa('sudo', commands, {
-			stdio: 'inherit',
-			...options,
-		})
+		return execa('sudo', commands, options)
 	}
 }
 
