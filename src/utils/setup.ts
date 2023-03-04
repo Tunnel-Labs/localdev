@@ -306,18 +306,16 @@ export async function setupLocalProxy(
 			https: {
 				rejectUnauthorized: false,
 			},
+			timeout: {
+				lookup: 1000,
+				connect: 1000,
+				secureConnect: 1000,
+			},
 		})
 	} catch {
-		// `https://test.test` could not be resolved; `dnsmasq` is likely not started
-		if (process.platform === 'darwin') {
-			console.info('Starting dnsmasq...')
-			await cli.homebrew(['services', 'start', 'dnsmasq'])
-		} else {
-			process.stderr.write(outdent`
-				\`dnsmasq\` doesn't seem to be running. Make sure you've installed it on your system.
-			`)
-			process.exit(1)
-		}
+		// `https://localdev.test` could not be resolved; `dnsmasq` is likely not started
+		console.info('Starting dnsmasq...')
+		await cli.sudo(['brew', 'services', 'start', 'dnsmasq'])
 	}
 }
 
