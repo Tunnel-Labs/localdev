@@ -301,6 +301,7 @@ export async function setupLocalProxy(
 	}
 
 	try {
+		process.stderr.write(`Connecting to ${chalk.bold('localdev.test')}...\n`)
 		await got.get('https://localdev.test', {
 			https: {
 				rejectUnauthorized: false,
