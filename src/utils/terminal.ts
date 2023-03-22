@@ -440,9 +440,9 @@ export class TerminalUpdater {
 					const prefix =
 						localdevState.logsBoxServiceId === null
 							? // Only add a prefix when there's multiple text
-							`${chalk[getServicePrefixColor(serviceId)](
-								Service.get(serviceId).name
-							)}: `
+							  `${chalk[getServicePrefixColor(serviceId)](
+									Service.get(serviceId).name
+							  )}: `
 							: undefined
 
 					const unwrappedLines = splitLines(text.trimEnd())
@@ -513,7 +513,7 @@ export class TerminalUpdater {
 			overflowedWrappedLogLineIndex <
 			Math.min(
 				localdevState.nextOverflowedWrappedLogLineIndexToOutput +
-				numTerminalRows,
+					numTerminalRows,
 				overflowedWrappedLogLines.length
 			);
 			overflowedWrappedLogLineIndex += 1
@@ -583,7 +583,7 @@ export class TerminalUpdater {
 			// ANSI escape sequences for scroll events (based on experimentation)
 			const isScrollEvent = input.startsWith('\u001B\u005B\u003C\u0036')
 
-			if (logScrollModeState === 'active') {
+			if (!isScrollEvent && logScrollModeState === 'active') {
 				// Re-rendering the previous output onto the terminal
 				const previousLines = this.previousOutput.split('\n')
 				let updateSequence =
