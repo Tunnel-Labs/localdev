@@ -72,6 +72,7 @@ export const localdevConfigSchema = z.object({
 		.default(false),
 
 	commands: z.function().args(z.any()).returns(z.any().array()).optional(),
+	logHistoryLimit: z.number().optional(),
 })
 
 export async function getLocaldevConfigPath(options?: {

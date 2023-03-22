@@ -583,6 +583,7 @@ export class TerminalUpdater {
 			// ANSI escape sequences for scroll events (based on experimentation)
 			const isScrollEvent = input.startsWith('\u001B\u005B\u003C\u0036')
 
+			// Even though we disable mouse capture, it gets called after an `await` so we still need to check if the data received is not a scroll event
 			if (!isScrollEvent && logScrollModeState === 'active') {
 				// Re-rendering the previous output onto the terminal
 				const previousLines = this.previousOutput.split('\n')
