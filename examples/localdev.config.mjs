@@ -13,15 +13,15 @@ export default {
 				port: 3001,
 			},
 			command: {
-				string: 'pnpm --filter=@dialect-inc/dialect-website dev',
-				cwd: '/Users/leondreamed/projects/Dialect-Inc/Dialect-Inc',
+				string: 'pnpm --filter=@tunnel/website dev',
+				cwd: '/Users/leondreamed/projects/Tunnel-Dev/Tunnel',
 			},
 		},
 		'start-docker': {
 			startAutomatically: true,
 			command: {
-				string: 'pnpm --filter=@dialect-inc/development-scripts start-docker',
-				cwd: '/Users/leondreamed/projects/Dialect-Inc/Dialect-Inc',
+				string: 'pnpm --filter=@tunnel/development-scripts docker/start',
+				cwd: '/Users/leondreamed/projects/Tunnel-Dev/Tunnel',
 			},
 			healthCheck: {
 				port: 5432,
