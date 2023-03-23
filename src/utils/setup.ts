@@ -316,7 +316,7 @@ export async function setupLocalProxy(
 		// `https://test.test` could not be resolved; `dnsmasq` is likely not started
 		if (process.platform === 'darwin') {
 			console.info('Starting dnsmasq...')
-			await cli.homebrew(['services', 'start', 'dnsmasq'])
+			await cli.sudo(['brew', 'services', 'start', 'dnsmasq'])
 		} else {
 			process.stderr.write(outdent`
 				\`dnsmasq\` doesn't seem to be running. Make sure you've installed it on your system.\n
