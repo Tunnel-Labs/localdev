@@ -4,6 +4,8 @@ import type { Options as ExecaOptions } from 'execa'
 import { execa } from 'execa'
 import { outdent } from 'outdent'
 
+import { localdevState } from '~/utils/state.js'
+
 let hasSudoBeenCalled = false
 
 /**
@@ -20,6 +22,18 @@ function sudo(commands: string[], options?: ExecaOptions) {
 
 const mkcert = defineCliTool({
 	commandName: 'mkcert',
+	async runCommand(args, options) {
+		const mkcertBinPath =
+			localdevState.localdevConfig.binPaths?.mkcert ?? 'mkcert'
+		return { process: execa(mkcertBinPath, args, options) }
+	},
+	async exists() {
+		const mkcertBinPath =
+			localdevState.localdevConfig.binPaths?.mkcert ?? 'mkcert'
+		return commandExists(mkcertBinPath)
+			.then(() => true)
+			.catch(() => false)
+	},
 	description: outdent`
 		It looks like you don't have \`mkcert\` installed.
 		\`mkcert\` is a tool for creating trusted local
@@ -38,8 +52,16 @@ export const dnsmasq = defineCliTool({
 	description: outdent`
 		\`dnsmasq\` is used for resolving local *.test domains.
 	`,
+	async runCommand(args, options) {
+		const dnsmasqBinPath =
+			localdevState.localdevConfig.binPaths?.dnsmasq ?? 'dnsmasq'
+		// DNS needs sudo permissions
+		return { process: execa('sudo', [dnsmasqBinPath, ...args], options) }
+	},
 	async exists() {
-		return commandExists('dnsmasq')
+		const dnsmasqBinPath =
+			localdevState.localdevConfig.binPaths?.dnsmasq ?? 'dnsmasq'
+		return commandExists(dnsmasqBinPath)
 			.then(() => true)
 			.catch(() => false)
 	},
@@ -53,8 +75,15 @@ export const certutil = defineCliTool({
 	description: outdent`
 		\`certutil\` is needed for installing mkcert's certificates on Linux.
 	`,
+	async runCommand(args, options) {
+		const certutilBinPath =
+			localdevState.localdevConfig.binPaths?.certutil ?? 'certutil'
+		return { process: execa(certutilBinPath, args, options) }
+	},
 	async exists() {
-		return commandExists('dnsmasq')
+		const certutilBinPath =
+			localdevState.localdevConfig.binPaths?.certutil ?? 'certutil'
+		return commandExists(certutilBinPath)
 			.then(() => true)
 			.catch(() => false)
 	},

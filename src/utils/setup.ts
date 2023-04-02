@@ -235,12 +235,29 @@ export async function setupLocalProxy(
 	`
 	const { path: dnsmasqConfPath } = await tmp.file()
 	await fs.promises.writeFile(dnsmasqConfPath, dnsmasqConf)
-	await cli.dnsmasq(['--keep-in-foreground', '-C', dnsmasqConfPath])
+
+	process.stderr.write(
+		boxen(
+			outdent({ trimTrailingNewline: false })`
+				Running dnsmasq to proxy *.test domains to localhost.
+
+				${chalk.italic('You may be prompted for your administrator password.')}
+			`,
+			{ padding: 1, borderStyle: 'round' }
+		)
+	)
+
+	cli
+		.dnsmasq(['--keep-in-foreground', '-C', dnsmasqConfPath])
+		.catch((error) => {
+			console.error('dnsmasq failed with error:', error)
+			process.exit(1)
+		})
 
 	if (!fs.existsSync('/etc/resolver')) {
 		process.stderr.write(
 			boxen(
-				outdent`
+				outdent({ trimTrailingNewline: false })`
 					To resolve *.test domains, localdev needs sudo permissions
 					to create a resolver file at \`/etc/resolver/test\`.
 

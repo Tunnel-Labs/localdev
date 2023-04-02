@@ -73,6 +73,13 @@ export const localdevConfigSchema = z.object({
 
 	commands: z.function().args(z.any()).returns(z.any().array()).optional(),
 	logHistoryLimit: z.number().optional(),
+	binPaths: z
+		.object({
+			dnsmasq: z.string().optional(),
+			certutil: z.string().optional(),
+			mkcert: z.string().optional(),
+		})
+		.optional(),
 })
 
 export async function getLocaldevConfigPath(options?: {
