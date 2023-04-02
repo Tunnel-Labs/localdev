@@ -12,6 +12,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware'
 import { minimatch } from 'minimatch'
 import { outdent } from 'outdent'
 import invariant from 'tiny-invariant'
+import tmp from 'tmp-promise'
 import which from 'which'
 
 import { type LocaldevConfig } from '~/index.js'
@@ -229,55 +230,12 @@ export async function setupLocalProxy(
 
 	await Promise.all([createHttpServer(), createHttpsServer()])
 
-	/**
-		Set up dnsmasq so you can visit local `*.test` domains
-		@see https://gist.github.com/ogrrd/5831371
-	*/
-	if (!(await cli.dnsmasq.exists())) {
-		await cli.dnsmasq.install()
-	}
-
-	const addressTestLine = 'address=/.test/127.0.0.1'
-	if (process.platform === 'darwin') {
-		const { stdout: brewPrefix } = await cli.homebrew('--prefix')
-		await fs.promises.mkdir(path.join(brewPrefix, 'etc'), { recursive: true })
-		const dnsmasqConfPath = path.join(brewPrefix, 'etc/dnsmasq.conf')
-
-		if (fs.existsSync(dnsmasqConfPath)) {
-			const dnsmasqConf = await fs.promises.readFile(dnsmasqConfPath, 'utf8')
-			if (!new RegExp(`^${addressTestLine}$`, 'm').test(dnsmasqConf)) {
-				await fs.promises.appendFile(
-					dnsmasqConfPath,
-					'\n' + addressTestLine + '\n'
-				)
-			}
-		} else {
-			await fs.promises.writeFile(dnsmasqConfPath, addressTestLine)
-		}
-	} else {
-		const dnsmasqConfPath = '/etc/dnsmasq.conf'
-
-		if (fs.existsSync(dnsmasqConfPath)) {
-			const { stdout: dnsmasqConf } = await cli.sudo(['cat', dnsmasqConfPath], {
-				stderr: 'inherit',
-				stdin: 'inherit',
-				stdout: 'pipe',
-			})
-			if (!new RegExp(`^${addressTestLine}$`, 'm').test(dnsmasqConf)) {
-				await cli.sudo(['tee', '-a', dnsmasqConfPath], {
-					input: '\n' + addressTestLine + '\n',
-					stdout: 'ignore',
-					stderr: 'ignore',
-				})
-			}
-		} else {
-			await cli.sudo(['tee', '-a', dnsmasqConfPath], {
-				input: addressTestLine + '\n',
-				stdout: 'ignore',
-				stderr: 'ignore',
-			})
-		}
-	}
+	const dnsmasqConf = outdent`
+		address=/.test/127.0.0.1
+	`
+	const { path: dnsmasqConfPath } = await tmp.file()
+	await fs.promises.writeFile(dnsmasqConfPath, dnsmasqConf)
+	await cli.dnsmasq(['--keep-in-foreground', '-C', dnsmasqConfPath])
 
 	if (!fs.existsSync('/etc/resolver')) {
 		process.stderr.write(
@@ -291,10 +249,9 @@ export async function setupLocalProxy(
 				{ padding: 1, borderStyle: 'round' }
 			)
 		)
-		await cli.homebrew('services start dnsmasq')
 		await cli.sudo(['mkdir', '/etc/resolver'])
 		await cli.sudo([
-			'bash',
+			'sh',
 			'-c',
 			'echo "nameserver 127.0.0.1" > /etc/resolver/test',
 		])

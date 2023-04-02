@@ -1,7 +1,4 @@
-import fs from 'node:fs'
-import path from 'node:path'
-
-import { defineCliTool, homebrew, installHomebrewPackage } from 'cli-specs'
+import { defineCliTool } from 'cli-specs'
 import commandExists from 'command-exists'
 import type { Options as ExecaOptions } from 'execa'
 import { execa } from 'execa'
@@ -30,7 +27,6 @@ const mkcert = defineCliTool({
 		To install \`mkcert\`, please visit the following link:
 		https://github.com/FiloSottile/mkcert#installation
 	`,
-	install: async () => installHomebrewPackage('mkcert'),
 	defaultExecaOptions: {
 		stdout: 'pipe',
 		stderr: 'pipe',
@@ -42,22 +38,10 @@ export const dnsmasq = defineCliTool({
 	description: outdent`
 		\`dnsmasq\` is used for resolving local *.test domains.
 	`,
-	install: async () => installHomebrewPackage('dnsmasq'),
 	async exists() {
-		try {
-			await commandExists('dnsmasq')
-			return true
-		} catch {}
-
-		const { stdout: homebrewPrefix } = await homebrew(['--prefix'])
-		const possibleDnsmasqPaths = [
-			'/usr/local/sbin/dnsmasq',
-			path.join(homebrewPrefix, 'sbin/dnsmasq'),
-		]
-
-		return possibleDnsmasqPaths.some((possibleDnsmasqPath) =>
-			fs.existsSync(possibleDnsmasqPath)
-		)
+		return commandExists('dnsmasq')
+			.then(() => true)
+			.catch(() => false)
 	},
 	defaultExecaOptions: {
 		stdio: 'inherit',
@@ -69,14 +53,10 @@ export const certutil = defineCliTool({
 	description: outdent`
 		\`certutil\` is needed for installing mkcert's certificates on Linux.
 	`,
-	install: async () => installHomebrewPackage('nss'),
 	async exists() {
-		try {
-			await commandExists('certutil')
-			return true
-		} catch {
-			return false
-		}
+		return commandExists('dnsmasq')
+			.then(() => true)
+			.catch(() => false)
 	},
 	defaultExecaOptions: {
 		stdio: 'inherit',
@@ -88,5 +68,4 @@ export const cli = {
 	mkcert,
 	dnsmasq,
 	sudo,
-	homebrew,
 }
