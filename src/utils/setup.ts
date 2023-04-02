@@ -10,6 +10,7 @@ import { got } from 'got'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import { minimatch } from 'minimatch'
 import { outdent } from 'outdent'
+import pRetry from 'p-retry'
 import invariant from 'tiny-invariant'
 import tmp from 'tmp-promise'
 import which from 'which'
@@ -19,7 +20,6 @@ import { cli } from '~/utils/cli.js'
 import { createMkcertCerts } from '~/utils/mkcert.js'
 import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/state.js'
-import pRetry from 'p-retry'
 
 export async function setupLocalProxy(
 	// eslint-disable-next-line @typescript-eslint/ban-types -- Need to exclude the "boolean" type
@@ -36,7 +36,7 @@ export async function setupLocalProxy(
 					Running \`setcap\` to allow Node to listen on lower ports (necessary for the localdev proxy to work). You may be prompted for your administrator password.
 				`,
 				{ margin: 1, padding: 1, borderStyle: 'round' }
-			)
+			) + '\n'
 		)
 		const nodePath = await fs.promises.realpath(await which('node'))
 		await cli.sudo(['setcap', 'CAP_NET_BIND_SERVICE=+eip', nodePath], {
@@ -238,26 +238,26 @@ export async function setupLocalProxy(
 
 	process.stderr.write(
 		boxen(
-			outdent({ trimTrailingNewline: false })`
+			outdent`
 				Running dnsmasq to proxy *.test domains to localhost.
 
 				${chalk.italic('You may be prompted for your administrator password.')}
 			`,
 			{ padding: 1, borderStyle: 'round' }
-		)
+		) + '\n'
 	)
 
 	if (!fs.existsSync('/etc/resolver')) {
 		process.stderr.write(
 			boxen(
-				outdent({ trimTrailingNewline: false })`
+				outdent`
 					To resolve *.test domains, localdev needs sudo permissions
 					to create a resolver file at \`/etc/resolver/test\`.
 
 					${chalk.italic('You may be prompted for your administrator password.')}
 				`,
 				{ padding: 1, borderStyle: 'round' }
-			)
+			) + '\n'
 		)
 		await cli.sudo(['mkdir', '/etc/resolver'])
 		await cli.sudo([
@@ -289,18 +289,21 @@ export async function setupLocalProxy(
 			})
 
 		try {
-			await pRetry(async () => {
-				await got.get('https://localdev.test', {
-					https: {
-						rejectUnauthorized: false,
-					},
-					timeout: {
-						lookup: 1000,
-						connect: 1000,
-						secureConnect: 1000,
-					},
-				})
-			}, { retries: 5 })
+			await pRetry(
+				async () => {
+					await got.get('https://localdev.test', {
+						https: {
+							rejectUnauthorized: false,
+						},
+						timeout: {
+							lookup: 1000,
+							connect: 1000,
+							secureConnect: 1000,
+						},
+					})
+				},
+				{ retries: 5 }
+			)
 		} catch {
 			process.stderr.write('Failed to connect to localdev.test')
 		}
