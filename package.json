@@ -80,6 +80,7 @@
 		"open": "^8.4.0",
 		"outdent": "^0.8.0",
 		"p-queue": "^7.3.0",
+		"p-retry": "^5.1.2",
 		"p-throttle": "^5.0.0",
 		"p-wait-for": "^5.0.0",
 		"patch-console": "^2.0.0",

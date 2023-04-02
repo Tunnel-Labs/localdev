@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import http from 'node:http'
 import https from 'node:https'
-import path from 'node:path'
 
 import fastifyExpress from '@fastify/express'
 import boxen from 'boxen'
@@ -20,6 +19,7 @@ import { cli } from '~/utils/cli.js'
 import { createMkcertCerts } from '~/utils/mkcert.js'
 import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/state.js'
+import pRetry from 'p-retry'
 
 export async function setupLocalProxy(
 	// eslint-disable-next-line @typescript-eslint/ban-types -- Need to exclude the "boolean" type
@@ -280,18 +280,29 @@ export async function setupLocalProxy(
 			},
 		})
 	} catch {
-		// `https://test.test` could not be resolved; `dnsmasq` is likely not started
-		if (process.platform === 'darwin') {
-			console.info('Starting dnsmasq...')
-			cli
-				.dnsmasq(['--keep-in-foreground', '-C', dnsmasqConfPath])
-				.catch((error) => {
-					console.error('dnsmasq failed with error:', error)
+		// `https://localdev.test` could not be resolved; `dnsmasq` is likely not started
+		console.info('Starting dnsmasq...')
+		cli
+			.dnsmasq(['--keep-in-foreground', '-C', dnsmasqConfPath])
+			.catch((error) => {
+				console.error('dnsmasq failed with error:', error)
+			})
+
+		try {
+			await pRetry(async () => {
+				await got.get('https://localdev.test', {
+					https: {
+						rejectUnauthorized: false,
+					},
+					timeout: {
+						lookup: 1000,
+						connect: 1000,
+						secureConnect: 1000,
+					},
 				})
-			process.stderr.write(outdent`
-				\`dnsmasq\` doesn't seem to be running. Make sure you've installed it on your system.\n
-			`)
-			process.exit(1)
+			}, { retries: 5 })
+		} catch {
+			process.stderr.write('Failed to connect to localdev.test')
 		}
 	}
 }
