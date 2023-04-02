@@ -247,13 +247,6 @@ export async function setupLocalProxy(
 		)
 	)
 
-	cli
-		.dnsmasq(['--keep-in-foreground', '-C', dnsmasqConfPath])
-		.catch((error) => {
-			console.error('dnsmasq failed with error:', error)
-			process.exit(1)
-		})
-
 	if (!fs.existsSync('/etc/resolver')) {
 		process.stderr.write(
 			boxen(
@@ -290,8 +283,11 @@ export async function setupLocalProxy(
 		// `https://test.test` could not be resolved; `dnsmasq` is likely not started
 		if (process.platform === 'darwin') {
 			console.info('Starting dnsmasq...')
-			await cli.sudo(['brew', 'services', 'start', 'dnsmasq'])
-		} else {
+			cli
+				.dnsmasq(['--keep-in-foreground', '-C', dnsmasqConfPath])
+				.catch((error) => {
+					console.error('dnsmasq failed with error:', error)
+				})
 			process.stderr.write(outdent`
 				\`dnsmasq\` doesn't seem to be running. Make sure you've installed it on your system.\n
 			`)
