@@ -118,6 +118,9 @@ dependencies:
   nanoid-nice:
     specifier: ^1.0.6
     version: 1.0.6
+  node-powershell:
+    specifier: ^5.0.1
+    version: 5.0.1
   node-pty:
     specifier: ^0.10.1
     version: 0.10.1
@@ -3226,6 +3229,13 @@ packages:
       negotiator: 0.6.3
     dev: false
 
+  /accumulate-stream@5.0.0:
+    resolution: {integrity: sha512-a1pAtAy+LFCAQ6EpAwDeHERf99nadIXa8UApaddabeF18IsL8cD67WL67E/cRJf4EkZyR9z4F+9g+OCl3Cqi4w==}
+    dependencies:
+      bytes: 3.1.2
+      ms: 2.1.3
+    dev: false
+
   /acorn-jsx@5.3.2(acorn@8.8.2):
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
     peerDependencies:
@@ -3926,6 +3936,20 @@ packages:
   /check-error@1.0.2:
     resolution: {integrity: sha512-BrgHpW9NURQgzoNyjfq0Wu6VFO6D7IZEmJNdtgNqpzGG8RuNFHt2jQxWlAs4HMe119chBnv+34syEZtc6IhLtA==}
     dev: true
+
+  /child-shell@5.0.0:
+    resolution: {integrity: sha512-mNki2AmChI8IQM+MQlbh1/+wuqWtosqMrWRv3+RVY19M2IX0cOlGCfaC6DXRgqwnLASsFsZcvUhSJoOVc12mHQ==}
+    dependencies:
+      accumulate-stream: 5.0.0
+      debug: 4.3.4
+      kind-of: 6.0.3
+      nanoid: 3.3.4
+      p-queue: 6.6.2
+      p-timeout: 4.1.0
+      trim-buffer: 5.0.0
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
 
   /chokidar@3.5.3:
     resolution: {integrity: sha512-Dr3sfKRP6oTcjf2JmUmFJfeVMvXBdegxB0iVQ5eb2V10uFJUCAS8OByZdVAyVb8xXNz3GjjTgj9kLWsZTqE6kw==}
@@ -7106,7 +7130,6 @@ packages:
   /kind-of@6.0.3:
     resolution: {integrity: sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==}
     engines: {node: '>=0.10.0'}
-    dev: true
 
   /klaw-sync@6.0.0:
     resolution: {integrity: sha512-nIeuVSzdCCs6TDPTqI8w1Yre34sSq7AkZ4B3sfOBbI2CgVSB4Du4aLQijFU2+lhAFCwt9+42Hel6lQNIv6AntQ==}
@@ -8016,7 +8039,6 @@ packages:
     resolution: {integrity: sha512-MqBkQh/OHTS2egovRtLk45wEyNXwF+cokD+1YPf9u5VfJiRdAiRwB2froX5Co9Rh20xs4siNPm8naNotSD6RBw==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
-    dev: true
 
   /nanoid@4.0.0:
     resolution: {integrity: sha512-IgBP8piMxe/gf73RTQx7hmnhwz0aaEXYakvqZyE302IXW3HyVNhdNGC+O2MwMAVhLEnvXlvKtGbtJf6wvHihCg==}
@@ -8092,6 +8114,15 @@ packages:
       - bluebird
       - supports-color
     dev: true
+
+  /node-powershell@5.0.1:
+    resolution: {integrity: sha512-3Dcr0jTmwS9vGMTBgVmmGSTNw9byWT4djNYQF4BqI54DAX0GiW5oPPUPgChLimoIG0Eu0QgkUFSMq+xtT5xUsQ==}
+    dependencies:
+      child-shell: 5.0.0
+      is-wsl: 2.2.0
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
 
   /node-pty@0.10.1:
     resolution: {integrity: sha512-JTdtUS0Im/yRsWJSx7yiW9rtpfmxqxolrtnyKwPLI+6XqTAPW/O2MjS8FYL4I5TsMbH2lVgDb2VMjp+9LoQGNg==}
@@ -8437,7 +8468,6 @@ packages:
   /p-finally@1.0.0:
     resolution: {integrity: sha512-LICb2p9CB7FS+0eR1oqWnHhp0FljGLZCWBE9aix0Uye9W8LTQPwMTYVGWQWIw9RdQiDg4+epXQODwIYJtSJaow==}
     engines: {node: '>=4'}
-    dev: true
 
   /p-limit@2.3.0:
     resolution: {integrity: sha512-//88mFWSJx8lxCzwdAABTJL2MyWB12+eIY7MDL2SqLmAkeKU9qxRvWuSyTjm3FUmpBEMuFfckAIqEaVGUDxb6w==}
@@ -8539,7 +8569,6 @@ packages:
     dependencies:
       eventemitter3: 4.0.7
       p-timeout: 3.2.0
-    dev: true
 
   /p-queue@7.3.0:
     resolution: {integrity: sha512-5fP+yVQ0qp0rEfZoDTlP2c3RYBgxvRsw30qO+VtPPc95lyvSG+x6USSh1TuLB4n96IO6I8/oXQGsTgtna4q2nQ==}
@@ -8580,7 +8609,11 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       p-finally: 1.0.0
-    dev: true
+
+  /p-timeout@4.1.0:
+    resolution: {integrity: sha512-+/wmHtzJuWii1sXn3HCuH/FTwGhrp4tmJTxSKJbfS+vkipci6osxXM5mY0jUiRzWKMTgUT8l7HFbeSwZAynqHw==}
+    engines: {node: '>=10'}
+    dev: false
 
   /p-timeout@5.1.0:
     resolution: {integrity: sha512-auFDyzzzGZZZdHz3BtET9VEz0SE/uMEAx7uWfGPucfzEwwe/xH0iVeZibQmANYE/hp9T2+UUZT5m+BKyrDp3Ew==}
@@ -10328,6 +10361,10 @@ packages:
     resolution: {integrity: sha512-1m4RA7xVAJrSGrrXGs0L3YTwyvBs2S8PbRHaLZAkFw7JR8oIFwYtysxlBZhYIa7xSyiYJKZ3iGrrk55cGA3i9A==}
     engines: {node: '>=0.6'}
     dev: true
+
+  /trim-buffer@5.0.0:
+    resolution: {integrity: sha512-PqdsRmhir3lUwraK/O6sdZ9QcmtUK0c6F1utX/WNquJsL4Jpdck+DSe9Mqy8Wk7uAQD/SlVn6cyGF5bj6VF33Q==}
+    dev: false
 
   /trim-newlines@3.0.1:
     resolution: {integrity: sha512-c1PTsA3tYrIsLGkJkzHF+w9F2EyxfXGo4UyJc4pFL++FMjnq0HJS69T3M7d//gKrFKwy429bouPescbjecU+Zw==}

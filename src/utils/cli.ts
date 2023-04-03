@@ -47,21 +47,21 @@ const mkcert = defineCliTool({
 	},
 })
 
-export const dnsmasq = defineCliTool({
-	commandName: 'dnsmasq',
+export const coredns = defineCliTool({
+	commandName: 'coredns',
 	description: outdent`
-		\`dnsmasq\` is used for resolving local *.test domains.
+		\`coredns\` is used for resolving local *.test domains.
 	`,
 	async runCommand(args, options) {
-		const dnsmasqBinPath =
-			localdevState.localdevConfig.binPaths?.dnsmasq ?? 'dnsmasq'
+		const corednsBinPath =
+			localdevState.localdevConfig.binPaths?.coredns ?? 'coredns'
 		// DNS needs sudo permissions
-		return { process: execa('sudo', [dnsmasqBinPath, ...args], options) }
+		return { process: execa('sudo', [corednsBinPath, ...args], options) }
 	},
 	async exists() {
-		const dnsmasqBinPath =
-			localdevState.localdevConfig.binPaths?.dnsmasq ?? 'dnsmasq'
-		return commandExists(dnsmasqBinPath)
+		const corednsBinPath =
+			localdevState.localdevConfig.binPaths?.coredns ?? 'coredns'
+		return commandExists(corednsBinPath)
 			.then(() => true)
 			.catch(() => false)
 	},
@@ -95,6 +95,6 @@ export const certutil = defineCliTool({
 export const cli = {
 	certutil,
 	mkcert,
-	dnsmasq,
+	coredns,
 	sudo,
 }

@@ -75,7 +75,7 @@ export const localdevConfigSchema = z.object({
 	logHistoryLimit: z.number().optional(),
 	binPaths: z
 		.object({
-			dnsmasq: z.string().optional(),
+			coredns: z.string().optional(),
 			certutil: z.string().optional(),
 			mkcert: z.string().optional(),
 		})

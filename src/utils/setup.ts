@@ -18,6 +18,7 @@ import which from 'which'
 import { type LocaldevConfig } from '~/index.js'
 import { cli } from '~/utils/cli.js'
 import { createMkcertCerts } from '~/utils/mkcert.js'
+import { runPowershellScriptAsAdmininstrator } from '~/utils/powershell.js'
 import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/state.js'
 
@@ -230,24 +231,36 @@ export async function setupLocalProxy(
 
 	await Promise.all([createHttpServer(), createHttpsServer()])
 
-	const dnsmasqConf = outdent`
-		address=/.test/127.0.0.1
+	const corefile = outdent`
+		.:53 {
+			forward . 8.8.8.8 9.9.9.9
+			log
+			errors
+		}
+
+		test:53 {
+			template ANY ANY {
+				answer "{{ .Name }} 60 IN A 127.0.0.1"
+			}
+		}
 	`
-	const { path: dnsmasqConfPath } = await tmp.file()
-	await fs.promises.writeFile(dnsmasqConfPath, dnsmasqConf)
+	const { path: corefilePath } = await tmp.file()
+	await fs.promises.writeFile(corefilePath, corefile)
 
 	process.stderr.write(
 		boxen(
 			outdent`
-				Running dnsmasq to proxy *.test domains to localhost.
+				Running coredns to proxy *.test domains to localhost.
 
 				${chalk.italic('You may be prompted for your administrator password.')}
 			`,
 			{ padding: 1, borderStyle: 'round' }
 		) + '\n'
 	)
-
-	if (!fs.existsSync('/etc/resolver')) {
+	/**
+		@see https://minikube.sigs.k8s.io/docs/handbook/addons/ingress-dns/
+	*/
+	if (process.platform === 'darwin' && !fs.existsSync('/etc/resolver')) {
 		process.stderr.write(
 			boxen(
 				outdent`
@@ -265,6 +278,33 @@ export async function setupLocalProxy(
 			'-c',
 			'echo "nameserver 127.0.0.1" > /etc/resolver/test',
 		])
+	} else if (process.platform === 'linux') {
+		const resolvConfDBasePath = '/etc/resolvconf/resolv.conf.d/base'
+		process.stderr.write(
+			boxen(
+				outdent`
+					To resolve *.test domains, localdev needs sudo permissions
+					to create a resolver file at \`${resolvConfDBasePath}\`.
+
+					${chalk.italic('You may be prompted for your administrator password.')}
+				`,
+				{ padding: 1, borderStyle: 'round' }
+			) + '\n'
+		)
+		await cli.sudo(['mkdir', '-p', '/etc/resolvconf/resolv.conf.d'])
+		await cli.sudo([
+			'sh',
+			'-c',
+			`echo "search test\nnameserver 127.0.0.1" > ${resolvConfDBasePath}`,
+		])
+	} else if (process.platform === 'win32') {
+		/**
+			@see https://stackoverflow.com/a/66335530/19461620
+		*/
+
+		await runPowershellScriptAsAdmininstrator(
+			`Get-DnsClientNrptRule | Where-Object {$_.Namespace -eq '.test'} | Remove-DnsClientNrptRule -Force; Add-DnsClientNrptRule -Namespace ".test" -NameServers "127.0.0.1"`
+		)
 	}
 
 	try {
@@ -280,13 +320,11 @@ export async function setupLocalProxy(
 			},
 		})
 	} catch {
-		// `https://localdev.test` could not be resolved; `dnsmasq` is likely not started
-		console.info('Starting dnsmasq...')
-		cli
-			.dnsmasq(['--keep-in-foreground', '-C', dnsmasqConfPath])
-			.catch((error) => {
-				console.error('dnsmasq failed with error:', error)
-			})
+		// `https://localdev.test` could not be resolved; `coredns` is likely not started
+		console.info('Starting coredns...')
+		cli.coredns(['-conf', corefilePath, '-dns.port', '53']).catch((error) => {
+			console.error('coredns failed with error:', error)
+		})
 
 		try {
 			await pRetry(

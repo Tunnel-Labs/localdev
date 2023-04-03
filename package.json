@@ -75,6 +75,7 @@
 		"minimatch": "^6.1.6",
 		"minimist": "^1.2.7",
 		"nanoid-nice": "^1.0.6",
+		"node-powershell": "^5.0.1",
 		"node-pty": "^0.10.1",
 		"onetime": "^6.0.0",
 		"open": "^8.4.0",
