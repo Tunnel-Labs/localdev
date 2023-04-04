@@ -5,7 +5,6 @@ import https from 'node:https'
 import fastifyExpress from '@fastify/express'
 import boxen from 'boxen'
 import chalk from 'chalk'
-import exitHook from 'exit-hook'
 import { fastify } from 'fastify'
 import { got } from 'got'
 import { createProxyMiddleware } from 'http-proxy-middleware'
@@ -30,6 +29,7 @@ export async function setupLocalProxy(
 	// We need to make sure that we can listen on port 80
 	let server: http.Server | undefined
 
+	let listenOnRootPort: boolean
 	try {
 		await new Promise<void>((resolve, reject) => {
 			server = http.createServer()
@@ -37,10 +37,13 @@ export async function setupLocalProxy(
 			server.on('error', reject)
 			server.on('listening', resolve)
 		})
+		listenOnRootPort = true
 	} catch (error) {
 		if ((error as any).code !== 'EACCES') {
 			throw error
 		}
+
+		listenOnRootPort = false
 
 		// The process does not have permission to listen on port 80
 		if (process.platform === 'linux') {
@@ -199,8 +202,10 @@ export async function setupLocalProxy(
 		await httpProxyApp.register(fastifyExpress)
 		void httpProxyApp.use(httpProxy)
 		await httpProxyApp.ready()
-		// We listen on port 80 with Node's http server because listening on port 80 with fastify requires root privileges
-		httpServer.listen(80)
+		if (listenOnRootPort) {
+			// We listen on port 80 with Node's http server because listening on port 80 with fastify requires root privileges
+			httpServer.listen(80)
+		}
 	}
 
 	async function createHttpsServer() {
@@ -263,8 +268,11 @@ export async function setupLocalProxy(
 		await httpsProxyApp.register(fastifyExpress)
 		void httpsProxyApp.use(httpsProxy)
 		await httpsProxyApp.ready()
-		// We listen on port 443 with Node's http server because listening on port 443 with fastify requires root privileges
-		httpsServer.listen(443)
+
+		if (listenOnRootPort) {
+			// We listen on port 443 with Node's http server because listening on port 443 with fastify requires root privileges
+			httpsServer.listen(443)
+		}
 	}
 
 	await Promise.all([createHttpServer(), createHttpsServer()])
