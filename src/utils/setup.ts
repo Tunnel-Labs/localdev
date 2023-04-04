@@ -36,19 +36,49 @@ export async function setupLocalProxy(
 			server.on('error', reject)
 			server.on('listening', resolve)
 		})
-	} catch {
-		process.stderr.write(
-			boxen(
-				outdent`
-					Running \`setcap\` to allow Node to listen on lower ports (necessary for the localdev proxy to work). You may be prompted for your administrator password.
-				`,
-				{ margin: 1, padding: 1, borderStyle: 'round' }
-			) + '\n'
-		)
-		const nodePath = await fs.promises.realpath(await which('node'))
-		await cli.sudo(['setcap', 'CAP_NET_BIND_SERVICE=+eip', nodePath], {
-			stdio: 'inherit',
-		})
+	} catch (error) {
+		if ((error as any).code !== 'EACCES') {
+			throw error
+		}
+
+		// The process does not have permission to listen on port 80
+		if (process.platform === 'linux') {
+			process.stderr.write(
+				boxen(
+					outdent`
+						Running \`iptables\` to forward port 80 and 443 to the localdev proxy port (${localProxyOptions.port})...
+					`,
+					{ margin: 1, padding: 1, borderStyle: 'round' }
+				) + '\n'
+			)
+
+			for (const port of [80, 443]) {
+				// eslint-disable-next-line no-await-in-loop -- need sudo access in order
+				await cli.sudo(
+					[
+						'iptables',
+						'-t',
+						'nat',
+						'-A',
+						'OUTPUT',
+						'-o',
+						'lo',
+						'-p',
+						'tcp',
+						'--dport',
+						port.toString(),
+						'REDIRECT',
+						'--to-port',
+						localProxyOptions.port.toString(),
+					],
+					{
+						stdio: 'inherit',
+					}
+				)
+			}
+		} else {
+			throw new Error('Could not attach listener on port 80')
+		}
 	} finally {
 		if (server !== undefined) {
 			await new Promise((resolve) => {
