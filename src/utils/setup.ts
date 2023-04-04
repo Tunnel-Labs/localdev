@@ -116,6 +116,13 @@ export async function setupLocalProxy(
 		},
 	})
 
+	const testHttpServer = http.createServer((_req, res) => {
+		res.writeHead(200, { 'Content-Type': 'text/plain' })
+		res.end('OK')
+	})
+	const testHttpServerPort = 7358
+	testHttpServer.listen(testHttpServerPort)
+
 	async function createHttpServer() {
 		const httpProxy = createProxyMiddleware({
 			secure: false,
@@ -125,12 +132,12 @@ export async function setupLocalProxy(
 			target: null!,
 			router(req) {
 				if (req.hostname === 'localdev.test') {
-					return `http://localhost:${localProxyOptions.port}`
+					return `http://localhost:${testHttpServerPort}`
 				}
 
 				return (
 					localProxyOptions.proxyRouter?.(req) ??
-					`http://localhost:${localProxyOptions.port}`
+					`http://localhost:${testHttpServerPort}`
 				)
 			},
 		})
@@ -211,12 +218,12 @@ export async function setupLocalProxy(
 			target: null!,
 			router(req) {
 				if (req.hostname === 'localdev.test') {
-					return `http://localhost:${localProxyOptions.port}`
+					return `http://localhost:${testHttpServerPort}`
 				}
 
 				return (
 					localProxyOptions.proxyRouter?.(req) ??
-					`http://localhost:${localProxyOptions.port}`
+					`http://localhost:${testHttpServerPort}`
 				)
 			},
 		})
