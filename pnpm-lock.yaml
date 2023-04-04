@@ -91,6 +91,9 @@ dependencies:
   inquirer-autocomplete-prompt:
     specifier: ^3.0.0
     version: 3.0.0(inquirer@9.1.4)
+  is-port-reachable:
+    specifier: ^4.0.0
+    version: 4.0.0
   js-jsonl:
     specifier: ^1.1.1
     version: 1.1.1
@@ -6821,6 +6824,11 @@ packages:
   /is-plain-obj@3.0.0:
     resolution: {integrity: sha512-gwsOE28k+23GP1B6vFl1oVh/WOzmawBrKwo5Ev6wMKzPkaXaCDIQKzLnvsA42DRlbVTWorkgTKIviAKCWkfUwA==}
     engines: {node: '>=10'}
+    dev: false
+
+  /is-port-reachable@4.0.0:
+    resolution: {integrity: sha512-9UoipoxYmSk6Xy7QFgRv2HDyaysmgSG75TFQs6S+3pDM7ZhKTF/bskZV+0UlABHzKjNVhPjYCLfeZUEg1wXxig==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dev: false
 
   /is-proto-prop@2.0.0:

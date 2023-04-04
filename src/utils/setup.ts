@@ -5,15 +5,16 @@ import https from 'node:https'
 import fastifyExpress from '@fastify/express'
 import boxen from 'boxen'
 import chalk from 'chalk'
+import exitHook from 'exit-hook'
 import { fastify } from 'fastify'
 import { got } from 'got'
 import { createProxyMiddleware } from 'http-proxy-middleware'
+import isPortReachable from 'is-port-reachable'
 import { minimatch } from 'minimatch'
 import { outdent } from 'outdent'
 import pRetry from 'p-retry'
 import invariant from 'tiny-invariant'
 import tmp from 'tmp-promise'
-import which from 'which'
 
 import { type LocaldevConfig } from '~/index.js'
 import { cli } from '~/utils/cli.js'
@@ -359,9 +360,26 @@ export async function setupLocalProxy(
 	} catch {
 		// `https://localdev.test` could not be resolved; `coredns` is likely not started
 		console.info('Starting coredns...')
-		cli.coredns(['-conf', corefilePath, '-dns.port', '53']).catch((error) => {
-			console.error('coredns failed with error:', error)
-		})
+		if (
+			process.platform === 'linux' && // On Linux, port 53 might already be taken by systemd-resolved, se we need to stop it before listening on port 53 using coredns
+			(await isPortReachable(53, { host: '127.0.0.1' }))
+		) {
+			try {
+				await cli.sudo(['systemctl', 'stop', 'systemd-resolved'])
+			} catch {
+				// noop in case the user doesn't have systemctl
+			}
+		}
+
+		cli
+			.coredns(['-conf', corefilePath, '-dns.port', '53'])
+			.then(() =>
+				// Once coredns is listening, we restart systemd-resolved so that it auto-starts when localdev exits
+				cli.sudo(['systemctl', 'stop', 'systemd-resolved'])
+			)
+			.catch((error) => {
+				console.error('coredns failed with error:', error)
+			})
 
 		try {
 			await pRetry(
@@ -377,7 +395,7 @@ export async function setupLocalProxy(
 						},
 					})
 				},
-				{ retries: 5 }
+				{ retries: 3 }
 			)
 		} catch {
 			process.stderr.write('Failed to connect to localdev.test')
