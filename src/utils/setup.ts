@@ -67,6 +67,7 @@ export async function setupLocalProxy(
 						'tcp',
 						'--dport',
 						port.toString(),
+						'-j',
 						'REDIRECT',
 						'--to-port',
 						localProxyOptions.port.toString(),
