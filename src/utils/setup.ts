@@ -28,8 +28,14 @@ export async function setupLocalProxy(
 ) {
 	// We need to make sure that we can listen on port 80
 	let server: http.Server | undefined
+
 	try {
-		server = http.createServer().listen(80)
+		await new Promise<void>((resolve, reject) => {
+			server = http.createServer()
+			server.listen(80)
+			server.on('error', reject)
+			server.on('listening', resolve)
+		})
 	} catch {
 		process.stderr.write(
 			boxen(
