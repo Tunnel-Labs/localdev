@@ -100,12 +100,6 @@ export async function setupLocalProxy(
 		localDomains,
 	})
 
-	const testHttpServer = http.createServer((_req, res) => {
-		res.writeHead(200, { 'Content-Type': 'text/plain' })
-		res.end('OK')
-	})
-	testHttpServer.listen(localProxyOptions.port)
-
 	const logProvider = () => ({
 		...console,
 		error(message: string) {
@@ -272,10 +266,17 @@ export async function setupLocalProxy(
 		if (listenOnRootPort) {
 			// We listen on port 443 with Node's http server because listening on port 443 with fastify requires root privileges
 			httpsServer.listen(443)
+		} else {
+			httpsServer.listen(localProxyOptions.port)
 		}
 	}
 
-	await Promise.all([createHttpServer(), createHttpsServer()])
+	if (listenOnRootPort) {
+		await Promise.all([createHttpServer(), createHttpsServer()])
+	} else {
+		// We don't need the HTTP server if we aren't listening on port 80
+		await createHttpsServer()
+	}
 
 	const corefile = outdent`
 		.:53 {
