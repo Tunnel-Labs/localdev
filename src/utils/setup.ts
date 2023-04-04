@@ -358,28 +358,50 @@ export async function setupLocalProxy(
 			},
 		})
 	} catch {
+		let systemdResolvedStopped = false
+		let dnsmasqStopped = false
 		// `https://localdev.test` could not be resolved; `coredns` is likely not started
 		console.info('Starting coredns...')
 		if (
-			process.platform === 'linux' && // On Linux, port 53 might already be taken by systemd-resolved, se we need to stop it before listening on port 53 using coredns
+			process.platform === 'linux' && // On Linux, port 53 might already be taken by systemd-resolved or dnsmasq, se we need to stop it before listening on port 53 using coredns
 			(await isPortReachable(53, { host: '127.0.0.1' }))
 		) {
-			try {
-				await cli.sudo(['systemctl', 'stop', 'systemd-resolved'])
-			} catch {
-				// noop in case the user doesn't have systemctl
+			const { exitCode: stopSystemdResolvedExitCode } = await cli.sudo(
+				['systemctl', 'stop', 'systemd-resolved'],
+				{
+					reject: false,
+				}
+			)
+			if (stopSystemdResolvedExitCode === 0) {
+				systemdResolvedStopped = true
+			}
+
+			const { exitCode: stopDnsmasqExitCode } = await cli.sudo(
+				['systemctl', 'stop', 'dnsmasq'],
+				{
+					reject: false,
+				}
+			)
+			if (stopDnsmasqExitCode === 0) {
+				dnsmasqStopped = true
 			}
 		}
 
-		cli
+		void cli
 			.coredns(['-conf', corefilePath, '-dns.port', '53'])
-			.then(() =>
-				// Once coredns is listening, we restart systemd-resolved so that it auto-starts when localdev exits
-				cli.sudo(['systemctl', 'stop', 'systemd-resolved'])
-			)
 			.catch((error) => {
 				console.error('coredns failed with error:', error)
 			})
+			.finally(
+				async () =>
+					// Once coredns is listening, we restart systemd-resolved and dnsmasq so that they auto-start when localdev exits
+					systemdResolvedStopped &&
+					cli.sudo(['systemctl', 'start', 'systemd-resolved'])
+			)
+			.finally(
+				async () =>
+					dnsmasqStopped && cli.sudo(['systemctl', 'start', 'dnsmasq'])
+			)
 
 		try {
 			await pRetry(
