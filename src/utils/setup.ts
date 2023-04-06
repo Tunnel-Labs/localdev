@@ -7,7 +7,11 @@ import boxen from 'boxen'
 import chalk from 'chalk'
 import { fastify } from 'fastify'
 import { got } from 'got'
-import { createProxyMiddleware } from 'http-proxy-middleware'
+import {
+	createProxyMiddleware,
+	debugProxyErrorsPlugin,
+	errorResponsePlugin,
+} from 'http-proxy-middleware'
 import isPortReachable from 'is-port-reachable'
 import { minimatch } from 'minimatch'
 import { outdent } from 'outdent'
@@ -100,7 +104,7 @@ export async function setupLocalProxy(
 		localDomains,
 	})
 
-	const logProvider = () => ({
+	const logger = () => ({
 		...console,
 		error(message: string) {
 			// We want to ignore ECONNREFUSED errors because those just mean that the service hasn't started up yet
@@ -127,11 +131,12 @@ export async function setupLocalProxy(
 		const httpProxy = createProxyMiddleware({
 			secure: false,
 			ws: true,
-			logProvider,
-			logLevel: 'error',
+			ejectPlugins: true,
+			plugins: [errorResponsePlugin],
+			logger,
 			target: null!,
 			router(req) {
-				if (req.hostname === 'localdev.test') {
+				if (req.headers.host === 'localdev.test') {
 					return `http://localhost:${testHttpServerPort}`
 				}
 
@@ -213,11 +218,12 @@ export async function setupLocalProxy(
 		const httpsProxy = createProxyMiddleware({
 			secure: true,
 			ws: true,
-			logProvider,
-			logLevel: 'error',
+			logger,
+			ejectPlugins: true,
+			plugins: [debugProxyErrorsPlugin, errorResponsePlugin],
 			target: null!,
 			router(req) {
-				if (req.hostname === 'localdev.test') {
+				if (req.headers.host === 'localdev.test') {
 					return `http://localhost:${testHttpServerPort}`
 				}
 
