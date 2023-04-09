@@ -220,30 +220,29 @@ export class Service {
 	}
 
 	async waitForHealthy() {
-		if (this.spec.healthCheck === undefined) return
-		await waitPort({
-			port: this.spec.healthCheck.port,
-			path: this.spec.healthCheck.path,
-			output: 'silent',
-		})
+		if (typeof this.spec.healthCheck === 'function') {
+			await this.spec.healthCheck(this)
+		} else if (this.spec.healthCheck !== undefined) {
+			await waitPort({
+				port: this.spec.healthCheck.port,
+				path: this.spec.healthCheck.path,
+				output: 'silent',
+			})
+		}
 	}
 
 	restart() {
 		this.status = 'pending'
 		this.process.restart()
 
-		if (this.spec.healthCheck === undefined) {
-			this.status = 'ready'
-		} else {
-			this.waitForHealthy()
-				.then(() => {
-					this.status = 'ready'
-				})
-				.catch((error) => {
-					console.error(error)
-					this.status = 'failed'
-				})
-		}
+		this.waitForHealthy()
+			.then(() => {
+				this.status = 'ready'
+			})
+			.catch((error) => {
+				console.error(error)
+				this.status = 'failed'
+			})
 	}
 
 	stop() {

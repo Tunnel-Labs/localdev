@@ -16,10 +16,13 @@ export const serviceSpecSchema = z.object({
 		How to check if the running process is ready
 	*/
 	healthCheck: z
-		.object({
-			port: z.number(),
-			path: z.string().optional(),
-		})
+		.union([
+			z.object({
+				port: z.number(),
+				path: z.string().optional(),
+			}),
+			z.function().args(z.any()).returns(z.promise(z.boolean())),
+		])
 		.optional(),
 
 	command: z.intersection(
