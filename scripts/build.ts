@@ -1,5 +1,9 @@
-import { copyPackageFiles, rmDist, tsc } from 'lionconfig'
+import { createPackageBuilder } from 'lionconfig'
 
-rmDist()
-await tsc()
-await copyPackageFiles()
+await createPackageBuilder(import.meta, {
+	packageJsonPath: '../package.json',
+})
+	.cleanDistFolder()
+	.tsc()
+	.copyPackageFiles()
+	.build()
