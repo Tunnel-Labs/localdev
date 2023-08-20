@@ -1,9 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { execa } from 'execa'
 import onetime from 'onetime'
 
-import { cli } from '~/utils/cli.js'
 import { localdevState } from '~/utils/state.js'
 
 export const getMkcertCertsDir = onetime(async () => {
@@ -15,7 +15,10 @@ export const getMkcertCertsDir = onetime(async () => {
 })
 
 export const getMkcertCertsPaths = onetime(async () => {
-	const { stdout: caRootDir } = await cli.mkcert('-CAROOT')
+	const { stdout: caRootDir } = await execa(
+		localdevState.localdevConfig.binPaths.mkcert,
+		['-CAROOT']
+	)
 	const mkcertCertsDir = await getMkcertCertsDir()
 
 	return {
@@ -41,12 +44,9 @@ export async function createMkcertCerts({
 	const certFileName = 'test-cert.pem'
 	const mkcertCertsDir = await getMkcertCertsDir()
 
-	if (process.platform === 'linux' && !(await cli.mkcert.exists())) {
-		await cli.mkcert.install()
-	}
-
-	await cli.mkcert('-install')
-	await cli.mkcert(
+	await execa(localdevState.localdevConfig.binPaths.mkcert, ['-install'])
+	await execa(
+		localdevState.localdevConfig.binPaths.mkcert,
 		['-key-file', keyFileName, '-cert-file', certFileName, ...localDomains],
 		{ cwd: mkcertCertsDir }
 	)

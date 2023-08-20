@@ -5,6 +5,7 @@ import https from 'node:https'
 import fastifyExpress from '@fastify/express'
 import boxen from 'boxen'
 import chalk from 'chalk'
+import { execa } from 'execa'
 import { fastify } from 'fastify'
 import { got } from 'got'
 import {
@@ -409,41 +410,50 @@ export async function setupLocalProxy(
 			}
 		}
 
-		void cli
-			.coredns(['-conf', corefilePath, '-dns.port', '53'])
-			.catch((error) => {
-				console.error('coredns failed with error:', error)
-			})
-			.finally(
-				async () =>
-					// Once coredns is listening, we restart systemd-resolved and dnsmasq so that they auto-start when localdev exits
-					systemdResolvedStopped &&
-					cli.sudo(['systemctl', 'start', 'systemd-resolved'])
-			)
-			.finally(
-				async () =>
-					dnsmasqStopped && cli.sudo(['systemctl', 'start', 'dnsmasq'])
-			)
-
-		try {
-			await pRetry(
-				async () => {
-					await got.get('https://localdev.test', {
-						https: {
-							rejectUnauthorized: false,
-						},
-						timeout: {
-							lookup: 1000,
-							connect: 1000,
-							secureConnect: 1000,
-						},
-					})
-				},
-				{ retries: 3 }
-			)
-		} catch {
-			process.stderr.write('Failed to connect to localdev.test')
+		const startCoredns = async () => {
+			await execa(localdevState.localdevConfig.binPaths.coredns, [
+				'-conf',
+				corefilePath,
+				'-dns.port',
+				'53',
+			])
+				.catch((error) => {
+					console.error('coredns failed with error:', error)
+				})
+				.finally(
+					async () =>
+						// Once coredns is listening, we restart systemd-resolved and dnsmasq so that they auto-start when localdev exits
+						systemdResolvedStopped &&
+						cli.sudo(['systemctl', 'start', 'systemd-resolved'])
+				)
+				.finally(
+					async () =>
+						dnsmasqStopped && cli.sudo(['systemctl', 'start', 'dnsmasq'])
+				)
 		}
+
+		// Ping `localdev.test` every second and if it doesn't work, start a `coredns` process
+		setInterval(async () => {
+			try {
+				await pRetry(
+					async () => {
+						await got.get('https://localdev.test', {
+							https: {
+								rejectUnauthorized: false,
+							},
+							timeout: {
+								lookup: 1000,
+								connect: 1000,
+								secureConnect: 1000,
+							},
+						})
+					},
+					{ retries: 3 }
+				)
+			} catch {
+				await startCoredns()
+			}
+		}, 1000)
 	}
 }
 
