@@ -175,7 +175,7 @@ export class VirtualLogsTerminal extends Omit(Terminal, ['write', 'writeln']) {
 export class TerminalUpdater {
 	previousOutput = ''
 	hasPressAnyKeyToContinueNoticeBeenWritten = false
-	updateIntervalId: NodeJS.Timer | undefined
+	updateIntervalId: NodeJS.Timeout | undefined
 	lastUnwrappedLogLineIdRefreshed: string | undefined
 	inkStdin = new MockStdin()
 	virtualLogsTerminal = new VirtualLogsTerminal()
@@ -744,6 +744,7 @@ const defaultCell: IBufferCell = {
 	getChars: () => '',
 	getCode: () => 0,
 	getWidth: () => 1,
+	isOverline: () => 0,
 }
 
 /**
