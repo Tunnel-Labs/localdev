@@ -441,7 +441,7 @@ export async function setupLocalProxy(
 				)
 
 			await pWaitFor(async () => {
-				await areTestDomainsReachable()
+				return areTestDomainsReachable()
 			}, { interval: 50 });
 		}
 
