@@ -48,7 +48,7 @@
 		"async-mutex": "^0.4.0",
 		"boxen": "^7.1.1",
 		"chalk": "^5.3.0",
-		"cli-specs": "^1.0.1",
+		"cli-specs": "^1.1.0",
 		"command-exists": "^1.2.9",
 		"commander": "^11.0.0",
 		"compose-regexp": "^0.7.1",
@@ -82,7 +82,7 @@
 		"open": "^9.1.0",
 		"outdent": "^0.8.0",
 		"p-queue": "^7.3.4",
-		"p-retry": "^5.1.2",
+		"p-retry": "^6.0.0",
 		"p-throttle": "^5.1.0",
 		"p-wait-for": "^5.0.2",
 		"patch-console": "^2.0.0",
@@ -121,13 +121,13 @@
 		"@types/inquirer-autocomplete-prompt": "^3.0.0",
 		"@types/kill-port": "^2.0.0",
 		"@types/minimist": "^1.2.2",
-		"@types/react": "^18.2.20",
+		"@types/react": "^18.2.21",
 		"@types/shell-quote": "^1.7.1",
 		"@types/tcp-port-used": "^1.0.1",
 		"@types/which": "^3.0.0",
-		"lionconfig": "^3.0.1",
-		"typescript": "^5.1.6",
-		"vitest": "^0.34.2"
+		"lionconfig": "^3.1.0",
+		"typescript": "^5.2.2",
+		"vitest": "^0.34.3"
 	},
 	"publishConfig": {
 		"directory": "dist"
