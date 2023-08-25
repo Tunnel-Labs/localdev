@@ -405,8 +405,21 @@ export async function setupLocalProxy(
 			}
 		}
 
+		const areTestDomainsReachable = async () => {
+			try {
+				await got.get('https://localdev.test', {
+					https: { rejectUnauthorized: false, },
+					timeout: { request: 500 },
+					retry: { limit: 0 }
+				})
+				return true;
+			} catch {
+				return false;
+			}
+		}
+
 		const startCoredns = async () => {
-			await execa(localdevState.localdevConfig.binPaths.coredns, [
+			execa(localdevState.localdevConfig.binPaths.coredns, [
 				'-conf',
 				corefilePath,
 				'-dns.port',
@@ -425,23 +438,22 @@ export async function setupLocalProxy(
 					async () =>
 						dnsmasqStopped && cli.sudo(['systemctl', 'start', 'dnsmasq'])
 				)
+
+			await pWaitFor(async () => {
+				await areTestDomainsReachable()
+			}, { interval: 50 });
 		}
 
-		await startCoredns()
+		if (!(await areTestDomainsReachable())) {
+			await startCoredns()
+		}
 
 		// Ping `localdev.test` every second and if it doesn't work, restart the `coredns` process
 		setInterval(async () => {
-			try {
-				await got.get('https://localdev.test', {
-					https: { rejectUnauthorized: false, },
-					timeout: { request: 500 },
-					retry: { limit: 0 }
-				})
-			} catch {
+			if (!(await areTestDomainsReachable())) {
 				await startCoredns()
 			}
 		}, 1000)
-
 	}
 }
 
