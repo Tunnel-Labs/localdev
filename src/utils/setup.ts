@@ -371,14 +371,9 @@ export async function setupLocalProxy(
 	try {
 		process.stderr.write(`Connecting to ${chalk.bold('localdev.test')}...\n`)
 		await got.get('https://localdev.test', {
-			https: {
-				rejectUnauthorized: false,
-			},
-			timeout: {
-				lookup: 1000,
-				connect: 1000,
-				secureConnect: 1000,
-			},
+			https: { rejectUnauthorized: false },
+			timeout: { request: 500 },
+			retry: { limit: 0 }
 		})
 	} catch {
 		let systemdResolvedStopped = false
@@ -432,28 +427,21 @@ export async function setupLocalProxy(
 				)
 		}
 
-		// Ping `localdev.test` every second and if it doesn't work, start a `coredns` process
+		await startCoredns()
+
+		// Ping `localdev.test` every second and if it doesn't work, restart the `coredns` process
 		setInterval(async () => {
 			try {
-				await pRetry(
-					async () => {
-						await got.get('https://localdev.test', {
-							https: {
-								rejectUnauthorized: false,
-							},
-							timeout: {
-								lookup: 1000,
-								connect: 1000,
-								secureConnect: 1000,
-							},
-						})
-					},
-					{ retries: 3 }
-				)
+				await got.get('https://localdev.test', {
+					https: { rejectUnauthorized: false, },
+					timeout: { request: 500 },
+					options: { retry: { limit: 0 } }
+				})
 			} catch {
 				await startCoredns()
 			}
 		}, 1000)
+
 	}
 }
 
