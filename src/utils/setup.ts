@@ -435,7 +435,7 @@ export async function setupLocalProxy(
 				await got.get('https://localdev.test', {
 					https: { rejectUnauthorized: false, },
 					timeout: { request: 500 },
-					options: { retry: { limit: 0 } }
+					retry: { limit: 0 }
 				})
 			} catch {
 				await startCoredns()
