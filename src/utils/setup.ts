@@ -26,6 +26,7 @@ import { createMkcertCerts } from '~/utils/mkcert.js'
 import { runPowershellScriptAsAdmininstrator } from '~/utils/powershell.js'
 import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/state.js'
+import pWaitFor from 'p-wait-for'
 
 export async function setupLocalProxy(
 	// eslint-disable-next-line @typescript-eslint/ban-types -- Need to exclude the "boolean" type
