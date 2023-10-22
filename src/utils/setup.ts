@@ -17,6 +17,7 @@ import isPortReachable from 'is-port-reachable'
 import { minimatch } from 'minimatch'
 import { outdent } from 'outdent'
 import pRetry from 'p-retry'
+import pWaitFor from 'p-wait-for'
 import invariant from 'tiny-invariant'
 import tmp from 'tmp-promise'
 
@@ -26,11 +27,10 @@ import { createMkcertCerts } from '~/utils/mkcert.js'
 import { runPowershellScriptAsAdmininstrator } from '~/utils/powershell.js'
 import { Service } from '~/utils/service.js'
 import { localdevState } from '~/utils/state.js'
-import pWaitFor from 'p-wait-for'
 
 export async function setupLocalProxy(
 	// eslint-disable-next-line @typescript-eslint/ban-types -- Need to exclude the "boolean" type
-	localProxyOptions: LocaldevConfig['localProxy'] & object
+	localProxyOptions: LocaldevConfig['localProxy'] & object,
 ) {
 	// We need to make sure that we can listen on port 80
 	let server: http.Server | undefined
@@ -58,8 +58,8 @@ export async function setupLocalProxy(
 					outdent`
 						Running \`iptables\` to forward port 80 and 443 to the localdev proxy port (${localProxyOptions.port})...
 					`,
-					{ margin: 1, padding: 1, borderStyle: 'round' }
-				) + '\n'
+					{ margin: 1, padding: 1, borderStyle: 'round' },
+				) + '\n',
 			)
 
 			for (const port of [80, 443]) {
@@ -84,7 +84,7 @@ export async function setupLocalProxy(
 					],
 					{
 						stdio: 'inherit',
-					}
+					},
 				)
 			}
 		} else {
@@ -158,7 +158,7 @@ export async function setupLocalProxy(
 				})
 				invariant(
 					httpProxy.upgrade !== undefined,
-					'`httpsProxy.upgrade` is not undefined'
+					'`httpsProxy.upgrade` is not undefined',
 				)
 				httpServer.on('upgrade', httpProxy.upgrade)
 				return httpServer
@@ -169,7 +169,7 @@ export async function setupLocalProxy(
 			const redirect = () => {
 				void response.redirect(
 					301,
-					'https://' + String(request.hostname) + request.url
+					'https://' + String(request.hostname) + request.url,
 				)
 			}
 
@@ -245,7 +245,7 @@ export async function setupLocalProxy(
 				})
 				invariant(
 					httpsProxy.upgrade !== undefined,
-					'`httpsProxy.upgrade` is not undefined'
+					'`httpsProxy.upgrade` is not undefined',
 				)
 				httpsServer.on('upgrade', httpsProxy.upgrade)
 				return httpsServer
@@ -265,7 +265,7 @@ export async function setupLocalProxy(
 				if (Service.has('$localdev')) {
 					const localdevService = Service.get('$localdev')
 					void localdevService.process.addLogs(
-						`Redirecting to ${newUrl} from a \`localtest.me\` domain...\n`
+						`Redirecting to ${newUrl} from a \`localtest.me\` domain...\n`,
 					)
 				}
 
@@ -316,8 +316,8 @@ export async function setupLocalProxy(
 
 				${chalk.italic('You may be prompted for your administrator password.')}
 			`,
-			{ padding: 1, borderStyle: 'round' }
-		) + '\n'
+			{ padding: 1, borderStyle: 'round' },
+		) + '\n',
 	)
 	/**
 		@see https://minikube.sigs.k8s.io/docs/handbook/addons/ingress-dns/
@@ -331,8 +331,8 @@ export async function setupLocalProxy(
 
 					${chalk.italic('You may be prompted for your administrator password.')}
 				`,
-				{ padding: 1, borderStyle: 'round' }
-			) + '\n'
+				{ padding: 1, borderStyle: 'round' },
+			) + '\n',
 		)
 		await cli.sudo(['mkdir', '/etc/resolver'])
 		await cli.sudo([
@@ -350,8 +350,8 @@ export async function setupLocalProxy(
 
 					${chalk.italic('You may be prompted for your administrator password.')}
 				`,
-				{ padding: 1, borderStyle: 'round' }
-			) + '\n'
+				{ padding: 1, borderStyle: 'round' },
+			) + '\n',
 		)
 		await cli.sudo(['mkdir', '-p', '/etc/resolvconf/resolv.conf.d'])
 		await cli.sudo([
@@ -365,7 +365,7 @@ export async function setupLocalProxy(
 		*/
 
 		await runPowershellScriptAsAdmininstrator(
-			`Get-DnsClientNrptRule | Where-Object {$_.Namespace -eq '.test'} | Remove-DnsClientNrptRule -Force; Add-DnsClientNrptRule -Namespace ".test" -NameServers "127.0.0.1"`
+			`Get-DnsClientNrptRule | Where-Object {$_.Namespace -eq '.test'} | Remove-DnsClientNrptRule -Force; Add-DnsClientNrptRule -Namespace ".test" -NameServers "127.0.0.1"`,
 		)
 	}
 
@@ -374,7 +374,7 @@ export async function setupLocalProxy(
 		await got.get('https://localdev.test', {
 			https: { rejectUnauthorized: false },
 			timeout: { request: 500 },
-			retry: { limit: 0 }
+			retry: { limit: 0 },
 		})
 	} catch {
 		let systemdResolvedStopped = false
@@ -389,7 +389,7 @@ export async function setupLocalProxy(
 				['systemctl', 'stop', 'systemd-resolved'],
 				{
 					reject: false,
-				}
+				},
 			)
 			if (stopSystemdResolvedExitCode === 0) {
 				systemdResolvedStopped = true
@@ -399,7 +399,7 @@ export async function setupLocalProxy(
 				['systemctl', 'stop', 'dnsmasq'],
 				{
 					reject: false,
-				}
+				},
 			)
 			if (stopDnsmasqExitCode === 0) {
 				dnsmasqStopped = true
@@ -409,13 +409,13 @@ export async function setupLocalProxy(
 		const areTestDomainsReachable = async () => {
 			try {
 				await got.get('https://localdev.test', {
-					https: { rejectUnauthorized: false, },
+					https: { rejectUnauthorized: false },
 					timeout: { request: 500 },
-					retry: { limit: 0 }
+					retry: { limit: 0 },
 				})
-				return true;
+				return true
 			} catch {
-				return false;
+				return false
 			}
 		}
 
@@ -433,16 +433,14 @@ export async function setupLocalProxy(
 					async () =>
 						// Once coredns is listening, we restart systemd-resolved and dnsmasq so that they auto-start when localdev exits
 						systemdResolvedStopped &&
-						cli.sudo(['systemctl', 'start', 'systemd-resolved'])
+						cli.sudo(['systemctl', 'start', 'systemd-resolved']),
 				)
 				.finally(
 					async () =>
-						dnsmasqStopped && cli.sudo(['systemctl', 'start', 'dnsmasq'])
+						dnsmasqStopped && cli.sudo(['systemctl', 'start', 'dnsmasq']),
 				)
 
-			await pWaitFor(async () => {
-				return areTestDomainsReachable()
-			}, { interval: 200 });
+			await pWaitFor(async () => areTestDomainsReachable(), { interval: 200 })
 		}
 
 		if (!(await areTestDomainsReachable())) {

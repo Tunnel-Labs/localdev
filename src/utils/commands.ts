@@ -20,7 +20,7 @@ export function createCommand(name: string) {
 
 export function defineCommandSpec(
 	command: Command,
-	options?: { hidden?: boolean }
+	options?: { hidden?: boolean },
 ): LocaldevCommandSpec {
 	return {
 		// Prevent commander from calling `process.exit` when inputting a malformed command
@@ -46,11 +46,11 @@ const defaultCommandSpecs = [
 				const end = process.hrtime.bigint()
 				console.info(
 					`Refreshed terminal in ${prettyMilliseconds(
-						Number(end - start) / 1_000_000
-					)}`
+						Number(end - start) / 1_000_000,
+					)}`,
 				)
 			}),
-		{ hidden: true }
+		{ hidden: true },
 	),
 	defineCommandSpec(
 		createCommand('help')
@@ -59,14 +59,14 @@ const defaultCommandSpecs = [
 			.action((command?: string) => {
 				localdevState.activeHelpCommand = command ?? null
 				localdevState.activeCommandBoxPaneComponent = ref(HelpPane)
-			})
+			}),
 	),
 	defineCommandSpec(
 		createCommand('status')
 			.summary('display the statuses of running services')
 			.action(() => {
 				localdevState.activeCommandBoxPaneComponent = ref(ServiceStatusesPane)
-			})
+			}),
 	),
 	defineCommandSpec(
 		createCommand('config')
@@ -76,25 +76,25 @@ const defaultCommandSpecs = [
 					.summary('open the config file')
 					.action(async () => {
 						await open(`vscode://${localdevState.localdevConfigPath}`)
-					})
+					}),
 			)
 			.addCommand(
 				createCommand('save')
 					.summary('write the current localdev state to the config')
 					.action(() => {
 						// TODO: implement
-					})
+					}),
 			)
 			.addCommand(
 				createCommand('reload')
 					.summary('reload the config file')
 					.description(
-						'reloads the config file and resets the localdev state to that specified in the config file'
+						'reloads the config file and resets the localdev state to that specified in the config file',
 					)
 					.action(() => {
 						// TODO: implement
-					})
-			)
+					}),
+			),
 	),
 	defineCommandSpec(
 		createCommand('logs')
@@ -125,7 +125,7 @@ const defaultCommandSpecs = [
 
 						localdevState.localdevConfig.servicesToLog ??= {}
 						localdevState.localdevConfig.servicesToLog[serviceId] = true
-					})
+					}),
 			)
 			.addCommand(
 				createCommand('remove')
@@ -135,14 +135,14 @@ const defaultCommandSpecs = [
 						if (localdevState.localdevConfig.servicesToLog !== undefined) {
 							localdevState.localdevConfig.servicesToLog[serviceId] = false
 						}
-					})
-			)
+					}),
+			),
 	),
 	defineCommandSpec(
 		createCommand('hijack')
 			.summary('hijacks a dev service')
 			.description(
-				'forwards standard input and control sequences (such as Ctrl+C) to a service'
+				'forwards standard input and control sequences (such as Ctrl+C) to a service',
 			)
 			.argument('<serviceId>')
 			.action((serviceId: string) => {
@@ -157,7 +157,7 @@ const defaultCommandSpecs = [
 				localdevState.activeCommandBoxPaneComponent = ref(HijackPane)
 
 				// replaceLogs({ serviceId })
-			})
+			}),
 	),
 	defineCommandSpec(
 		createCommand('start')
@@ -173,7 +173,7 @@ const defaultCommandSpecs = [
 				const service = Service.get(serviceId)
 
 				await service.run()
-			})
+			}),
 	),
 	defineCommandSpec(
 		createCommand('restart')
@@ -188,7 +188,7 @@ const defaultCommandSpecs = [
 				console.info(`Restarted service ${serviceId}`)
 				const service = Service.get(serviceId)
 				service.restart()
-			})
+			}),
 	),
 	defineCommandSpec(
 		createCommand('stop')
@@ -203,7 +203,7 @@ const defaultCommandSpecs = [
 				console.info(`Stopped service ${serviceId}`)
 				const service = Service.get(serviceId)
 				service.stop()
-			})
+			}),
 	),
 	defineCommandSpec(
 		createCommand('clear')
@@ -211,7 +211,7 @@ const defaultCommandSpecs = [
 			.action(async () => {
 				await clearLogs()
 				localdevState.terminalUpdater?.updateTerminal()
-			})
+			}),
 	),
 	defineCommandSpec(
 		createCommand('home')
@@ -219,7 +219,7 @@ const defaultCommandSpecs = [
 			.action(() => {
 				localdevState.activeCommandBoxPaneComponent = ref(ServiceStatusesPane)
 				localdevState.logsBoxServiceId = null
-			})
+			}),
 	),
 	defineCommandSpec(
 		createCommand('quit')
@@ -227,7 +227,7 @@ const defaultCommandSpecs = [
 			.action(() => {
 				process.stderr.write('\n')
 				process.exit(0)
-			})
+			}),
 	),
 ]
 
@@ -240,5 +240,5 @@ export const getLocaldevCommandSpecs: () => LocaldevCommandSpec[] = onetime(
 			spawnProcess,
 		}) ?? []),
 		...defaultCommandSpecs,
-	]
+	],
 )

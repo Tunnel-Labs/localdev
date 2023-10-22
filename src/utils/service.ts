@@ -286,6 +286,6 @@ export class Service {
 				})
 		}
 
-		this.process.spawn()
+		await this.process.spawn()
 	}
 }

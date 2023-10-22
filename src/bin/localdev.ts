@@ -21,13 +21,13 @@ await program
 	.description('An interactive TUI for local development')
 	.option(
 		'-p, --port <number>',
-		'specify a port for the localdev proxy to listen to'
+		'specify a port for the localdev proxy to listen to',
 	)
 	.option('--project <path>', 'a path to your project folder')
 	.option('--config <path>', 'a path to the localdev configuration file')
 	.option(
 		'--local-config <path>',
-		'a path to the localdev local configuration file'
+		'a path to the localdev local configuration file',
 	)
 	.option('--force', 'kill process on port if exists')
 	.option('--proxy-only', 'only run the proxy and no services', false)
@@ -60,7 +60,7 @@ await program
 				localConfigPath: localdevState.localdevLocalConfigPath,
 			})
 			localdevState.localdevFolder = fs.existsSync(
-				path.join(localdevState.projectPath, 'node_modules')
+				path.join(localdevState.projectPath, 'node_modules'),
 			)
 				? path.join(localdevState.projectPath, 'node_modules/.localdev')
 				: path.join(localdevState.projectPath, '.localdev')
@@ -76,10 +76,12 @@ await program
 			await setupLocaldevServer()
 			const localdevService = new Service('$localdev')
 
-			if (!options.proxyOnly) {
+			if (options.proxyOnly) {
+				localdevState.servicesEnabled = false
+			} else {
 				const services = []
 				for (const [serviceId, serviceSpec] of Object.entries(
-					localdevState.localdevConfig.services ?? {}
+					localdevState.localdevConfig.services ?? {},
 				)) {
 					services.push(new Service(serviceId, serviceSpec))
 				}
@@ -94,8 +96,6 @@ await program
 						service.status = 'stopped'
 					}
 				}
-			} else {
-				localdevState.servicesEnabled = false
 			}
 
 			await localdevService.initialize()
@@ -109,9 +109,9 @@ await program
 				async () => {
 					await terminalUpdater.updateOverflowedLines()
 				},
-				{ minimumWait: 300 }
+				{ minimumWait: 300 },
 			)
-		}
+		},
 	)
 	.parseAsync()
 

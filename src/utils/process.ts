@@ -7,7 +7,6 @@ import { jsonl } from 'js-jsonl'
 import mem from 'mem'
 import { nanoid } from 'nanoid-nice'
 import type { IBasePtyForkOptions, IPty } from 'node-pty'
-import pty from 'node-pty'
 import shellQuote from 'shell-quote'
 import invariant from 'tiny-invariant'
 
@@ -59,7 +58,7 @@ export class Process {
 				id: unwrappedLineId,
 				timestamp,
 				text,
-			}) + '\n'
+			}) + '\n',
 		)
 
 		this.emitter.emit('logsAdded', { text, timestamp, id: unwrappedLineId })
@@ -69,14 +68,14 @@ export class Process {
 		const logsFilePath = await this.#getLogsFilePath()
 		if (fs.existsSync(logsFilePath)) {
 			return jsonl.parse<UnwrappedLogLineData>(
-				await fs.promises.readFile(logsFilePath, 'utf8')
+				await fs.promises.readFile(logsFilePath, 'utf8'),
 			)
 		} else {
 			return []
 		}
 	}
 
-	spawn() {
+	async spawn() {
 		if (this.command === null) {
 			throw new Error('No command was specified for this process')
 		}
@@ -90,8 +89,10 @@ export class Process {
 		invariant(commandName !== undefined, 'commandName is not undefined')
 		const commandOptions = deepmerge(
 			{ name: this.id, env },
-			this.commandOptions ?? {}
+			this.commandOptions ?? {},
 		)
+
+		const pty = await import('node-pty')
 		this.ptyProcess = pty.spawn(commandName, commandArgs, commandOptions)
 
 		this.ptyProcess.onExit(({ exitCode }) => {
@@ -109,9 +110,9 @@ export class Process {
 		this.ptyProcess?.kill()
 	}
 
-	restart() {
+	async restart() {
 		this.stop()
-		this.spawn()
+		await this.spawn()
 	}
 
 	async #getLogsFilePath() {
@@ -136,7 +137,7 @@ export const getProcessPrefixColor = mem((_processId: string) => {
 	return stderrColor
 })
 
-export function spawnProcess(args: {
+export async function spawnProcess(args: {
 	id: string
 	command: string | string[]
 	commandOptions?: IBasePtyForkOptions
@@ -158,7 +159,7 @@ export function spawnProcess(args: {
 
 	process.emitter.on('logsAdded', logsAddedListener)
 
-	process.spawn()
+	await process.spawn()
 	process.emitter.on('exited', () => {
 		process.emitter.removeAllListeners()
 	})
