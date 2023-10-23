@@ -16,7 +16,6 @@ import {
 import isPortReachable from 'is-port-reachable'
 import { minimatch } from 'minimatch'
 import { outdent } from 'outdent'
-import pRetry from 'p-retry'
 import pWaitFor from 'p-wait-for'
 import invariant from 'tiny-invariant'
 import tmp from 'tmp-promise'
