@@ -419,7 +419,7 @@ export async function setupLocalProxy(
 			}
 		};
 
-		const startCoredns = async (options?: { sudo?: boolean }) => {
+		const startCoredns = async () => {
 			let corednsBinFilepath = localdevState.localdevConfig.binPaths.coredns;
 			const corednsArgs = [
 				'-conf',
@@ -428,7 +428,7 @@ export async function setupLocalProxy(
 				'53',
 			];
 
-			if (options?.sudo) {
+			if (localProxyOptions.sudo) {
 				corednsArgs.unshift(corednsBinFilepath);
 				corednsBinFilepath = 'sudo';
 			}

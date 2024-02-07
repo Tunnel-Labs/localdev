@@ -68,6 +68,7 @@ export const localdevConfigSchema = z.object({
 						z.function().args(z.string()).returns(z.boolean()),
 					])
 					.optional(),
+				sudo: z.boolean().optional(),
 			}),
 		])
 		.default(false),

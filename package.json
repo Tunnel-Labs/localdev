@@ -16,6 +16,7 @@
 	"bin": {
 		"localdev": "./.build/bin/localdev.mjs"
 	},
+	"files": [".build"],
 	"scripts": {
 		"dev": "tsx ./src/bin/localdev.ts",
 		"dev:config": "tsx ./src/bin/localdev.ts --config examples/localdev.config.mjs",
