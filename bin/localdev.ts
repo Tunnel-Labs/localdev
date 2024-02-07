@@ -1,6 +1,6 @@
 import { program } from 'commander';
-import { StartLocaldevOptions } from '../types/options.ts';
-import { startLocaldev } from '../utils/start.ts';
+import { StartLocaldevOptions } from '../types/options.js';
+import { startLocaldev } from '../utils/start.js';
 
 await program
 	.name('localdev')
