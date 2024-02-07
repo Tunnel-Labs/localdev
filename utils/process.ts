@@ -1,15 +1,13 @@
-import { EventEmitter } from 'node:events';
-import fs from 'node:fs';
-import path from 'node:path';
-
 import { deepmerge } from 'deepmerge-ts';
 import { jsonl } from 'js-jsonl';
 import mem from 'mem';
 import { nanoid } from 'nanoid-nice';
 import type { IBasePtyForkOptions, IPty } from 'node-pty';
+import { EventEmitter } from 'node:events';
+import fs from 'node:fs';
+import path from 'node:path';
 import shellQuote from 'shell-quote';
 import invariant from 'tiny-invariant';
-
 import { type UnwrappedLogLineData } from '../types/logs.js';
 import type { ProcessEmitter } from '../types/process.js';
 import { localdevState } from '../utils/state.js';

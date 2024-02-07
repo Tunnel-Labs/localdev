@@ -1,10 +1,8 @@
+import { execa } from 'execa';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-
-import { execa } from 'execa';
 import onetime from 'onetime';
-
 import { localdevState } from '../utils/state.js';
 
 export const getMkcertCertsDirpath = onetime(async () => {

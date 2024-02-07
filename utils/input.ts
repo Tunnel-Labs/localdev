@@ -1,6 +1,5 @@
-import { Buffer } from 'node:buffer';
-
 import { useStdin } from 'ink';
+import { Buffer } from 'node:buffer';
 import { useCallback, useEffect } from 'react';
 
 export function useRawInput(handler: (rawInput: Buffer) => void) {

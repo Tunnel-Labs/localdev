@@ -1,7 +1,3 @@
-import fs from 'node:fs';
-import http from 'node:http';
-import https from 'node:https';
-
 import fastifyExpress from '@fastify/express';
 import boxen from 'boxen';
 import chalk from 'chalk';
@@ -15,12 +11,14 @@ import {
 } from 'http-proxy-middleware';
 import isPortReachable from 'is-port-reachable';
 import { minimatch } from 'minimatch';
+import fs from 'node:fs';
+import http from 'node:http';
+import https from 'node:https';
 import { outdent } from 'outdent';
 import pWaitFor from 'p-wait-for';
 import invariant from 'tiny-invariant';
 import tmp from 'tmp-promise';
-
-import { type LocaldevConfig } from '../index.js';
+import { type LocaldevConfig } from '../types/config.js';
 import { cli } from '../utils/cli.js';
 import { createMkcertCerts } from '../utils/mkcert.js';
 import { runPowershellScriptAsAdmininstrator } from '../utils/powershell.js';
@@ -421,13 +419,21 @@ export async function setupLocalProxy(
 			}
 		};
 
-		const startCoredns = async () => {
-			execa(localdevState.localdevConfig.binPaths.coredns, [
+		const startCoredns = async (options?: { sudo?: boolean }) => {
+			let corednsBinFilepath = localdevState.localdevConfig.binPaths.coredns;
+			const corednsArgs = [
 				'-conf',
 				corefilePath,
 				'-dns.port',
 				'53',
-			])
+			];
+
+			if (options?.sudo) {
+				corednsArgs.unshift(corednsBinFilepath);
+				corednsBinFilepath = 'sudo';
+			}
+
+			execa(corednsBinFilepath, corednsArgs)
 				.catch((error) => {
 					console.error('coredns failed with error:', error);
 				})

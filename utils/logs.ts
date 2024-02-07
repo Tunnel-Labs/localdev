@@ -1,17 +1,15 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
 import * as fastSort from '@leondreamed/fast-sort';
 import { centerAlign } from 'ansi-center-align';
 import ansiEscapes from 'ansi-escapes';
 import chalk from 'chalk';
 import mem from 'mem';
+import fs from 'node:fs';
+import path from 'node:path';
 import splitLines from 'split-lines';
 import stringLength from 'string-length';
 import terminalSize from 'term-size';
 import invariant from 'tiny-invariant';
 import wrapAnsi from 'wrap-ansi';
-
 import type { WrappedLogLineData } from '../types/logs.js';
 import { Service } from '../utils/service.js';
 import { localdevState } from '../utils/state.js';

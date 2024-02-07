@@ -1,10 +1,8 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
 import { deepmerge } from 'deepmerge-ts';
 import { findUp } from 'find-up';
+import fs from 'node:fs';
+import path from 'node:path';
 import { z } from 'zod';
-
 import type { LocaldevConfig } from '../types/config.js';
 
 export const serviceSpecSchema = z.object({

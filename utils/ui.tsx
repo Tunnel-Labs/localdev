@@ -3,7 +3,6 @@ import chalk from 'chalk';
 import type { DOMElement } from 'ink';
 import { Box, measureElement, Text, useInput } from 'ink';
 import React, { createElement, useEffect, useRef } from 'react';
-
 import {
 	runCommandFromCommandBox,
 	selectNextCommand,

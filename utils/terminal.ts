@@ -1,8 +1,5 @@
 /* eslint-disable no-bitwise */
 
-import { type Buffer } from 'node:buffer';
-import { PassThrough } from 'node:stream';
-
 import { centerAlign } from 'ansi-center-align';
 import ansiEscapes from 'ansi-escapes';
 import ansiStyles from 'ansi-styles';
@@ -15,6 +12,8 @@ import renderer from 'ink/build/renderer.js';
 import { OrderedSet } from 'js-sdsl';
 import debounce from 'just-debounce-it';
 import throttle from 'just-throttle';
+import { type Buffer } from 'node:buffer';
+import { PassThrough } from 'node:stream';
 import patchConsole from 'patch-console';
 import React, { useCallback, useEffect, useState } from 'react';
 import splitLines from 'split-lines';
@@ -22,12 +21,11 @@ import terminalSize from 'term-size';
 import invariant from 'tiny-invariant';
 import { ref } from 'valtio';
 import xTermHeadless, { type IBufferCell } from 'xterm-headless';
-
+import { ServiceStatusesPane } from '../command-panes/service-statuses.js';
 import {
 	type UnwrappedLogLineData,
 	type WrappedLogLineData,
 } from '../types/logs.js';
-import { ServiceStatusesPane } from '../utils/command-panes/service-statuses.js';
 import {
 	activateLogScrollMode,
 	deactivateLogScrollMode,

@@ -1,8 +1,6 @@
-import { type IncomingMessage } from 'node:http';
-
 import { type Command } from 'commander';
+import { type IncomingMessage } from 'node:http';
 import type { z } from 'zod';
-
 import { type LocaldevCommandSpec } from '../types/command.js';
 import {
 	type createCommand,

@@ -8,7 +8,6 @@ import shellQuote from 'shell-quote';
 import invariant from 'tiny-invariant';
 import { subscribeKey } from 'valtio/utils';
 import waitPort from 'wait-port';
-
 import type { ServiceSpec } from '../types/config.js';
 import { type UnwrappedLogLineData } from '../types/logs.js';
 import { type ServiceStatus } from '../types/service.js';

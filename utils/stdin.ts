@@ -5,7 +5,6 @@
 */
 import { Buffer } from 'node:buffer';
 import { ReadStream } from 'node:tty';
-
 import invariant from 'tiny-invariant';
 
 class MockData {

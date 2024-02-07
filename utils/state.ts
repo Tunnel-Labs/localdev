@@ -9,8 +9,7 @@ import useForceUpdate from 'use-force-update';
 import { proxy, type ref } from 'valtio';
 import { subscribeKey } from 'valtio/utils';
 import { type INTERNAL_Snapshot, snapshot, subscribe } from 'valtio/vanilla';
-
-import { type LocaldevConfig } from '../index.js';
+import { type LocaldevConfig } from '../types/config.js';
 import { type ServiceStatus } from '../types/service.js';
 import {
 	resizeVirtualTerminal,
