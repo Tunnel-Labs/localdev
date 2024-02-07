@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'pathe';
 import { defineBuildConfig } from 'unbuild';
 
@@ -11,31 +12,31 @@ const sourceDirnames = [
 
 export default defineBuildConfig({
 	entries: [
-		{
-			input: 'exports/main.ts',
-			name: 'main',
-		},
 		...sourceDirnames.flatMap((dirname) => [
 			{
 				builder: 'mkdist' as const,
 				format: 'mjs',
 				input: dirname,
-				outDir: path.join('.build', dirname),
+				outDir: path.join('.build', 'mjs', dirname),
 				declaration: true,
+				ext: '.js',
 			},
 			{
 				builder: 'mkdist' as const,
 				format: 'cjs',
 				input: dirname,
-				outDir: path.join('.build', dirname),
-				declaration: false,
+				outDir: path.join('.build', 'cjs', dirname),
+				declaration: true,
+				ext: '.js',
 			},
 		]),
 	],
-	outDir: '.build',
-	rollup: {
-		emitCJS: true,
-		inlineDependencies: true,
+	hooks: {
+		async 'mkdist:done'(ctx) {
+			await fs.promises.writeFile(
+				'.build/cjs/package.json',
+				'{ "type": "commonjs" }',
+			);
+		},
 	},
-	declaration: true,
 });

@@ -5,16 +5,16 @@
 	"description": "A TUI for local development.",
 	"exports": {
 		"import": {
-			"types": "./.build/main.d.mts",
-			"default": "./.build/main.mjs"
+			"types": "./.build/mjs/exports/main.d.ts",
+			"default": "./.build/mjs/exports/main.js"
 		},
 		"require": {
-			"types": "./.build/main.d.cts",
-			"default": "./.build/main.cjs"
+			"types": "./.build/cjs/exports/main.d.ts",
+			"default": "./.build/cjs/exports/main.js"
 		}
 	},
 	"bin": {
-		"localdev": "./.build/bin/localdev.mjs"
+		"localdev": "./.build/mjs/bin/localdev.js"
 	},
 	"files": [".build"],
 	"scripts": {
