@@ -59,6 +59,9 @@ dependencies:
   deepmerge-ts:
     specifier: ^5.1.0
     version: 5.1.0
+  defaults:
+    specifier: ^3.0.0
+    version: 3.0.0
   delay:
     specifier: ^6.0.0
     version: 6.0.0
@@ -2815,6 +2818,11 @@ packages:
     resolution: {integrity: sha512-eFuaLoy/Rxalv2kr+lqMlUnrDWV+3j4pljOIJgLIhI058IQfWJ7vXhyEIHu+HtC738klGALYxOKDO0bQP3tg8A==}
     dependencies:
       clone: 1.0.4
+    dev: false
+
+  /defaults@3.0.0:
+    resolution: {integrity: sha512-RsqXDEAALjfRTro+IFNKpcPCt0/Cy2FqHSIlnomiJp9YGadpQnrtbRpSgN2+np21qHcIKiva4fiOQGjS9/qR/A==}
+    engines: {node: '>=18'}
     dev: false
 
   /defer-to-connect@2.0.1:

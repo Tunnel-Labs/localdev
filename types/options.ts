@@ -1,9 +1,9 @@
-export interface StartLocaldevOptions {
+export type StartLocaldevOptions = {
 	test?: boolean;
 	port?: string;
 	config?: string;
 	localConfig?: string;
 	project?: string;
-	force: boolean;
-	proxyOnly: boolean;
-}
+	force?: boolean;
+	proxyOnly?: boolean;
+};

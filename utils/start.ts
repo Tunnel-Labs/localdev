@@ -1,3 +1,4 @@
+import defaults from 'defaults';
 import { asyncExitHook } from 'exit-hook';
 import killPort from 'kill-port';
 import fs from 'node:fs';
@@ -14,7 +15,12 @@ import { setupLocaldevServer } from '../utils/setup.js';
 import { localdevState } from '../utils/state.js';
 import { TerminalUpdater } from '../utils/terminal.js';
 
-export async function startLocaldev(options: StartLocaldevOptions) {
+export async function startLocaldev(options?: StartLocaldevOptions) {
+	options = defaults(options ?? {}, {
+		force: false,
+		proxyOnly: false,
+	});
+
 	if (options.force) {
 		await killPort(
 			options.port === undefined ? 7357 : Number(options.port),

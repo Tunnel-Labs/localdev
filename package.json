@@ -22,7 +22,8 @@
 		"build": "unbuild",
 		"format": "dprint fmt",
 		"lint": "eslint --cache --fix .",
-		"test": "vitest run"
+		"test": "vitest run",
+		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@fastify/express": "^2.3.0",
@@ -43,6 +44,7 @@
 		"compose-regexp": "^0.7.1",
 		"console-clear": "^1.1.1",
 		"deepmerge-ts": "^5.1.0",
+		"defaults": "^3.0.0",
 		"delay": "^6.0.0",
 		"execa": "^8.0.1",
 		"exit-hook": "^3.2.0",
