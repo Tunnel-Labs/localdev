@@ -1,37 +1,26 @@
 {
 	"name": "localdev-tui",
 	"type": "module",
-	"version": "0.3.18",
+	"version": "0.4.0",
 	"description": "A TUI for local development.",
-	"keywords": [
-		"kubernetes",
-		"localhost",
-		"local",
-		"development",
-		"tui",
-		"develop",
-		"concurrently",
-		"log"
-	],
-	"license": "MIT",
-	"author": {
-		"name": "Leon Si",
-		"email": "leon@leondreamed.com",
-		"url": "https://leondreamed.com"
+	"exports": {
+		"import": {
+			"types": "./.build/main.d.mts",
+			"default": "./.build/main.mjs"
+		},
+		"require": {
+			"types": "./.build/main.d.cts",
+			"default": "./.build/main.cjs"
+		}
 	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/leondreamed/localdev.git"
-	},
-	"exports": "./src/index.ts",
 	"bin": {
-		"localdev": "./src/bin/localdev.ts"
+		"localdev": "./.build/bin/localdev.mjs"
 	},
-	"homepage": "https://github.com/leondreamed/localdev#readme",
 	"scripts": {
-		"dev": "ts-node ./src/bin/localdev.ts",
-		"dev:config": "ts-node ./src/bin/localdev.ts --config examples/localdev.config.mjs",
-		"build": "ts-node ./scripts/build.ts",
+		"dev": "tsx ./src/bin/localdev.ts",
+		"dev:config": "tsx ./src/bin/localdev.ts --config examples/localdev.config.mjs",
+		"build": "unbuild",
+		"format": "dprint fmt",
 		"lint": "eslint --cache --fix .",
 		"test": "vitest run"
 	},
@@ -81,6 +70,7 @@
 		"onetime": "^6.0.0",
 		"open": "^9.1.0",
 		"outdent": "^0.8.0",
+		"pathe": "^1.1.2",
 		"p-queue": "^7.3.4",
 		"p-retry": "^6.0.0",
 		"p-throttle": "^5.1.0",
@@ -113,6 +103,8 @@
 		"zod": "^3.22.2"
 	},
 	"devDependencies": {
+		"@tunnel/eslint-config": "^0.0.16",
+		"@tunnel/tsconfig": "^0.0.0",
 		"@types/ansi-align": "^3.0.0",
 		"@types/command-exists": "^1.2.0",
 		"@types/console-clear": "^1.1.0",
@@ -125,11 +117,31 @@
 		"@types/shell-quote": "^1.7.1",
 		"@types/tcp-port-used": "^1.0.1",
 		"@types/which": "^3.0.0",
-		"lionconfig": "^3.1.0",
-		"typescript": "^5.2.2",
-		"vitest": "^0.34.3"
+		"dprint": "^0.45.0",
+		"tsx": "^4.7.0",
+		"typescript": "^5.3.3",
+		"unbuild": "^2.0.0",
+		"vitest": "^1.2.2"
 	},
-	"publishConfig": {
-		"directory": "dist"
-	}
+	"keywords": [
+		"kubernetes",
+		"localhost",
+		"local",
+		"development",
+		"tui",
+		"develop",
+		"concurrently",
+		"log"
+	],
+	"license": "MIT",
+	"author": {
+		"name": "Leon Si",
+		"email": "leon@leonsilicon.com",
+		"url": "https://leonsilicon.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/leonsilicon/localdev.git"
+	},
+	"homepage": "https://github.com/leonsilicon/localdev#readme"
 }

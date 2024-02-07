@@ -1,3 +1,3 @@
-const { createESLintConfig } = require('lionconfig/eslint')
+const { createESLintConfig } = require('@tunnel/eslint-config');
 
-module.exports = createESLintConfig(__dirname)
+module.exports = createESLintConfig(__dirname);

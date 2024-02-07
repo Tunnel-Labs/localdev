@@ -19,38 +19,38 @@ Then, create a `localdev.config.mjs` file in the root of your project:
 
 /** @type {import('localdev-tui').LocaldevConfig} */
 export default {
-  servicesToLog: {
-    'my-website': true
-  },
-  services: {
-    'my-website': {
-      healthCheck: {
-        port: 3001
-      },
-      command: {
-        string: "npm run start"
-      }
-    },
-  },
-  localDomains: ['my-website.test'],
-  proxyRouter(req) {
-    const hostname = req.hostname
+	servicesToLog: {
+		'my-website': true,
+	},
+	services: {
+		'my-website': {
+			healthCheck: {
+				port: 3001,
+			},
+			command: {
+				string: 'npm run start',
+			},
+		},
+	},
+	localDomains: ['my-website.test'],
+	proxyRouter(req) {
+		const hostname = req.hostname;
 
-    if (hostname === 'my-website.test') {
-      return 'http://127.0.0.1:3001'
-    }
-  }
-}
+		if (hostname === 'my-website.test') {
+			return 'http://127.0.0.1:3001';
+		}
+	},
+};
 ```
 
 Then, add a `dev` script in your project's `package.json` file:
 
 ```jsonc
 {
-  "scripts": {
-    "dev": "localdev",
-    // ...
-  }
+	"scripts": {
+		"dev": "localdev"
+		// ...
+	}
 }
 ```
 

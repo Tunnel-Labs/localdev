@@ -1,14 +1,12 @@
 {
-	"extends": "lionconfig/tsconfig.json",
-	"compilerOptions": {
-		"outDir": "dist",
-		"rootDir": "src",
-		"baseUrl": ".",
-		// Can't use `react-jsx` because React 17 exports are broken
-		"jsx": "react",
-		"paths": {
-			"~/*": ["./src/*"]
-		}
-	},
-	"include": ["./src"]
+	"extends": "@tunnel/tsconfig",
+	"include": [
+		"./bin",
+		"./exports",
+		"./scripts",
+		"./test",
+		"./types",
+		"./utils",
+		"command-panes"
+	]
 }

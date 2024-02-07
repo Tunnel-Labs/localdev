@@ -1,5 +1,5 @@
-import { test } from 'vitest'
+import { test } from 'vitest';
 
 test('test', () => {
 	// TODO
-})
+});
