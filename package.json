@@ -1,7 +1,7 @@
 {
 	"name": "localdev-tui",
 	"type": "module",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"description": "A TUI for local development.",
 	"exports": {
 		"import": {
@@ -144,7 +144,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/leonsilicon/localdev.git"
+		"url": "https://github.com/Tunnel-Labs/localdev.git"
 	},
-	"homepage": "https://github.com/leonsilicon/localdev#readme"
+	"homepage": "https://github.com/Tunnel-Labs/localdev#readme"
 }
