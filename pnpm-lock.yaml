@@ -132,8 +132,8 @@ dependencies:
     specifier: ^5.0.1
     version: 5.0.1
   node-pty:
-    specifier: ^1.0.0
-    version: 1.0.0
+    specifier: ^1.1.0-beta7
+    version: 1.1.0-beta7
   onetime:
     specifier: ^6.0.0
     version: 6.0.0
@@ -5399,10 +5399,6 @@ packages:
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
     dev: false
 
-  /nan@2.17.0:
-    resolution: {integrity: sha512-2ZTgtl0nJsO0KQCjEpxcIr5D+Yv90plTitZt9JBfQvVJDS5seMl3FOvsh3+9CoYWXf/1l5OaZzzF6nDm4cagaQ==}
-    dev: false
-
   /nanoid-nice@1.0.6:
     resolution: {integrity: sha512-ch1Q98d45Qs7G10oP7ikviMt6Ib2Ajr3TVp1WTDNCfILuzDIgJD9myG/v0o2E1tKATt96951WQo7LAPayb0O0Q==}
     dependencies:
@@ -5441,6 +5437,11 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
+  /node-addon-api@7.1.0:
+    resolution: {integrity: sha512-mNcltoe1R8o7STTegSOHdnJNN7s5EUvhoS7ShnTHDyOSd+8H+UdWODq6qSv67PjC8Zc5JRT8+oLAMCr0SIXw7g==}
+    engines: {node: ^16 || ^18 || >= 20}
+    dev: false
+
   /node-powershell@5.0.1:
     resolution: {integrity: sha512-3Dcr0jTmwS9vGMTBgVmmGSTNw9byWT4djNYQF4BqI54DAX0GiW5oPPUPgChLimoIG0Eu0QgkUFSMq+xtT5xUsQ==}
     dependencies:
@@ -5450,11 +5451,11 @@ packages:
       - supports-color
     dev: false
 
-  /node-pty@1.0.0:
-    resolution: {integrity: sha512-wtBMWWS7dFZm/VgqElrTvtfMq4GzJ6+edFI0Y0zyzygUSZMgZdraDUMUhCIvkjhJjme15qWmbyJbtAx4ot4uZA==}
+  /node-pty@1.1.0-beta7:
+    resolution: {integrity: sha512-tOVzAdkcoBUTtPxvLorke0+JdFceeNpgwk6PzJQCXLrQ5+Cm5U3zlOtM2jaX+IWAc6E7lRCdpjeLIdhQ+rxHOA==}
     requiresBuild: true
     dependencies:
-      nan: 2.17.0
+      node-addon-api: 7.1.0
     dev: false
 
   /node-releases@2.0.14:

@@ -69,7 +69,7 @@
 		"minimist": "^1.2.8",
 		"nanoid-nice": "^1.0.6",
 		"node-powershell": "^5.0.1",
-		"node-pty": "^1.0.0",
+		"node-pty": "^1.1.0-beta7",
 		"onetime": "^6.0.0",
 		"open": "^9.1.0",
 		"outdent": "^0.8.0",
